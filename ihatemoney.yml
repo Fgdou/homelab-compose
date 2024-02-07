@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  ihatemoney:
+    image: ihatemoney/ihatemoney:latest
+    container_name: ihatemoney
+    environment:
+      - PORT=8000
+      - PUID=0
+      - PGID=0
+    volumes:
+      - /data/ihatemoney:/database
+    restart: unless-stopped
+    networks:
+      - nas
+networks:
+  nas:
+    external: true

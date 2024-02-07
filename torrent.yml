@@ -1,0 +1,78 @@
+version: "3"
+services:
+  radarr:
+    image: lscr.io/linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - /films/Radarr:/config
+      - /films/Films/films:/movies #optional
+      - /films/Films/Download/radarr:/downloads #optional
+    restart: unless-stopped
+    user: root:users
+    networks:
+      - nas
+    depends_on:
+      - rdtclient
+      - prowlarr
+
+  sonarr:
+    image: ghcr.io/linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - /films/Sonarr:/config
+      - /films/Films/series:/tv #optional
+      - /films/Films/Download/tv-sonarr:/download #optional
+    restart: unless-stopped
+    user: root:users
+    depends_on:
+      - rdtclient
+      - prowlarr
+    networks:
+      - nas
+
+  rdtclient:
+    volumes:
+      - /films/Films/Download:/data/downloads
+      - /films/rdtclient/:/data/db
+    image: rogerfar/rdtclient:2.0.49
+    restart: always
+    networks:
+      - nas
+
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - /films/prowlarr:/config
+    restart: unless-stopped
+    networks:
+      - nas
+
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:1.7.0
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Asia/Tashkent
+    volumes:
+      - /films/jellyseerr:/app/config
+    restart: unless-stopped
+    networks:
+      - nas
+
+networks:
+  nas:
+    external: true

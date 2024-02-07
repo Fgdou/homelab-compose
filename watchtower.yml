@@ -1,0 +1,10 @@
+services:
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:amd64-latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: sr
+    environment:
+      WATCHTOWER_SCHEDULE: 0 * * * *

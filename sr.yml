@@ -1,0 +1,11 @@
+services:
+  sr:
+    image: ghcr.io/fgdou/sr_project:master
+    container_name: sr
+    networks:
+      - nas
+    restart: always
+
+networks:
+  nas:
+    external: true

@@ -1,0 +1,17 @@
+version: '2'
+services:
+
+  jdownloader:
+    image: jlesage/jdownloader-2
+    restart: always
+    volumes:
+      - /films/JDownloader:/config:rw
+      - /films/Films/Download:/output:rw
+    environment:
+      - JAVA_OPTS="-Xms128m -Xmx512"
+    networks:
+      - nas
+
+networks:
+  nas:
+    external: true

@@ -1,0 +1,22 @@
+version: "2.1"
+services:
+  jellyfin:
+    image: ghcr.io/linuxserver/jellyfin:10.8.13
+
+
+    container_name: jellyfin
+    user: root:users
+    environment:
+      - TZ=Europe/London
+      #- JELLYFIN_PublishedServerUrl=192.168.0.5 #optional
+    volumes:
+      - /films/Jellyfin:/config
+      - /films/Films:/data/movies
+      - /films/Jellyfin/config.json:/usr/share/jellyfin/web/config.json
+    restart: unless-stopped
+    networks:
+      - nas
+
+networks:
+  nas:
+    external: true

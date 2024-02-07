@@ -1,0 +1,17 @@
+version: '2'
+services:
+
+  VaultWarden:
+    image: vaultwarden/server:1.30.3
+    restart: always
+    user: "root:users"
+    volumes:
+      - /data/VaultWarden:/data/
+    environment:
+            - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
+    networks:
+      - nas
+
+networks:
+  nas:
+    external: true

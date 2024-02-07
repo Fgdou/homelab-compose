@@ -1,0 +1,27 @@
+version: "3"
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v1.0.0-RC2
+    container_name: mealie
+    deploy:
+      resources:
+        limits:
+          memory: 1000M # 
+    volumes:
+      - /data/maelie:/app/data/
+    environment:
+    # Set Backend ENV Variables Here
+      - ALLOW_SIGNUP=true
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Paris
+      - MAX_WORKERS=1
+      - WEB_CONCURRENCY=1
+      - BASE_URL=https://mealie.fgdou.ovh
+    restart: always
+    networks:
+      - nas
+
+networks:
+  nas:
+    external: true

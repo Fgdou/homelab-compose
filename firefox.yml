@@ -1,0 +1,11 @@
+services:
+  firefox:
+    image: lscr.io/linuxserver/firefox:latest
+    container_name: firefox
+    shm_size: "1gb"
+    restart: no
+    networks:
+      - nas
+networks:
+  nas:
+    external: true

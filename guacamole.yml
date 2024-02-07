@@ -1,0 +1,56 @@
+version: '2.0'
+
+services:
+  guacd:
+    user: root:users
+    container_name: guacd_compose
+    image: guacamole/guacd
+    restart: always
+    volumes:
+    - /data/guac/drive:/drive:rw
+    - /data/guac/record:/record:rw
+    networks:
+      - nas
+  # postgres
+  postgres:
+    user: root:users
+    container_name: postgres_guacamole_compose
+    environment:
+      PGDATA: /var/lib/postgresql/data/guacamole
+      POSTGRES_DB: guacamole_db
+      POSTGRES_PASSWORD: ChooseYourOwnPasswordHere1234
+      POSTGRES_USER: guacamole_user
+    image: postgres:13.4
+    restart: always
+    volumes:
+    - /data/guac/init:/docker-entrypoint-initdb.d:ro
+    - /data/guac/data:/var/lib/postgresql/data:rw
+    networks:
+      - guac
+
+  # guacamole
+  guacamole:
+    user: root:users
+    container_name: guacamole_compose
+    depends_on:
+    - guacd
+    - postgres
+    environment:
+      GUACD_HOSTNAME: guacd
+      POSTGRESQL_DATABASE: guacamole_db
+      POSTGRESQL_HOSTNAME: postgres
+      POSTGRESQL_PASSWORD: ChooseYourOwnPasswordHere1234
+      POSTGRESQL_USER: guacamole_user
+    image: guacamole/guacamole
+    links:
+    - guacd
+    restart: always
+    networks:
+      - nas
+      - guac
+
+networks:
+  nas:
+    external: true
+  guac:
+    driver: bridge
