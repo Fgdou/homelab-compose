@@ -8,6 +8,9 @@ services:
       - PORT=8000
       - PUID=0
       - PGID=0
+      - ACTIVATE_ADMIN_DASHBOARD=True
+      - ADMIN_PASSWORD=${IHATEMONEY_ADMIN_PASSWORD}
+      - ALLOW_PUBLIC_PROJECT_CREATION=False
     volumes:
       - /data/ihatemoney:/database
     restart: unless-stopped
