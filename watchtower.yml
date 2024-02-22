@@ -5,6 +5,6 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: sr
+    command: sr sr_dev
     environment:
       WATCHTOWER_SCHEDULE: 0 * * * *
