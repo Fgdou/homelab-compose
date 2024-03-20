@@ -12,6 +12,16 @@ services:
       - /data/nginx/letsencrypt:/etc/letsencrypt
     networks:
       - nas
+  ddclient:
+    image: lscr.io/linuxserver/ddclient:3.11.2
+    container_name: ddclient
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /data/nginx/ddclient:/config
+    restart: unless-stopped
 
 networks:
   nas:
