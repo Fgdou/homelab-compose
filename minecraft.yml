@@ -19,6 +19,7 @@ services:
       AUTOPAUSE_TIMEOUT_EST: 10
       AUTOPAUSE_TIMEOUT_INIT: 10
       AUTOPAUSE_TIMEOUT_KN: 10
+      STOP_SERVER_ANNOUNCE_DELAY: 10
     volumes:
       # attach the relative directory 'data' to the container's /data path
       - /data/minecraft:/data
