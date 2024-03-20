@@ -16,9 +16,9 @@ services:
       ENABLE_AUTOPAUSE: "true"
       JVM_DD_OPTS: "disable.watchdog:true"
       MAX_TICK_TIME: "-1"
-      AUTOPAUSE_TIMEOUT_EST: 100
-      AUTOPAUSE_TIMEOUT_INIT: 100
-      AUTOPAUSE_TIMEOUT_KN: 100
+      AUTOPAUSE_TIMEOUT_EST: 10
+      AUTOPAUSE_TIMEOUT_INIT: 10
+      AUTOPAUSE_TIMEOUT_KN: 10
     volumes:
       # attach the relative directory 'data' to the container's /data path
       - /data/minecraft:/data
