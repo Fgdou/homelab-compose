@@ -7,14 +7,6 @@ services:
     restart: always
     volumes:
       - /data/sr/leaderboard:/app/leaderboard
-  sr_dev:
-    image: ghcr.io/fgdou/sr_project:develop
-    container_name: sr_dev
-    networks:
-      - nas
-    restart: always
-    volumes:
-      - /data/sr/leaderboard_dev:/app/leaderboard
 
 networks:
   nas:
