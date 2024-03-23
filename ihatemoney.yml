@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   ihatemoney:
-    image: ihatemoney/ihatemoney:latest
+    image: ihatemoney/ihatemoney:6.1.5
     container_name: ihatemoney
     environment:
       - PORT=8000
@@ -11,6 +11,12 @@ services:
       - ACTIVATE_ADMIN_DASHBOARD=True
       - ADMIN_PASSWORD=${IHATEMONEY_ADMIN_PASSWORD}
       - ALLOW_PUBLIC_PROJECT_CREATION=False
+      - MAIL_SERVER=mail.fgdou.ovh
+      - MAIL_PORT=587
+      - MAIL_USE_TLS=True
+      - MAIL_USERNAME=no-reply@fgdou.ovh
+      - MAIL_PASSWORD=${SMTP_PASSWORD}
+      - DEFAULT_MAIL_SENDER=IHateMoney <no-reply@fgdou.ovh>
     volumes:
       - /data/ihatemoney:/database
     restart: unless-stopped
