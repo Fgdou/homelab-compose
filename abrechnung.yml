@@ -1,0 +1,54 @@
+services:
+  api:
+    command: api
+    image: quay.io/abrechnung/api:latest-release
+    hostname: abrechnung_api
+    networks:
+      - abrechnung
+      - nas
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    volumes:
+      - /data/abrechnung/api:/etc/abrechnung
+  frontend:
+    depends_on:
+      - api
+    networks:
+      - abrechnung
+      - nas
+    hostname: abrechnung_front
+    image: quay.io/abrechnung/frontend:latest-release
+    restart: unless-stopped
+  mailer:
+    networks:
+      - abrechnung
+    command: mailer
+    image: quay.io/abrechnung/api:latest-release
+    restart: unless-stopped
+    volumes:
+      - /data/abrechnung/api:/etc/abrechnung
+  cron:
+    networks:
+      - abrechnung
+    command: cron
+    image: quay.io/abrechnung/api:latest-release
+    restart: unless-stopped
+    volumes:
+      - /data/abrechnung/api:/etc/abrechnung
+  postgres:
+    networks:
+      - abrechnung
+    image: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+      PGDATA: /data/postgres
+    volumes:
+      - /data/abrechnung/postgres:/data/postgres
+    restart: unless-stopped
+networks:
+  abrechnung:
+  nas:
+    external: true
