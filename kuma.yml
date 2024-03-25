@@ -1,0 +1,11 @@
+services:
+  kuma:
+    image: louislam/uptime-kuma:1
+    networks:
+      - nas
+    volumes:
+      - /data/kuma:/app/data
+    restart: unless-stopped
+networks:
+  nas:
+    external: true
