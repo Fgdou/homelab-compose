@@ -5,7 +5,6 @@ services:
     hostname: abrechnung_api
     networks:
       - abrechnung
-      - nas
     restart: unless-stopped
     depends_on:
       - postgres
