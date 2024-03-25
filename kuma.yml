@@ -1,6 +1,6 @@
 services:
   kuma:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma:1.23.11
     networks:
       - nas
     volumes:
