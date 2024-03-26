@@ -4,7 +4,7 @@ services:
   guacd:
     user: root:users
     container_name: guacd_compose
-    image: guacamole/guacd
+    image: guacamole/guacd:1.5.4
     restart: always
     volumes:
     - /data/guac/drive:/drive:rw
@@ -41,7 +41,7 @@ services:
       POSTGRESQL_HOSTNAME: postgres
       POSTGRESQL_PASSWORD: ChooseYourOwnPasswordHere1234
       POSTGRESQL_USER: guacamole_user
-    image: guacamole/guacamole
+    image: guacamole/guacamole:1.5.4
     links:
     - guacd
     restart: always
