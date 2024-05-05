@@ -7,7 +7,7 @@ services:
     stdin_open: true
     restart: unless-stopped
     ports:
-      - "25565:25565"
+      - "25566:25565"
     environment:
       EULA: "TRUE"
       VERSION: "1.20.4"
