@@ -21,6 +21,7 @@ services:
     restart: unless-stopped
   db:
     image: postgres:16.1
+    container_name: nextcloud_db
     volumes:
       - /data/nextcloud/db:/var/lib/postgresql/data
     environment:
