@@ -42,7 +42,7 @@ services:
     volumes:
       - /films/Films/Download:/data/downloads
       - /films/rdtclient/:/data/db
-    image: rogerfar/rdtclient:2.0.49
+    image: rogerfar/rdtclient:2.0.78
     restart: always
     networks:
       - nas
