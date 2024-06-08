@@ -20,7 +20,7 @@ services:
     volumes:
       - "/var/run/libvirt/libvirt-sock:/var/run/libvirt/libvirt-sock"
       - "/var/lib/libvirt/images:/var/lib/libvirt/images"
-      - "/data/kvm:/data/kvm"
+      - "/films/kvm:/films/kvm"
     devices:
       - "/dev/kvm:/dev/kvm"
 networks:
