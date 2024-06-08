@@ -41,6 +41,12 @@ services:
       POSTGRESQL_HOSTNAME: postgres
       POSTGRESQL_PASSWORD: ChooseYourOwnPasswordHere1234
       POSTGRESQL_USER: guacamole_user
+      OPENID_AUTHORIZATION_ENDPOINT: https://auth.fgdou.ovh/application/o/authorize/
+      OPENID_CLIENT_ID: PaItAZvi1wxJuN1QVdhyxCM7xDaDIze6ZUp3Jr4D
+      OPENID_ISSUER: https://auth.fgdou.ovh/application/o/guacamole/
+      OPENID_JWKS_ENDPOINT: https://auth.fgdou.ovh/application/o/guacamole/jwks/
+      OPENID_REDIRECT_URI: https://guacamole.fgdou.ovh/guacamole/
+      OPENID_USERNAME_CLAIM_TYPE: sub
     image: guacamole/guacamole:1.5.4
     links:
     - guacd

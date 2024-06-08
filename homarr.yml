@@ -5,13 +5,22 @@ version: '3'
 services:
   homarr:
     container_name: homarr
-    image: ghcr.io/ajnart/homarr:0.15.2
+    image: ghcr.io/ajnart/homarr:0.15.3
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
       - /data/homarr/configs:/app/data/configs
       - /data/homarr/icons:/app/public/icons
       - /data/homarr/data:/data
+    #environment:
+      #AUTH_PROVIDER: oidc
+      #AUTH_OIDC_URI: https://auth.fgdou.ovh/application/o/homarr/
+      #AUTH_OIDC_CLIENT_ID: uYZhJH9McaSbDb32rgj9WiT1pZQTGzcKuaZXQJlU
+      #AUTH_OIDC_CLIENT_SECRET: ${AUTHENTIK_HOMARR_SECRET}
+      #AUTH_OIDC_ADMIN_GROUP: server_admin
+      #AUTH_OIDC_AUTO_LOGIN: true
+      #NEXTAUTH_URL: https://apps.fgdou.ovh/
+
     networks:
       - nas
 

@@ -1,7 +1,7 @@
 version: "3"
 services:
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v1.3.2
+    image: ghcr.io/mealie-recipes/mealie:v1.8.0
     container_name: mealie
     deploy:
       resources:
@@ -11,7 +11,7 @@ services:
       - /data/maelie:/app/data/
     environment:
     # Set Backend ENV Variables Here
-      - ALLOW_SIGNUP=true
+      - ALLOW_SIGNUP=false
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Paris
@@ -23,6 +23,11 @@ services:
       - SMTP_USER=no-reply@fgdou.ovh
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_AUTH_STRATEGY=TLS
+      - OIDC_AUTH_ENABLED=true
+      - OIDC_CONFIGURATION_URL=https://auth.fgdou.ovh/application/o/mealie/.well-known/openid-configuration
+      - OIDC_CLIENT_ID=E9KSp7i2gahMqkkdvQalGBb8AWVZR5k26a9HNf5P
+      - OIDC_AUTO_REDIRECT=true
+      - OIDC_USER_CLAIM=sub
     restart: always
     networks:
       - nas
