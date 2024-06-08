@@ -27,6 +27,7 @@ services:
       - OIDC_CONFIGURATION_URL=https://auth.fgdou.ovh/application/o/mealie/.well-known/openid-configuration
       - OIDC_CLIENT_ID=E9KSp7i2gahMqkkdvQalGBb8AWVZR5k26a9HNf5P
       - OIDC_AUTO_REDIRECT=true
+      - OIDC_ADMIN_GROUP=server_admin
       - OIDC_USER_CLAIM=sub
     restart: always
     networks:
