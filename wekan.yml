@@ -1,0 +1,48 @@
+version: '3'
+services:
+  wekandb:
+    image: mongo:6
+    container_name: wekan-db
+    restart: always
+    command: mongod --logpath /dev/null --oplogSize 128 --quiet
+    networks:
+      - wekan
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /data/wekan/db:/data/db
+  wekan:
+    image: wekanteam/wekan:v7.49
+    networks:
+      - nas
+      - wekan
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /data/wekan/data:/data:rw
+    environment:
+      WRITABLE_PATH: /data
+      ROOT_URL: https://board.fgdou.ovh
+      MAIL_URL: smtp://no-reply@fgdou.ovh:${SMTP_PASSWORD}@mail.fgdou.ovh:587
+      MAIL_FROM: Wekan <no-reply@fgdou.ovh>
+      MONGO_URL: mongodb://wekandb:27017/wekan
+
+      OAUTH2_ENABLED: true
+      OAUTH2_LOGIN_STYLE: redirect
+      OAUTH2_CLIENT_ID: uOdBIl3CgzOgXtN2RddJKuQ5pqryeXBCp8ugwR7r
+      OAUTH2_SERVER_URL: https://auth.fgdou.ovh
+      OAUTH2_AUTH_ENDPOINT: /application/o/authorize/
+      OAUTH2_USERINFO_ENDPOINT: /application/o/userinfo/
+      OAUTH2_TOKEN_ENDPOINT: /application/o/token/
+      OAUTH2_SECRET: ${AUTHENTIK_WEKAN_SECRET}
+      OAUTH2_ID_MAP: sub
+      OAUTH2_USERNAME_MAP: email
+      OAUTH2_FULLNAME_MAP: given_name
+      OAUTH2_EMAIL_MAP: email
+      OIDC_REDIRECTION_ENABLED: true
+    depends_on:
+      - wekandb
+
+networks:
+  nas:
+    external: true
+  wekan:
