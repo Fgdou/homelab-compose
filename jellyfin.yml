@@ -1,4 +1,3 @@
-version: "2.1"
 services:
   jellyfin:
     image: ghcr.io/linuxserver/jellyfin:10.9.6
