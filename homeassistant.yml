@@ -2,7 +2,7 @@ services:
   homeassistant:
     container_name: homeassistant
     hostname: homeassistant
-    image: homeassistant/home-assistant:2024.5
+    image: homeassistant/home-assistant:2024.6.2
     volumes:
       - /data/Homeassistant/core:/config
       - /etc/localtime:/etc/localtime:ro
@@ -16,20 +16,6 @@ services:
     user: "root:users"
     devices:
       - /dev/ttyACM0:/dev/ttyACM0
-  nodered:
-    image: nodered/node-red:3.1
-    user: "root:users"
-    restart: unless-stopped
-    hostname: nodered
-    environment:
-      - TZ=Europe/Amsterdam
-    networks:
-      - nas
-    volumes:
-      - /data/Homeassistant/nodered:/data
-    depends_on:
-      - homeassistant
-
 networks:
   nas:
     external: true
