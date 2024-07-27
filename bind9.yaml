@@ -1,0 +1,14 @@
+services:
+  bind9:
+    image: ubuntu/bind9:9.18-22.04_beta
+    ports:
+    - 53:53/tcp
+    - 53:53/udp
+    volumes:
+    - /data/bind9:/etc/bind
+    - cache:/var/cache/bind
+    environment:
+      BIND9_USER: root
+    restart: unless-stopped
+volumes:
+  cache:
