@@ -6,6 +6,12 @@ services:
     restart: unless-stopped
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.firefox.rule=Host(`firefox.fgdou.ovh`)'
+      - 'traefik.http.routers.firefox.entryPoints=websecure'
+      - 'traefik.http.services.firefox.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.firefox.middlewares=authentik@docker'
 networks:
   nas:
     external: true

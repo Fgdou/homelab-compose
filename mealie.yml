@@ -31,6 +31,11 @@ services:
     restart: always
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mealie.rule=Host(`mealie.fgdou.ovh`)'
+      - 'traefik.http.routers.mealie.entryPoints=websecure'
+      - 'traefik.http.services.mealie.loadbalancer.server.port=9000'
 
 networks:
   nas:

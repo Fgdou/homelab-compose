@@ -10,6 +10,12 @@ services:
       - JAVA_OPTS="-Xms128m -Xmx512"
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.jdownloader.rule=Host(`jdownloader.fgdou.ovh`)'
+      - 'traefik.http.routers.jdownloader.entryPoints=websecure'
+      - 'traefik.http.services.jdownloader.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.jdownloader.middlewares=authentik@docker'
 
 networks:
   nas:

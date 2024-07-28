@@ -52,6 +52,11 @@ services:
     networks:
       - nas
       - guac
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.guacamole.rule=Host(`guacamole.fgdou.ovh`)'
+      - 'traefik.http.routers.guacamole.entryPoints=websecure'
+      - 'traefik.http.services.guacamole.loadbalancer.server.port=8080'
 
 networks:
   nas:

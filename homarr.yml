@@ -19,6 +19,11 @@ services:
       #AUTH_OIDC_ADMIN_GROUP: server_admin
       #AUTH_OIDC_AUTO_LOGIN: true
       #NEXTAUTH_URL: https://apps.fgdou.ovh/
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.homarr.rule=Host(`apps.fgdou.ovh`)'
+      - 'traefik.http.routers.homarr.entryPoints=websecure'
+      - 'traefik.http.services.homarr.loadbalancer.server.port=7575'
 
     networks:
       - nas

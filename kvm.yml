@@ -23,6 +23,12 @@ services:
       - "/films/kvm:/films/kvm"
     devices:
       - "/dev/kvm:/dev/kvm"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.kvm.rule=Host(`kvm.fgdou.ovh`)'
+      - 'traefik.http.routers.kvm.entryPoints=websecure'
+      - 'traefik.http.services.kvm.loadbalancer.server.port=80'
+      - 'traefik.http.routers.kvm.middlewares=authentik@docker'
 networks:
   nas:
     external: true

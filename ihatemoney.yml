@@ -20,6 +20,11 @@ services:
     restart: unless-stopped
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.ihatemoney.rule=Host(`ihatemoney.fgdou.ovh`)'
+      - 'traefik.http.routers.ihatemoney.entryPoints=websecure'
+      - 'traefik.http.services.ihatemoney.loadbalancer.server.port=8000'
 networks:
   nas:
     external: true

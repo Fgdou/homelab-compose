@@ -16,6 +16,9 @@ services:
     user: "root:users"
     devices:
       - /dev/ttyACM0:/dev/ttyACM0
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network='
 networks:
   nas:
     external: true

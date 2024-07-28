@@ -14,6 +14,12 @@ services:
     depends_on:
       - rdtclient
       - prowlarr
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.radarr.rule=Host(`radarr.fgdou.ovh`)'
+      - 'traefik.http.routers.radarr.entryPoints=websecure'
+      - 'traefik.http.services.radarr.loadbalancer.server.port=7878'
+      - 'traefik.http.routers.radarr.middlewares=authentik@docker'
 
   sonarr:
     image: ghcr.io/linuxserver/sonarr:4.0.6
@@ -30,6 +36,12 @@ services:
       - prowlarr
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.sonarr.rule=Host(`sonarr.fgdou.ovh`)'
+      - 'traefik.http.routers.sonarr.entryPoints=websecure'
+      - 'traefik.http.services.sonarr.loadbalancer.server.port=8989'
+      - 'traefik.http.routers.sonarr.middlewares=authentik@docker'
 
   rdtclient:
     volumes:
@@ -39,6 +51,12 @@ services:
     restart: always
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.rdtclient.rule=Host(`rdtclient.fgdou.ovh`)'
+      - 'traefik.http.routers.rdtclient.entryPoints=websecure'
+      - 'traefik.http.services.rdtclient.loadbalancer.server.port=6500'
+      - 'traefik.http.routers.rdtclient.middlewares=authentik@docker'
 
 
   prowlarr:
@@ -50,6 +68,12 @@ services:
     restart: unless-stopped
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.prowlarr.rule=Host(`prowlarr.fgdou.ovh`)'
+      - 'traefik.http.routers.prowlarr.entryPoints=websecure'
+      - 'traefik.http.services.prowlarr.loadbalancer.server.port=9696'
+      - 'traefik.http.routers.prowlarr.middlewares=authentik@docker'
 
 
   jellyseerr:
@@ -63,6 +87,11 @@ services:
     restart: unless-stopped
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.fgdou.ovh`)'
+      - 'traefik.http.routers.jellyseerr.entryPoints=websecure'
+      - 'traefik.http.services.jellyseerr.loadbalancer.server.port=5055'
 
 networks:
   nas:

@@ -40,6 +40,11 @@ services:
       OIDC_REDIRECTION_ENABLED: true
     depends_on:
       - wekandb
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.wekan.rule=Host(`board.fgdou.ovh`)'
+      - 'traefik.http.routers.wekan.entryPoints=websecure'
+      - 'traefik.http.services.wekan.loadbalancer.server.port=8080'
 
 networks:
   nas:

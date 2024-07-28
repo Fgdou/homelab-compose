@@ -7,6 +7,11 @@ services:
     restart: always
     volumes:
       - /data/sr/leaderboard:/app/leaderboard
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.sr.rule=Host(`sr.fgdou.ovh`)'
+      - 'traefik.http.routers.sr.entryPoints=websecure'
+      - 'traefik.http.services.sr.loadbalancer.server.port=80'
 
 networks:
   nas:
