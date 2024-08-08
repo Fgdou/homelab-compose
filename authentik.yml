@@ -21,7 +21,7 @@ services:
       - .env
     networks:
       - authentik
-  redis:
+  authentik_redis:
     image: docker.io/library/redis:alpine
     command: --save 60 1 --loglevel warning
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
     container_name: authentik_server
     hostname: authentik_server
     environment:
-      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_REDIS__HOST: authentik_redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
@@ -58,7 +58,7 @@ services:
       - authentik
     depends_on:
       - postgresql
-      - redis
+      - authentik_redis
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.authentik.rule=Host(`auth.fgdou.ovh`)'
@@ -76,7 +76,7 @@ services:
     networks:
       - authentik
     environment:
-      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_REDIS__HOST: authentik_redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
@@ -97,7 +97,7 @@ services:
       - .env
     depends_on:
       - postgresql
-      - redis
+      - authentik_redis
   authentik_ldap:
         image: ghcr.io/goauthentik/ldap
         # Optionally specify which networks the container should be

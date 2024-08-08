@@ -14,24 +14,24 @@ services:
       - POSTGRES_DB=nextcloud
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_HOST=db
+      - POSTGRES_HOST=nextcloud_db
       - PHP_MEMORY_LIMIT=1024M
       - PHP_UPLOAD_LIMIT=1024M
-      - REDIS_HOST=redis
+      - REDIS_HOST=nextcloud_redis
     depends_on:
-      - db
-      - redis
+      - nextcloud_db
+      - nextcloud_redis
     restart: unless-stopped
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.fgdou.ovh`)'
       - 'traefik.http.routers.nextcloud.entryPoints=websecure'
       - 'traefik.http.services.nextcloud.loadbalancer.server.port=80'
-  redis:
+  nextcloud_redis:
     image: redis:7.4.0
     networks:
       - nextcloud
-  db:
+  nextcloud_db:
     image: postgres:16.1
     container_name: nextcloud_db
     volumes:
