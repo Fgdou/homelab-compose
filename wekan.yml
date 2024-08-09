@@ -38,6 +38,7 @@ services:
       OAUTH2_FULLNAME_MAP: given_name
       OAUTH2_EMAIL_MAP: email
       OIDC_REDIRECTION_ENABLED: true
+      PASSWORD_LOGIN_ENABLED: false
     depends_on:
       - wekandb
     labels:
