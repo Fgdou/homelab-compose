@@ -17,6 +17,7 @@ services:
       - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
       - "--entrypoints.websecure.http.tls.domains[0].main=fgdou.ovh"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.fgdou.ovh"
+      - "--entrypoints.ssh.address=:22"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.filename=/letsencrypt/config.yaml"
       - "--api.dashboard=true"
@@ -27,6 +28,7 @@ services:
     ports:
       - 80:80
       - 443:443
+      - 22:22
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/traefik:/letsencrypt
