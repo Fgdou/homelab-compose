@@ -1,6 +1,7 @@
 networks:
   nas:
     external: true
+  gitea:
 
 services:
   gitea:
@@ -11,6 +12,7 @@ services:
       - USER_GID=1000
     restart: always
     networks:
+      - gitea
       - nas
     volumes:
       - /data/gitea:/data
@@ -24,3 +26,14 @@ services:
       - 'traefik.tcp.routers.gitea.entrypoints=ssh'
       - 'traefik.tcp.routers.gitea.rule=HostSNI(`*`)'
       - 'traefik.tcp.services.gitea.loadbalancer.server.port=22'
+  gitea_runner:
+    image: gitea/act_runner:nightly
+    restart: always
+    networks:
+      - gitea
+    environment:
+      GITEA_INSTANCE_URL: "https://gitea.fgdou.ovh"
+      GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_REGISTRATION_TOKEN}"
+      GITEA_RUNNER_NAME: "Runner1"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
