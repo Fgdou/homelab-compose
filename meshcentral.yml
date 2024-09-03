@@ -3,23 +3,30 @@ services:
     restart: unless-stopped
     hostname: meshcentral
     container_name: meshcentral
-    image: typhonragewind/meshcentral:1.1.21
+    image: typhonragewind/meshcentral:1.1.27
     networks:
       - nas
     volumes:
       - /data/meshcentral/data:/opt/meshcentral/meshcentral-data    #config.json and other important files live here. A must for data persistence
       - /data/meshcentral/user_files:/opt/meshcentral/meshcentral-files    #where file uploads for users live
       - /data/meshcentral/backups:/opt/meshcentral/meshcentral-backups     #Backups location
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     environment:
       - HOSTNAME=meshcentral.fgdou.ovh     #your hostname
-      - REVERSE_PROXY=172.18.0.20     #set to your reverse proxy IP if you want to put meshcentral behind a reverse proxy
+      - REVERSE_PROXY=meshcentral.fgdou.ovh #set to your reverse proxy IP if you want to put meshcentral behind a reverse proxy
       - REVERSE_PROXY_TLS_PORT=443
       - IFRAME=false    #set to true if you wish to enable iframe support
-      - ALLOW_NEW_ACCOUNTS=true    #set to false if you want disable self-service creation of new accounts besides the first (admin)
+      - ALLOW_NEW_ACCOUNTS=false    #set to false if you want disable self-service creation of new accounts besides the first (admin)
       - WEBRTC=false  #set to true to enable WebRTC - per documentation it is not officially released with meshcentral, but is solid enough to work with. Use with caution
       - BACKUPS_PW=${ADMIN_PASSWORD} #password for the autobackup function
       - BACKUP_INTERVAL=24 # Interval in hours for the autobackup function
       - BACKUP_KEEP_DAYS=10 #number of days of backups the function keeps
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.meshcentral.rule=Host(`meshcentral.fgdou.ovh`)'
+      - 'traefik.http.routers.meshcentral.entryPoints=websecure'
+      - 'traefik.http.services.meshcentral.loadbalancer.server.port=443'
 networks:
   nas:
     external: true
