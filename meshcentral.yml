@@ -4,6 +4,8 @@ services:
     hostname: meshcentral
     container_name: meshcentral
     image: typhonragewind/meshcentral:1.1.27
+    dns:
+      - 1.1.1.1
     networks:
       - nas
     volumes:
