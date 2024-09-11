@@ -8,7 +8,7 @@ services:
       - "25566:25565"
     environment:
       EULA: "TRUE"
-      VERSION: "1.20.4"
+      VERSION: "1.21.1"
       TYPE: "PAPER"
       MAX_MEMORY: "4G"
       ENABLE_AUTOPAUSE: "true"
@@ -18,11 +18,17 @@ services:
       AUTOPAUSE_TIMEOUT_INIT: 10
       AUTOPAUSE_TIMEOUT_KN: 10
       STOP_SERVER_ANNOUNCE_DELAY: 10
+      ENABLE_WHITELIST: true
     volumes:
       # attach the relative directory 'data' to the container's /data path
       - /data/minecraft:/data
     networks:
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.bluemap.rule=Host(`minecraft.fgdou.ovh`)'
+      - 'traefik.http.routers.bluemap.entryPoints=websecure'
+      - 'traefik.http.services.bluemap.loadbalancer.server.port=8100'
 networks:
   nas:
     external: true
