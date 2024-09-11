@@ -22,6 +22,7 @@ services:
       - "--providers.file.filename=/letsencrypt/config.yaml"
       - "--api.dashboard=true"
       - "--api.insecure=true"
+      - "--serversTransport.insecureSkipVerify=true"
     environment:
       CLOUDFLARE_EMAIL: ${CLOUDFLARE_EMAIL}
       CLOUDFLARE_API_KEY: ${CLOUDFLARE_API_KEY}
