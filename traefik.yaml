@@ -23,6 +23,9 @@ services:
       - "--api.dashboard=true"
       - "--api.insecure=true"
       - "--serversTransport.insecureSkipVerify=true"
+      - "--metrics.prometheus=true"
+      - "--entryPoints.metrics.address=:8082"
+      - "--metrics.prometheus.entryPoint=metrics"
     environment:
       CLOUDFLARE_EMAIL: ${CLOUDFLARE_EMAIL}
       CLOUDFLARE_API_KEY: ${CLOUDFLARE_API_KEY}

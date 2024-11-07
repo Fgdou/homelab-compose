@@ -35,6 +35,13 @@ services:
     networks:
       - monitoring
       - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.prometheus.rule=Host(`prometheus.fgdou.ovh`)'
+      - 'traefik.http.routers.prometheus.entryPoints=websecure'
+      - 'traefik.http.services.prometheus.loadbalancer.server.port=9090'
+      - 'traefik.http.routers.prometheus.middlewares=authentik@docker'
+
 
   grafana:
     image: grafana/grafana:11.3.0
