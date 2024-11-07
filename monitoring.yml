@@ -1,0 +1,72 @@
+volumes:
+  prometheus_data: {}
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - /data/monitoring/prometheus:/prometheus
+    command:
+      - '--config.file=/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    extra_hosts:
+      host.docker.internal: host-gateway
+    networks:
+      - monitoring
+      - nas
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: grafana
+    restart: unless-stopped
+    volumes:
+      - /data/monitoring/grafana:/var/lib/grafana
+    environment:
+      GF_SERVER_ROOT_URL: https://grafana.fgdou.ovh/
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_NAME: "authentik"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "5Geuv1IQuwh222mjR9pHNTh70LK8InMLIwKasVCH"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: ${AUTHENTIK_GRAFANA_SECRET}
+      GF_AUTH_GENERIC_OAUTH_SCOPES: "openid profile email"
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://auth.fgdou.ovh/application/o/authorize/"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://auth.fgdou.ovh/application/o/token/"
+      GF_AUTH_GENERIC_OAUTH_API_URL: "https://auth.fgdou.ovh/application/o/userinfo/"
+      GF_AUTH_SIGNOUT_REDIRECT_URL: "https://auth.fgdou.ovh/application/o/grafana/end-session/"
+      # Optionally enable auto-login (bypasses Grafana login screen)
+      GF_AUTH_OAUTH_AUTO_LOGIN: "true"
+      # Optionally map user groups to Grafana roles
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(groups, 'admin') && 'Admin' || 'Viewer'"
+    networks:
+      - nas
+      - monitoring
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.grafana.rule=Host(`grafana.fgdou.ovh`)'
+      - 'traefik.http.routers.grafana.entryPoints=websecure'
+      - 'traefik.http.services.grafana.loadbalancer.server.port=3000'
+
+networks:
+  nas:
+    external: true
+  monitoring:
