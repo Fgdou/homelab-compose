@@ -42,6 +42,22 @@ services:
       - 'traefik.http.services.prometheus.loadbalancer.server.port=9090'
       - 'traefik.http.routers.prometheus.middlewares=authentik@docker'
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    restart: unless-stopped
+    userns_mode: "host"
+    networks:
+      - monitoring
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev:/dev:ro
+      - /sys:/sys:ro
+    devices:
+      - /dev/kmsg
+
 
   grafana:
     image: grafana/grafana:11.3.0
