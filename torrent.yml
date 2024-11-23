@@ -65,22 +65,6 @@ services:
     networks:
       - nas
 
-  rdtclient:
-    volumes:
-      - /films/Films/Download:/data/downloads
-      - /films/rdtclient/:/data/db
-    image: rogerfar/rdtclient:latest
-    restart: always
-    networks:
-      - nas
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.rdtclient.rule=Host(`rdtclient.fgdou.ovh`)'
-      - 'traefik.http.routers.rdtclient.entryPoints=websecure'
-      - 'traefik.http.services.rdtclient.loadbalancer.server.port=6500'
-      - 'traefik.http.routers.rdtclient.middlewares=authentik@docker'
-
-
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     environment:
@@ -114,6 +98,29 @@ services:
       - 'traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.fgdou.ovh`)'
       - 'traefik.http.routers.jellyseerr.entryPoints=websecure'
       - 'traefik.http.services.jellyseerr.loadbalancer.server.port=5055'
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
+    volumes:
+      - /films/qbittorrent:/config
+      - /films/Films/Download:/downloads #optional
+        #ports:
+      #- 6881:6881
+      #- 6881:6881/udp
+    restart: unless-stopped
+    networks:
+      - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.qbittorrent.rule=Host(`qbittorrent.fgdou.ovh`)'
+      - 'traefik.http.routers.qbittorrent.entryPoints=websecure'
+      - 'traefik.http.services.qbittorrent.loadbalancer.server.port=8080'
+      - 'traefik.http.routers.qbittorrent.middlewares=authentik@docker'
 
 networks:
   nas:
