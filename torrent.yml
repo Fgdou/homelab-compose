@@ -7,13 +7,13 @@ services:
     volumes:
       - /films/Radarr:/config
       - /films/Films/films:/movies #optional
-      - /films/Films/Download/radarr:/data/downloads #optional
+      - /films/Films/Download:/downloads #optional
     restart: unless-stopped
     networks:
       - nas
     depends_on:
-      - rdtclient
       - prowlarr
+      - qbittorrent
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.radarr.rule=Host(`radarr.fgdou.ovh`)'
@@ -29,10 +29,10 @@ services:
     volumes:
       - /films/Sonarr:/config
       - /films/Films/series:/tv #optional
-      - /films/Films/Download/tv-sonarr:/data/downloads #optional
+      - /films/Films/Download:/downloads #optional
     restart: unless-stopped
     depends_on:
-      - rdtclient
+      - qbittorrent
       - prowlarr
     networks:
       - nas
@@ -51,10 +51,10 @@ services:
     volumes:
       - /films/Whisparr:/config
       - /films/Films/Private:/private
-      - /films/Films/Download/whisparr:/data/downloads
+      - /films/Films/Download:/downloads
     restart: unless-stopped
     depends_on:
-      - rdtclient
+      - qbittorrent
       - prowlarr
     labels:
       - 'traefik.enable=true'
