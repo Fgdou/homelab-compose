@@ -74,12 +74,27 @@ services:
     restart: unless-stopped
     networks:
       - nas
+      - torrent
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.prowlarr.rule=Host(`prowlarr.fgdou.ovh`)'
       - 'traefik.http.routers.prowlarr.entryPoints=websecure'
       - 'traefik.http.services.prowlarr.loadbalancer.server.port=9696'
       - 'traefik.http.routers.prowlarr.middlewares=authentik@docker'
+
+
+  flaresolverr:
+    # DockerHub mirror flaresolverr/flaresolverr:latest
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=Europe/London
+    restart: unless-stopped
+    networks:
+      - torrent
 
 
   jellyseerr:
@@ -125,3 +140,4 @@ services:
 networks:
   nas:
     external: true
+  torrent:
