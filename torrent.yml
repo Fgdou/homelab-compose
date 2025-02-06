@@ -106,6 +106,8 @@ services:
     volumes:
       - /films/jellyseerr:/app/config
     restart: unless-stopped
+    dns:
+      - 1.1.1.1
     networks:
       - nas
     labels:
