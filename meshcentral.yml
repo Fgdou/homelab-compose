@@ -3,7 +3,7 @@ services:
     restart: unless-stopped
     hostname: meshcentral
     container_name: meshcentral
-    image: typhonragewind/meshcentral:1.1.27
+    image: typhonragewind/meshcentral:1.1.38
     dns:
       - 1.1.1.1
     networks:
