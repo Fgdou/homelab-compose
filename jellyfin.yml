@@ -1,6 +1,6 @@
 services:
   jellyfin:
-    image: ghcr.io/linuxserver/jellyfin:10.10.1
+    image: ghcr.io/linuxserver/jellyfin:10.10.5
     container_name: jellyfin
     user: root:users
     environment:
