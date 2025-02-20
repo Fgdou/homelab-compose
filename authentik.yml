@@ -98,20 +98,6 @@ services:
     depends_on:
       - postgresql
       - authentik_redis
-  authentik_ldap:
-        image: ghcr.io/goauthentik/ldap
-        # Optionally specify which networks the container should be
-        # might be needed to reach the core authentik server
-        # networks:
-        #   - foo
-        restart: always
-        environment:
-          AUTHENTIK_HOST: https://auth.fgdou.ovh
-          AUTHENTIK_INSECURE: "false"
-          AUTHENTIK_TOKEN: ${AUTHENTIK_LDAP_TOKEN}
-        networks:
-          - nas
-          - authentik
 
 networks:
   nas:
