@@ -27,6 +27,12 @@ services:
       - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.fgdou.ovh`)'
       - 'traefik.http.routers.nextcloud.entryPoints=websecure'
       - 'traefik.http.services.nextcloud.loadbalancer.server.port=80'
+    healthcheck:
+          test: curl --fail http://localhost:80/ || exit 1
+          interval: 40s
+          timeout: 30s
+          retries: 3
+          start_period: 60s
   nextcloud_redis:
     image: redis:7.4.0
     networks:
