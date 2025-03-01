@@ -18,6 +18,17 @@ services:
     networks:
       - monitoring
 
+  s3_exporter:
+    image: ribbybibby/s3-exporter:v0.5.0
+    restart: always
+    networks:
+      - monitoring
+    environment:
+      - AWS_ACCESS_KEY_ID=a7586b3e917c4addba864b7015a8a98c
+      - AWS_SECRET_ACCESS_KEY=${RESTIC_AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=gra
+    command: "--s3.endpoint-url 'https://s3.gra.io.cloud.ovh.net/'"
+
   prometheus:
     image: prom/prometheus:v2.55.1
     container_name: prometheus
