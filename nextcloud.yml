@@ -8,7 +8,7 @@ services:
       - /data/nextcloud/code:/var/www/html
     environment:
       - APACHE_DISABLE_REWRITE_IP=true
-      - TRUSTED_PROXIES=10.0.0.0/8 172.16.0.0/12
+      - TRUSTED_PROXIES=10.0.0.0/8 172.16.0.0/8
       - OVERWRITEHOST=nextcloud.fgdou.ovh
       - OVERWRITEPROTOCOL=https
       - POSTGRES_DB=nextcloud
