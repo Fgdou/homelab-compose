@@ -1,7 +1,7 @@
 services:
 
   VaultWarden:
-    image: vaultwarden/server:1.33.1
+    image: vaultwarden/server:1.33.2
     restart: always
     user: "root:users"
     volumes:
