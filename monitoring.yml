@@ -91,6 +91,13 @@ services:
       GF_AUTH_OAUTH_AUTO_LOGIN: "true"
       # Optionally map user groups to Grafana roles
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(groups, 'admin') && 'Admin' || 'Viewer'"
+      GF_SMTP_ENABLED: "true"
+      GF_SMTP_HOST: "mail.fgdou.ovh:465"
+      GF_SMTP_USER: "no-reply@fgdou.ovh"
+      GF_SMTP_PASSWORD: ${SMTP_PASSWORD}
+      GF_SMTP_FROM_ADDRESS: "no-reply@fgdou.ovh"
+      GF_SMTP_FROM_NAME: "Grafana"
+
     networks:
       - nas
       - monitoring
