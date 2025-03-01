@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  restic:
+    image: lobaro/restic-backup-docker:latest
+    hostname: nasrestic                                     # This will be visible in restic snapshot list
+    restart: always
+    privileged: true
+    volumes:
+      - /data:/data/Backup:ro               # Backup /volume1/Backup from host
+    environment:
+      - RESTIC_REPOSITORY=s3:https://s3.gra.io.cloud.ovh.net/fgdou-nas-backup # Backup to server "storageserver" 
+      - RESTIC_PASSWORD=${RESTIC_PASSWORD} # Password restic uses for encryption
+      - AWS_ACCESS_KEY_ID=a7586b3e917c4addba864b7015a8a98c
+      - AWS_SECRET_ACCESS_KEY=${RESTIC_AWS_SECRET_ACCESS_KEY}
+      - BACKUP_CRON=0 02 * * 1                             # Start backup every Sunday 22:00 UTC
+      - RESTIC_FORGET_ARGS=--prune --keep-last 3          # Only keep the last 12 snapshots
