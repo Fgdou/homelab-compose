@@ -18,6 +18,13 @@ services:
     networks:
       - monitoring
 
+  blackbox:
+    image: quay.io/prometheus/blackbox-exporter:v0.26.0
+    networks:
+      - monitoring
+      - nas
+    restart: always
+
   s3_exporter:
     image: ribbybibby/s3-exporter:v0.5.0
     restart: always
