@@ -25,6 +25,17 @@ services:
       - nas
     restart: always
 
+  json_exporter:
+    image: prometheuscommunity/json-exporter:v0.7.0
+    restart: always
+    networks:
+      - monitoring
+      - nas
+    volumes:
+      - /data/monitoring/json_exporter:/config:ro
+    command:
+      - '--config.file=/config/config.yml'
+
   s3_exporter:
     image: ribbybibby/s3-exporter:v0.5.0
     restart: always
@@ -45,6 +56,7 @@ services:
     command:
       - '--config.file=/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=60d'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--web.enable-lifecycle'
