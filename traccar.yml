@@ -1,0 +1,19 @@
+services:
+  traccar:
+    image: traccar/traccar:6.6
+    networks:
+      - nas
+    restart: unless-stopped
+    volumes:
+      - /data/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - /data/traccar/logs:/opt/traccar/logs
+      - /data/traccar/data:/opt/traccar/data
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.traccar.rule=Host(`traccar.fgdou.ovh`)'
+      - 'traefik.http.routers.traccar.entryPoints=websecure'
+      - 'traefik.http.services.traccar.loadbalancer.server.port=8082'
+
+networks:
+  nas:
+    external: true
