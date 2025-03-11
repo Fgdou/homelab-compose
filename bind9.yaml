@@ -10,5 +10,11 @@ services:
     environment:
       BIND9_USER: root
     restart: unless-stopped
+    networks:
+      nas:
+        ipv4_address: 172.18.0.254
 volumes:
   cache:
+networks:
+  nas:
+    external: true
