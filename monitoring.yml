@@ -23,6 +23,8 @@ services:
     networks:
       - monitoring
       - nas
+    dns:
+      - 1.1.1.1
     restart: always
 
   json_exporter:
