@@ -13,5 +13,5 @@ services:
       - RESTIC_PASSWORD=${RESTIC_PASSWORD} # Password restic uses for encryption
       - AWS_ACCESS_KEY_ID=a7586b3e917c4addba864b7015a8a98c
       - AWS_SECRET_ACCESS_KEY=${RESTIC_AWS_SECRET_ACCESS_KEY}
-      - BACKUP_CRON=0 02 * * 1                             # Start backup every Sunday 22:00 UTC
+      - BACKUP_CRON=0 02 * * 0                             # Start backup every Sunday 22:00 UTC
       - RESTIC_FORGET_ARGS=--prune --keep-last 3          # Only keep the last 12 snapshots
