@@ -96,6 +96,26 @@ services:
     networks:
       - torrent
 
+  readarr:
+    image: hotio/readarr:testing
+    container_name: readarr
+    environment:
+      - TZ=Europe/Paris
+    restart: unless-stopped
+    networks:
+      - nas
+      - torrent
+    volumes:
+      - /films/readarr:/config
+      - /films/Films/Download:/downloads
+      - /films/Films/audiobooks:/books
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.readarr.rule=Host(`readarr.fgdou.ovh`)'
+      - 'traefik.http.routers.readarr.entryPoints=websecure'
+      - 'traefik.http.services.readarr.loadbalancer.server.port=8787'
+      - 'traefik.http.routers.readarr.middlewares=authentik@docker'
+
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
