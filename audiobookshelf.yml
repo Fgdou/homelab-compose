@@ -9,6 +9,7 @@ services:
       - TZ=Europe/Paris
     networks:
       - nas
+    restart: unless-stopped
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.audiobookshelf.rule=Host(`audiobookshelf.fgdou.ovh`)'
