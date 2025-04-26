@@ -43,28 +43,6 @@ services:
       - 'traefik.http.services.sonarr.loadbalancer.server.port=8989'
       - 'traefik.http.routers.sonarr.middlewares=authentik@docker'
 
-  whisparr:
-    image: ghcr.io/thespad/whisparr:latest
-    container_name: whisparr
-    environment:
-      - TZ=Europe/London
-    volumes:
-      - /films/Whisparr:/config
-      - /films/Films/Private:/private
-      - /films/Films/Download:/downloads
-    restart: unless-stopped
-    depends_on:
-      - qbittorrent
-      - prowlarr
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.whisparr.rule=Host(`whisparr.fgdou.ovh`)'
-      - 'traefik.http.routers.whisparr.entryPoints=websecure'
-      - 'traefik.http.services.whisparr.loadbalancer.server.port=6969'
-      - 'traefik.http.routers.whisparr.middlewares=authentik@docker'
-    networks:
-      - nas
-
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     environment:
@@ -95,26 +73,6 @@ services:
     restart: unless-stopped
     networks:
       - torrent
-
-  readarr:
-    image: hotio/readarr:testing
-    container_name: readarr
-    environment:
-      - TZ=Europe/Paris
-    restart: unless-stopped
-    networks:
-      - nas
-      - torrent
-    volumes:
-      - /films/readarr:/config
-      - /films/Films/Download:/downloads
-      - /films/Films/audiobooks:/books
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.readarr.rule=Host(`readarr.fgdou.ovh`)'
-      - 'traefik.http.routers.readarr.entryPoints=websecure'
-      - 'traefik.http.services.readarr.loadbalancer.server.port=8787'
-      - 'traefik.http.routers.readarr.middlewares=authentik@docker'
 
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
