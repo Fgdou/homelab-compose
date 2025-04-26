@@ -116,6 +116,25 @@ services:
       - 'traefik.http.services.readarr.loadbalancer.server.port=8787'
       - 'traefik.http.routers.readarr.middlewares=authentik@docker'
 
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Asia/Tashkent
+    volumes:
+      - /films/jellyseerr:/app/config
+    restart: unless-stopped
+    dns:
+      - 1.1.1.1
+    networks:
+      - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.jellyseerr.rule=Host(`jellyseerr.fgdou.ovh`)'
+      - 'traefik.http.routers.jellyseerr.entryPoints=websecure'
+      - 'traefik.http.services.jellyseerr.loadbalancer.server.port=5055'
+
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
