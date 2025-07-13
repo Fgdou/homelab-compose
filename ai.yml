@@ -1,0 +1,63 @@
+services:
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    volumes:
+      - /data/ai/open-webui:/app/backend/data
+    restart: unless-stopped
+    environment:
+      - WEBUI_URL=https://ai.fgdou.ovh
+      - ENABLE_SIGNUP=False
+      - ENABLE_LOGIN_FORM=false
+      - OAUTH_CLIENT_ID=R1MSywhWWLqp6CvE3iskOMgnJBuZx0SOWTiBgYmH
+      - OAUTH_CLIENT_SECRET=${OPENWEBUI_SECRET}
+      - OPENID_PROVIDER_URL=https://auth.fgdou.ovh/application/o/openwebui/.well-known/openid-configuration
+      - ENABLE_OAUTH_ROLE_MANAGEMENT=True
+      - ENABLE_OAUTH_SIGNUP=True
+      - OAUTH_ROLES_CLAIM=groups
+    networks:
+      - ai
+      - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.openwebui.rule=Host(`ai.fgdou.ovh`)'
+      - 'traefik.http.routers.openwebui.entryPoints=websecure'
+      - 'traefik.http.services.openwebui.loadbalancer.server.port=8080'
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: litellm
+    restart: unless-stopped
+    environment:
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - DATABASE_URL=postgresql://litellm:litellm_pass@litellm_postgres:5432/litellm_db
+      - STORE_MODEL_IN_DB=True
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.litellm.rule=Host(`litellm.fgdou.ovh`)'
+      - 'traefik.http.routers.litellm.entryPoints=websecure'
+      - 'traefik.http.services.litellm.loadbalancer.server.port=4000'
+    volumes:
+      - /data/ai/litellm/:/app/data
+    command:
+      - "--config=/app/data/litellm_config.yaml"
+    networks:
+      - nas
+      - ai
+
+  litellm_postgres:
+    image: postgres:15
+    container_name: litellm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: litellm
+      POSTGRES_PASSWORD: litellm_pass
+      POSTGRES_DB: litellm_db
+    volumes:
+      - /data/ai/postgres:/var/lib/postgresql/data
+    networks:
+      - ai
+
+networks:
+  nas:
+    external: true
+  ai:
