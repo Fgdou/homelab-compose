@@ -1,0 +1,29 @@
+services:
+  frigate:
+    container_name: frigate
+    restart: unless-stopped
+    stop_grace_period: 30s # allow enough time to shut down the various services
+    image: ghcr.io/blakeblackshear/frigate:stable
+    shm_size: "512mb" # update for your cameras based on calculation above
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /data/frigate/config:/config
+      - /films/frigate:/media/frigate
+      - type: tmpfs # Optional: 1GB of memory, reduces SSD/SD Card wear
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+    environment:
+      FRIGATE_RTSP_PASSWORD: "${ADMIN_PASSWORD}"
+    networks:
+      - nas
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frigate.rule=Host(`frigate.fgdou.ovh`)"
+      - 'traefik.http.routers.frigate.entryPoints=websecure'
+      - 'traefik.http.services.frigate.loadbalancer.server.port=8971'
+      - 'traefik.http.routers.frigate.middlewares=authentik@docker'
+
+networks:
+  nas:
+    external: true
