@@ -3,7 +3,7 @@ services:
     networks:
       - nas
       - nextcloud
-    image: nextcloud:30.0.5
+    image: nextcloud:31.0.7
     volumes:
       - /data/nextcloud/code:/var/www/html
     environment:
@@ -27,12 +27,6 @@ services:
       - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.fgdou.ovh`)'
       - 'traefik.http.routers.nextcloud.entryPoints=websecure'
       - 'traefik.http.services.nextcloud.loadbalancer.server.port=80'
-    healthcheck:
-          test: curl --fail http://localhost:80/apps/user_oidc/login/1 || exit 1
-          interval: 40s
-          timeout: 30s
-          retries: 3
-          start_period: 60s
   nextcloud_redis:
     image: redis:7.4.0
     networks:
