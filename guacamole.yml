@@ -2,7 +2,7 @@ services:
   guacd:
     user: root:users
     container_name: guacd_compose
-    image: guacamole/guacd:1.5.5
+    image: guacamole/guacd:1.6.0
     restart: always
     volumes:
     - /data/guac/drive:/drive:rw
@@ -39,13 +39,15 @@ services:
       POSTGRESQL_HOSTNAME: postgres
       POSTGRESQL_PASSWORD: ChooseYourOwnPasswordHere1234
       POSTGRESQL_USER: guacamole_user
+      OPENID_ENABLED: "true"
       OPENID_AUTHORIZATION_ENDPOINT: https://auth.fgdou.ovh/application/o/authorize/
       OPENID_CLIENT_ID: PaItAZvi1wxJuN1QVdhyxCM7xDaDIze6ZUp3Jr4D
       OPENID_ISSUER: https://auth.fgdou.ovh/application/o/guacamole/
       OPENID_JWKS_ENDPOINT: https://auth.fgdou.ovh/application/o/guacamole/jwks/
       OPENID_REDIRECT_URI: https://guacamole.fgdou.ovh/guacamole/
       OPENID_USERNAME_CLAIM_TYPE: sub
-    image: guacamole/guacamole:1.5.5
+      EXTENSION_PRIORITY: openid
+    image: guacamole/guacamole:1.6.0
     links:
     - guacd
     restart: always
