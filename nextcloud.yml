@@ -3,7 +3,7 @@ services:
     networks:
       - nas
       - nextcloud
-    image: nextcloud:31.0.7
+    image: nextcloud:31.0.8
     volumes:
       - /data/nextcloud/code:/var/www/html
     environment:
