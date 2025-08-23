@@ -1,6 +1,6 @@
 services:
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v2.7.1
+    image: ghcr.io/mealie-recipes/mealie:v3.1.1
     container_name: mealie
     deploy:
       resources:
