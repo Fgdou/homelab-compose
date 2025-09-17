@@ -21,11 +21,6 @@ services:
         DB_USER: warranty_user
         DB_PASSWORD: warranty_password
         SECRET_KEY: "${WARRACKER_SECRET_KEY}"
-        SMTP_HOST: mail.fgdou.ovh
-        SMTP_PORT: 587
-        SMTP_USERNAME: no-reply@fgdou.ovh
-        SMTP_PASSWORD: "${SMTP_PASSWORD}"
-        SMTP_USE_TLS: true
         FRONTEND_URL: https://warracker.fgdou.ovh
         APP_BASE_URL: https://warracker.fgdou.ovh
         WARRACKER_MEMORY_MODE: optimized
