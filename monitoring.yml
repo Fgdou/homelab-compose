@@ -38,6 +38,17 @@ services:
     command:
       - '--config.file=/config/config.yml'
 
+  jellyfin_exporter:
+    image: rebelcore/jellyfin-exporter:latest
+    container_name: jellyfin_exporter
+    command:
+      - '--jellyfin.address=http://jellyfin:8096'
+      - '--jellyfin.token=${JELLYFIN_EXPORTER_API_KEY}'
+    restart: unless-stopped
+    networks:
+      - monitoring
+      - nas
+
   s3_exporter:
     image: ribbybibby/s3-exporter:v0.5.0
     restart: always
