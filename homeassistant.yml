@@ -14,11 +14,44 @@ services:
     #ports:
     #  - 8123:8123
     user: "root:users"
-    devices:
-      - /dev/ttyACM0:/dev/ttyACM0
+      #devices:
+      #- /dev/ttyACM0:/dev/ttyACM0
     labels:
       - 'traefik.enable=true'
       - 'traefik.docker.network='
+  zigbee2mqtt:
+    container_name: zigbee2mqtt
+    image: ghcr.io/koenkk/zigbee2mqtt:2.6.2
+    restart: unless-stopped
+    volumes:
+        - /data/Homeassistant/zigbee2mqtt:/app/data
+        - /run/udev:/run/udev:ro
+          # ports:
+        # Frontend port
+        #- 8080:8080
+    environment:
+        - TZ=Europe/Berlin
+    devices:
+      - /dev/ttyACM0:/dev/ttyACM0
+    networks:
+      - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.zigbee2mqtt.rule=Host(`zigbee2mqtt.fgdou.ovh`)'
+      - 'traefik.http.routers.zigbee2mqtt.entryPoints=websecure'
+      - 'traefik.http.services.zigbee2mqtt.loadbalancer.server.port=8080'
+      - 'traefik.http.routers.zigbee2mqtt.middlewares=authentik@docker'
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    volumes:
+      - /data/Homeassistant/mosquitto/config:/mosquitto/config
+      - /data/Homeassistant/mosquitto/data:/mosquitto/data
+    restart: unless-stopped
+    ports:
+      - 1883:1883
+    networks:
+      - nas  
+
 networks:
   nas:
     external: true
