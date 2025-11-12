@@ -18,7 +18,9 @@ services:
       #- /dev/ttyACM0:/dev/ttyACM0
     labels:
       - 'traefik.enable=true'
-      - 'traefik.docker.network='
+      - 'traefik.http.routers.homeassistant.rule=Host(`dash.fgdou.ovh`)'
+      - 'traefik.http.routers.homeassistant.entryPoints=websecure'
+      - 'traefik.http.services.homeassistant.loadbalancer.server.url=http://10.0.0.2:8123'
   zigbee2mqtt:
     container_name: zigbee2mqtt
     image: ghcr.io/koenkk/zigbee2mqtt:2.6.2
