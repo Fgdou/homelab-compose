@@ -1,0 +1,30 @@
+services:
+  speedtest:
+    container_name: speedtest
+    image: ghcr.io/librespeed/speedtest:5.4
+    restart: always
+    environment:
+      MODE: standalone
+      TITLE: "Fgdou Speedtest"
+      #TELEMETRY: "false"
+      #ENABLE_ID_OBFUSCATION: "false"
+      #REDACT_IP_ADDRESSES: "false"
+      #PASSWORD:
+      #EMAIL:
+      #DISABLE_IPINFO: "false"
+      #IPINFO_APIKEY: "your api key"
+      #DISTANCE: "km"
+      WEBPORT: 8080
+      #ports:
+      #- "80:8080" # webport mapping (host:container)
+    networks:
+      - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.speedtest.rule=Host(`speedtest.fgdou.ovh`)'
+      - 'traefik.http.routers.speedtest.entryPoints=websecure'
+      - 'traefik.http.services.speedtest.loadbalancer.server.port=8080'
+
+networks:
+  nas:
+    external: true
