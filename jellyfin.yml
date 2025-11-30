@@ -1,6 +1,6 @@
 services:
   jellyfin:
-    image: ghcr.io/linuxserver/jellyfin:10.11.2
+    image: ghcr.io/linuxserver/jellyfin:10.11.3
     container_name: jellyfin
     user: root:users
     environment:
@@ -9,6 +9,7 @@ services:
     volumes:
       - /films/Jellyfin:/config
       - /films/Films:/data/movies
+      - /data/music:/data/music
       - /films/Jellyfin/config.json:/usr/share/jellyfin/web/config.json
     restart: unless-stopped
     networks:
