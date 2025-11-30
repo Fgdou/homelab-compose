@@ -7,10 +7,10 @@ services:
       - TZ=Europe/London
       #- JELLYFIN_PublishedServerUrl=192.168.0.5 #optional
     volumes:
-      - /films/Jellyfin:/config
+      - /data/Jellyfin:/config
       - /films/Films:/data/movies
       - /data/music:/data/music
-      - /films/Jellyfin/config.json:/usr/share/jellyfin/web/config.json
+      - /data/Jellyfin/config.json:/usr/share/jellyfin/web/config.json
     restart: unless-stopped
     networks:
       - nas
