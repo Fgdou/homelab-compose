@@ -1,0 +1,52 @@
+services:
+  vouchervault:
+    image: l4rm4nd/vouchervault:1.22.13
+    container_name: vouchervault
+    restart: unless-stopped
+    environment:
+      # your FQDN or IP; multiple ones supported by comma separation
+      - DOMAIN=vouchervault.fgdou.ovh
+      # set to True if you use a reverse proxy with tls; enables secure cookie flag and hsts
+      - SECURE_COOKIES=True
+      # send notifications xx days prior expiry
+      - EXPIRY_THRESHOLD_DAYS=90
+      # define the timezone
+      - TZ=Europe/Berlin
+      - REDIS_URL=redis://vouchervault_redis:6379/0
+      - OIDC_ENABLED=True
+      - OIDC_AUTOLOGIN=True
+      - OIDC_RP_CLIENT_ID=tkdhtO1A8WLdXtOlrHbIV2jBxRSwx7SFv7zKENuz
+      - OIDC_RP_CLIENT_SECRET=${VOUCHERVAULT_OIDC_SECRET}
+      - OIDC_OP_JWKS_ENDPOINT=https://auth.fgdou.ovh/application/o/voucher-vault/jwks/
+      - OIDC_OP_AUTHORIZATION_ENDPOINT=https://auth.fgdou.ovh/application/o/authorize/
+      - OIDC_OP_TOKEN_ENDPOINT=https://auth.fgdou.ovh/application/o/token/
+      - OIDC_OP_USER_ENDPOINT=https://auth.fgdou.ovh/application/o/userinfo/
+      - OIDC_RP_SIGN_ALGO=RS256
+    expose:
+      - 8000
+        #ports:
+        #- 8000:8000
+    volumes:
+      - /data/vouchervault:/opt/app/database
+    networks:
+      - nas
+      - vouchervault
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.vouchervault.rule=Host(`vouchervault.fgdou.ovh`)'
+      - 'traefik.http.routers.vouchervault.entryPoints=websecure'
+      - 'traefik.http.services.vouchervault.loadbalancer.server.port=8000'
+
+  vouchervault_redis:
+    image: redis:7-alpine
+    container_name: vouchervault-redis
+    restart: unless-stopped
+    expose:
+      - 6379
+    networks:
+      - vouchervault
+
+networks:
+  nas:
+    external: true
+  vouchervault:
