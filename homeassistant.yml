@@ -23,7 +23,7 @@ services:
       - 'traefik.http.services.homeassistant.loadbalancer.server.url=http://10.0.0.2:8123'
   zigbee2mqtt:
     container_name: zigbee2mqtt
-    image: ghcr.io/koenkk/zigbee2mqtt:2.6.3
+    image: ghcr.io/koenkk/zigbee2mqtt:2.7.1
     restart: unless-stopped
     volumes:
         - /data/Homeassistant/zigbee2mqtt:/app/data
