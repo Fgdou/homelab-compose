@@ -83,6 +83,7 @@ services:
       OIDC_CLIENT_SECRET: ${DAWARICH_OIDC_SECRET}
       OIDC_REDIRECT_URI: https://dawarich.fgdou.ovh/users/auth/openid_connect/callback 
       OIDC_AUTO_REGISTER: true
+      OIDC_PROVIDER_NAME: Authentik
       ALLOW_EMAIL_PASSWORD_REGISTRATION: false
     logging:
       driver: "json-file"
