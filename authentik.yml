@@ -48,6 +48,7 @@ services:
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-password}
+      TZ: Europe/Paris
     volumes:
       - /data/authentik/media:/media
       - /data/authentik/custom-templates:/templates
