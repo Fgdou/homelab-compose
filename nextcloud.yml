@@ -27,22 +27,6 @@ services:
       - 'traefik.http.routers.nextcloud.rule=Host(`nextcloud.fgdou.ovh`)'
       - 'traefik.http.routers.nextcloud.entryPoints=websecure'
       - 'traefik.http.services.nextcloud.loadbalancer.server.port=80'
-  nextcloud_collabora:
-    image: collabora/code:25.04.5.1.1
-    networks:
-      - nas
-      - nextcloud
-    depends_on:
-      - nextcloud
-    restart: unless-stopped
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.collabora.rule=Host(`collabora.fgdou.ovh`)'
-      - 'traefik.http.routers.collabora.entryPoints=websecure'
-      - 'traefik.http.services.collabora.loadbalancer.server.port=9980'
-    environment:
-      - domain=nextcloud\.fgdou\.ovh
-      - extra_params=--o:ssl.enable=false --o:ssl.termination=true
   nextcloud_redis:
     image: redis:7.4.0
     networks:
