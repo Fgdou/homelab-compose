@@ -17,6 +17,8 @@ services:
       - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
       - "--entrypoints.websecure.http.tls.domains[0].main=fgdou.ovh"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.fgdou.ovh"
+      - "--entrypoints.websecure.http.encodedCharacters.allowEncodedHash=true"
+      - "--entrypoints.websecure.http.encodedCharacters.allowEncodedSlash=true"
       - "--entrypoints.ssh.address=:22"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.filename=/letsencrypt/config.yaml"

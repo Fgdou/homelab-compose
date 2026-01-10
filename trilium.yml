@@ -1,0 +1,23 @@
+services:
+  trilium:
+    image: triliumnext/trilium:v0.101.3
+    restart: unless-stopped
+    environment:
+      - TRILIUM_DATA_DIR=/home/node/trilium-data
+      - TRILIUM_NETWORK_TRUSTEDREVERSEPROXY=72.18.0.21/16
+      - TRILIUM_GENERAL_NOAUTHENTICATION=true
+    volumes:
+      - /data/trilium:/home/node/trilium-data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.trilium.rule=Host(`trilium.fgdou.ovh`)'
+      - 'traefik.http.routers.trilium.entryPoints=websecure'
+      - 'traefik.http.services.trilium.loadbalancer.server.port=8080'
+      - 'traefik.http.routers.trilium.middlewares=authentik@docker'
+networks:
+  nas:
+    external: true
