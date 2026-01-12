@@ -1,6 +1,6 @@
 services:
   warracker:
-    image: ghcr.io/sassanix/warracker/main:0.10.1.5
+    image: ghcr.io/sassanix/warracker/main:1.0.2
     volumes:
       - /data/warracker/warracker_uploads:/data/uploads
     depends_on:
