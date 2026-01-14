@@ -40,7 +40,7 @@ services:
     # command: postgres -c config_file=/etc/postgresql/postgresql.conf # Use custom config, uncomment if you want to use a custom config
 
   dawarich_app:
-    image: freikin/dawarich:0.36.3
+    image: freikin/dawarich:0.37.3
     container_name: dawarich_app
     volumes:
       - /data/dawarich/public:/var/app/public
@@ -115,7 +115,7 @@ services:
       - 'traefik.http.services.dawarich.loadbalancer.server.port=3000'
 
   dawarich_sidekiq:
-    image: freikin/dawarich:0.36.3
+    image: freikin/dawarich:0.37.3
     container_name: dawarich_sidekiq
     volumes:
       - /data/dawarich/public:/var/app/public
