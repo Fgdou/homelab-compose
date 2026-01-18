@@ -3,7 +3,7 @@ volumes:
 
 services:
   node-exporter:
-    image: quay.io/prometheus/node-exporter:v1.9.0
+    image: quay.io/prometheus/node-exporter:v1.10.2
     container_name: node-exporter
     restart: unless-stopped
     volumes:
@@ -19,7 +19,7 @@ services:
       - monitoring
 
   blackbox:
-    image: quay.io/prometheus/blackbox-exporter:v0.26.0
+    image: quay.io/prometheus/blackbox-exporter:v0.28.0
     networks:
       - monitoring
       - nas
@@ -61,7 +61,7 @@ services:
     command: "--s3.endpoint-url 'https://s3.gra.io.cloud.ovh.net/'"
 
   prometheus:
-    image: prom/prometheus:v3.4.0
+    image: prom/prometheus:v3.9.1
     container_name: prometheus
     restart: unless-stopped
     volumes:
@@ -86,7 +86,7 @@ services:
       - 'traefik.http.routers.prometheus.middlewares=authentik@docker'
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
     restart: unless-stopped
     userns_mode: "host"
     networks:
@@ -103,7 +103,7 @@ services:
 
 
   grafana:
-    image: grafana/grafana:12.0.0
+    image: grafana/grafana:12.3.1
     container_name: grafana
     restart: unless-stopped
     volumes:
@@ -141,7 +141,7 @@ services:
 
 
   ntfy:
-    image: binwiederhier/ntfy:v2.11.0
+    image: binwiederhier/ntfy:v2.15.0
     container_name: ntfy
     environment:
       NTFY_BASE_URL: https://ntfy.fgdou.ovh
