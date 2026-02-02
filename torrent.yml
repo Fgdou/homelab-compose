@@ -116,6 +116,67 @@ services:
       - 'traefik.http.services.qbittorrent.loadbalancer.server.port=8080'
       - 'traefik.http.routers.qbittorrent.middlewares=authentik@docker'
 
+  lidarr:
+    container_name: lidarr
+    image: ghcr.io/hotio/lidarr:latest
+      #ports:
+      #- "8686:8686"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - UMASK=002
+      - TZ=Etc/UTC
+      - WEBUI_PORTS=8686/tcp 
+    volumes:
+      - /films/lidarr/config:/config
+      - /films/lidarr/data:/data
+      - /films/music:/music
+      - /films/slskd/downloads:/downloads
+    networks:
+      - nas
+    restart: unless-stopped
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.lidarr.rule=Host(`lidarr.fgdou.ovh`)'
+      - 'traefik.http.routers.lidarr.entryPoints=websecure'
+      - 'traefik.http.services.lidarr.loadbalancer.server.port=8686'
+      - 'traefik.http.routers.lidarr.middlewares=authentik@docker'
+
+  slskd:
+    image: slskd/slskd
+    container_name: slskd
+    environment:
+      - SLSKD_REMOTE_CONFIGURATION=true
+      - SLSKD_NO_AUTH=true
+      - SLSKD_SLSK_USERNAME=fgdou
+      - SLSKD_SLSK_PASSWORD=${SLSKD_PASSWORD}
+      - SLSKD_API_KEY=${SLSKD_API}
+    volumes:
+      - /films/slskd:/app
+    restart: unless-stopped
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.slskd.rule=Host(`slskd.fgdou.ovh`)'
+      - 'traefik.http.routers.slskd.entryPoints=websecure'
+      - 'traefik.http.services.slskd.loadbalancer.server.port=5030'
+      - 'traefik.http.routers.slskd.middlewares=authentik@docker'
+    networks:
+      - nas
+  soularr:
+    image: mrusse08/soularr:latest
+    container_name: soularr
+    hostname: soularr
+    user: 1000:1000
+    environment:
+      - TZ=Europe/Paris
+      - SCRIPT_INTERVAL=300
+    volumes:
+      - /films/slskd/downloads:/downloads
+      - /films/soularr:/data
+    restart: unless-stopped
+    networks:
+      - nas
+
 networks:
   nas:
     external: true

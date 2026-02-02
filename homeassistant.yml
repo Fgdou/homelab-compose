@@ -10,7 +10,6 @@ services:
       - /run/dbus:/run/dbus
     restart: unless-stopped
     privileged: true
-    network_mode: host
     #ports:
     #  - 8123:8123
     user: "root:users"
@@ -20,7 +19,9 @@ services:
       - 'traefik.enable=true'
       - 'traefik.http.routers.homeassistant.rule=Host(`dash.fgdou.ovh`)'
       - 'traefik.http.routers.homeassistant.entryPoints=websecure'
-      - 'traefik.http.services.homeassistant.loadbalancer.server.url=http://10.0.0.2:8123'
+      - 'traefik.http.services.homeassistant.loadbalancer.server.port=8123'
+    networks:
+      - nas
   zigbee2mqtt:
     container_name: zigbee2mqtt
     image: ghcr.io/koenkk/zigbee2mqtt:2.7.1
@@ -49,10 +50,32 @@ services:
       - /data/Homeassistant/mosquitto/config:/mosquitto/config
       - /data/Homeassistant/mosquitto/data:/mosquitto/data
     restart: unless-stopped
-    ports:
-      - 1883:1883
+      #ports:
+      #- 1883:1883
     networks:
       - nas  
+  musicassistant:
+    container_name: musicassistant
+    image: ghcr.io/music-assistant/server:latest
+    restart: unless-stopped
+    volumes:
+      - /data/Homeassistant/musicassistant
+    cap_add:
+      - SYS_ADMIN
+      - DAC_READ_SEARCH
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      - LOG_LEVEL=warning
+    networks:
+      - nas
+    ports:
+      - 8098:8098
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.musicassistant.rule=Host(`musicassistant.fgdou.ovh`)'
+      - 'traefik.http.routers.musicassistant.entryPoints=websecure'
+      - 'traefik.http.services.musicassistant.loadbalancer.server.port=8095'
 
 networks:
   nas:
