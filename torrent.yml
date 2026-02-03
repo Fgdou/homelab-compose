@@ -128,8 +128,8 @@ services:
       - TZ=Etc/UTC
       - WEBUI_PORTS=8686/tcp 
     volumes:
-      - /films/lidarr/config:/config
-      - /films/lidarr/data:/data
+      - /data/lidarr/config:/config
+      - /data/lidarr/data:/data
       - /films/music:/music
       - /films/slskd/downloads:/downloads
     networks:
@@ -145,12 +145,14 @@ services:
   slskd:
     image: slskd/slskd
     container_name: slskd
+    user: 1000:1000
     environment:
       - SLSKD_REMOTE_CONFIGURATION=true
       - SLSKD_NO_AUTH=true
       - SLSKD_SLSK_USERNAME=fgdou
       - SLSKD_SLSK_PASSWORD=${SLSKD_PASSWORD}
       - SLSKD_API_KEY=${SLSKD_API}
+      - SLSKD_SHARED_DIR=/app/downloads
     volumes:
       - /films/slskd:/app
     restart: unless-stopped
@@ -171,8 +173,8 @@ services:
       - TZ=Europe/Paris
       - SCRIPT_INTERVAL=300
     volumes:
-      - /films/slskd/downloads:/downloads
-      - /films/soularr:/data
+      - /films/slskd/downloads:/app/downloads
+      - /data/soularr:/data
     restart: unless-stopped
     networks:
       - nas

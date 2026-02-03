@@ -9,7 +9,6 @@ services:
     volumes:
       - /data/Jellyfin:/config
       - /films/Films:/data/movies
-      - /films/slskd/downloads:/data/music:ro
       - /data/Jellyfin/config.json:/usr/share/jellyfin/web/config.json
     restart: unless-stopped
     networks:

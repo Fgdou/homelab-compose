@@ -1,0 +1,30 @@
+services:
+  navidrome:
+    image: deluan/navidrome:0.58.5
+    user: 1000:1000 # should be owner of volumes
+      #ports:
+      #- "4533:4533"
+    restart: unless-stopped
+    environment:
+      - ND_REVERSEPROXYWHITELIST=0.0.0.0/0
+      - ND_REVERSEPROXYUSERHEADER=X-authentik-username
+      # Optional: put your config options customization here. Examples:
+      # ND_LOGLEVEL: debug
+    networks:
+      - nas
+    volumes:
+      - "/data/navidrome:/data"
+      - "/films/music:/music:ro"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.navidrome.rule=Host(`music.fgdou.ovh`) && !(PathPrefix(`/share/`) || PathPrefix(`/rest/`))'
+      - 'traefik.http.routers.navidrome.entryPoints=websecure'
+      - 'traefik.http.services.navidrome.loadbalancer.server.port=4533'
+      - 'traefik.http.routers.navidrome.middlewares=authentik@docker'
+      - 'traefik.http.routers.navidrome-subsonic.rule=Host(`music.fgdou.ovh`) && (PathPrefix(`/share`) || PathPrefix(`/rest`))'
+      - 'traefik.http.routers.navidrome-subsonic.entryPoints=websecure'
+      - 'traefik.http.routers.navidrome-subsonic.service=navidrome'
+
+networks:
+  nas:
+    external: true

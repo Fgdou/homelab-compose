@@ -59,7 +59,7 @@ services:
     image: ghcr.io/music-assistant/server:latest
     restart: unless-stopped
     volumes:
-      - /data/Homeassistant/musicassistant
+      - /data/Homeassistant/musicassistant:/data
     cap_add:
       - SYS_ADMIN
       - DAC_READ_SEARCH
@@ -70,7 +70,7 @@ services:
     networks:
       - nas
     ports:
-      - 8098:8098
+      - 8097:8097
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.musicassistant.rule=Host(`musicassistant.fgdou.ovh`)'
