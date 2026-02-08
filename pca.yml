@@ -1,0 +1,38 @@
+services:
+  pca-db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_RANDOM_ROOT_PASSWORD=1
+    volumes:
+      - /data/pca/db:/var/lib/mysql
+    networks:
+      - pca
+  pca-wordpress:
+    image: wordpress
+    restart: always
+    volumes:
+      - /data/pca/wordpress:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: pca-db
+      WORDPRESS_DB_USER: user
+      WORDPRESS_DB_PASSWORD: password
+      WORDPRESS_DB_NAME: wordpress
+    depends_on:
+      - pca-db
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.pca-wordpress.rule=Host(`cap-humanite.fgdou.ovh`)'
+      - 'traefik.http.routers.pca-wordpress.entryPoints=websecure'
+      - 'traefik.http.services.pca-wordpress.loadbalancer.server.port=80'
+    networks:
+      - pca
+      - nas
+
+networks:
+  nas:
+    external: true
+  pca:
