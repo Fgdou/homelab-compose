@@ -1,0 +1,112 @@
+services:
+  ciq-drupal:
+    image: drupal:latest
+    restart: always
+    networks:
+      - ciq
+      - nas
+    volumes:
+      - /data/ciq/drupal/modules:/var/www/html/modules
+      - /data/ciq/drupal/profiles:/var/www/html/profiles
+      - /data/ciq/drupal/themes:/var/www/html/themes
+      - /data/ciq/drupal/sites:/var/www/html/sites
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.ciq-drupal.rule=Host(`ciq-panier.fr`)'
+      - 'traefik.http.routers.ciq-drupal.entryPoints=websecure'
+      - 'traefik.http.services.ciq-drupal.loadbalancer.server.port=80'
+    depends_on:
+      - ciq-postgres
+      - ciq-authentik
+  ciq-postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=user
+      - POSTGRES_DB=drupal
+    volumes:
+      - /data/ciq/drupal/db:/var/lib/postgresql/data
+    networks:
+      - ciq
+  ciq-authentik:
+    image: ghcr.io/goauthentik/server:2025.10.3
+    restart: always
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: ciq-redis
+      AUTHENTIK_POSTGRESQL__HOST: ciq-postgres
+      AUTHENTIK_POSTGRESQL__USER: user
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: password
+      AUTHENTIK_SECRET_KEY: ${CIQ_AUTHENTIK_SECRET_KEY}
+      TZ: Europe/Paris
+    volumes:
+      - /data/ciq/authentik/media:/media
+      - /data/ciq/authentik/custom-templates:/templates
+    networks:
+      - ciq
+      - nas
+    depends_on:
+      - ciq-postgres
+      - ciq-redis
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.ciq-authentik.rule=Host(`auth.ciq-panier.fr`)'
+      - 'traefik.http.routers.ciq-authentik.entryPoints=websecure'
+      - 'traefik.http.services.ciq-authentik.loadbalancer.server.port=9000'
+  ciq-authentik-worker:
+    image: ghcr.io/goauthentik/server:2025.10.3
+    restart: unless-stopped
+    command: worker
+    networks:
+      - ciq
+    environment:
+      AUTHENTIK_REDIS__HOST: ciq-redis
+      AUTHENTIK_POSTGRESQL__HOST: ciq-postgres
+      AUTHENTIK_POSTGRESQL__USER: user
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: password
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/ciq/authentik/media:/media
+      - /data/ciq/authentik/certs:/certs
+      - /data/ciq/authentik/custom-templates:/templates
+    depends_on:
+      - ciq-postgres
+      - ciq-redis
+  ciq-redis:
+    image: docker.io/library/redis:alpine
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - /data/ciq/authentik/redis:/data
+    networks:
+      - ciq
+  ciq-adminer:
+    image: adminer
+    networks:
+      - nas
+      - ciq
+  ciq-ddclient:
+    image: lscr.io/linuxserver/ddclient:3.11.2
+    environment:
+      - PUID=1000
+      - GUID=1000
+      - TZ=Europe/Paris
+    volumes:
+      - /data/ciq/ddclient:/config
+    restart: always
+
+networks:
+  ciq:
+  nas:
+    external: true
