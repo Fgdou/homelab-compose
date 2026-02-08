@@ -1,32 +1,45 @@
 services:
-  ciq-drupal:
-    image: drupal:latest
+  ciq-wordpress:
+    image: wordpress
     restart: always
+    volumes:
+      - /data/ciq/wordpress:/var/www/html
+    environment:
+      WORDPRESS_DB_HOST: ciq-mysql
+      WORDPRESS_DB_USER: user
+      WORDPRESS_DB_PASSWORD: password
+      WORDPRESS_DB_NAME: wordpress
+    depends_on:
+      - ciq-mysql
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.ciq-wordpress.rule=Host(`ciq-panier.fr`)'
+      - 'traefik.http.routers.ciq-wordpress.entryPoints=websecure'
+      - 'traefik.http.services.ciq-wordpress.loadbalancer.server.port=80'
     networks:
       - ciq
       - nas
+  ciq-mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_RANDOM_ROOT_PASSWORD=1
     volumes:
-      - /data/ciq/drupal/modules:/var/www/html/modules
-      - /data/ciq/drupal/profiles:/var/www/html/profiles
-      - /data/ciq/drupal/themes:/var/www/html/themes
-      - /data/ciq/drupal/sites:/var/www/html/sites
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.ciq-drupal.rule=Host(`ciq-panier.fr`)'
-      - 'traefik.http.routers.ciq-drupal.entryPoints=websecure'
-      - 'traefik.http.services.ciq-drupal.loadbalancer.server.port=80'
-    depends_on:
-      - ciq-postgres
-      - ciq-authentik
+      - /data/ciq/mysql:/var/lib/mysql
+    networks:
+      - ciq
   ciq-postgres:
     image: postgres:16
     restart: always
     environment:
       - POSTGRES_PASSWORD=password
       - POSTGRES_USER=user
-      - POSTGRES_DB=drupal
+      - POSTGRES_DB=authentik
     volumes:
-      - /data/ciq/drupal/db:/var/lib/postgresql/data
+      - /data/ciq/postgres:/var/lib/postgresql/data
     networks:
       - ciq
   ciq-authentik:
