@@ -30,18 +30,6 @@ services:
       - /data/ciq/mysql:/var/lib/mysql
     networks:
       - ciq
-  ciq-mysql-civicrm:
-    image: mysql:8.0
-    restart: always
-    environment:
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=password
-      - MYSQL_DATABASE=wordpress
-      - MYSQL_ROOT_PASSWORD=doudou22170
-    volumes:
-      - /data/ciq/civicrm/mysql:/var/lib/mysql
-    networks:
-      - ciq
   ciq-postgres:
     image: postgres:16
     restart: always
@@ -145,23 +133,6 @@ services:
     volumes:
       - /data/ciq/ddclient:/config
     restart: always
-  ciq-civicrm:
-    image: civicrm/civicrm
-    restart: always
-    volumes:
-      - /data/ciq/civicrm/public:/var/www/html/public
-      - /data/ciq/civicrm/private:/var/www/html/private
-      - /data/ciq/civicrm/ext:/var/www/html/ext
-    networks:
-      - nas
-      - ciq
-    environment:
-      CIVICRM_UF_BASEURL: https://crm.ciq-panier.fr
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.ciq-civicrm.rule=Host(`crm.ciq-panier.fr`)'
-      - 'traefik.http.routers.ciq-civicrm.entryPoints=websecure'
-      - 'traefik.http.services.ciq-civicrm.loadbalancer.server.port=80'
 
 networks:
   ciq:
