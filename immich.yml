@@ -20,9 +20,8 @@ services:
       DB_USERNAME: user
       DB_DATABASE_NAME: db
       DB_HOSTNAME: immich_database
-      REDIS_HOSTNAME: immich_redis
+      REDIS_HOSTNAME: redis
     depends_on:
-      - immich_redis
       - immich_database
     restart: always
     networks:
@@ -52,13 +51,6 @@ services:
       DB_USERNAME: user
       DB_DATABASE_NAME: db
       DB_HOSTNAME: immich_database
-    networks:
-      - immich
-
-  immich_redis:
-    container_name: immich_redis
-    image: registry.hub.docker.com/library/redis:6.2-alpine@sha256:84882e87b54734154586e5f8abd4dce69fe7311315e2fc6d67c29614c8de2672
-    restart: always
     networks:
       - immich
 

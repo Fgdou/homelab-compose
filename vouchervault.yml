@@ -1,6 +1,6 @@
 services:
   vouchervault:
-    image: l4rm4nd/vouchervault:1.22.13
+    image: l4rm4nd/vouchervault:1.25.8
     container_name: vouchervault
     restart: unless-stopped
     environment:
@@ -12,7 +12,7 @@ services:
       - EXPIRY_THRESHOLD_DAYS=90
       # define the timezone
       - TZ=Europe/Berlin
-      - REDIS_URL=redis://vouchervault_redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
       - OIDC_ENABLED=True
       - OIDC_AUTOLOGIN=True
       - OIDC_RP_CLIENT_ID=tkdhtO1A8WLdXtOlrHbIV2jBxRSwx7SFv7zKENuz
@@ -36,15 +36,6 @@ services:
       - 'traefik.http.routers.vouchervault.rule=Host(`vouchervault.fgdou.ovh`)'
       - 'traefik.http.routers.vouchervault.entryPoints=websecure'
       - 'traefik.http.services.vouchervault.loadbalancer.server.port=8000'
-
-  vouchervault_redis:
-    image: redis:7-alpine
-    container_name: vouchervault-redis
-    restart: unless-stopped
-    expose:
-      - 6379
-    networks:
-      - vouchervault
 
 networks:
   nas:

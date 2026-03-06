@@ -1,21 +1,5 @@
 
 services:
-  dawarich_redis:
-    image: redis:7.4-alpine
-    container_name: dawarich_redis
-    command: redis-server
-    networks:
-      - dawarich
-    volumes:
-      - /data/dawarich/shared:/data
-    restart: always
-    healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
-      interval: 10s
-      retries: 5
-      start_period: 30s
-      timeout: 10s
-
   dawarich_db:
     image: postgis/postgis:17-3.5-alpine
     # image: imresamu/postgis:17-3.5-alpine # If you're on ARM architecture, use this image instead
@@ -61,7 +45,7 @@ services:
     environment:
       TZ: Europe/Paris
       RAILS_ENV: ${RAILS_ENV:-production}
-      REDIS_URL: ${REDIS_URL:-redis://dawarich_redis:6379}
+      REDIS_URL: redis://redis:6379
       DATABASE_HOST: ${DATABASE_HOST:-dawarich_db}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
@@ -100,9 +84,6 @@ services:
       dawarich_db:
         condition: service_healthy
         restart: true
-      dawarich_redis:
-        condition: service_healthy
-        restart: true
     deploy:
       resources:
         limits:
@@ -131,7 +112,7 @@ services:
     environment:
       TZ: Europe/Paris
       RAILS_ENV: ${RAILS_ENV:-production}
-      REDIS_URL: ${REDIS_URL:-redis://dawarich_redis:6379}
+      REDIS_URL: redis://redis:6379
       DATABASE_HOST: ${DATABASE_HOST:-dawarich_db}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
       DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
@@ -166,9 +147,6 @@ services:
       timeout: 10s
     depends_on:
       dawarich_db:
-        condition: service_healthy
-        restart: true
-      dawarich_redis:
         condition: service_healthy
         restart: true
       dawarich_app:

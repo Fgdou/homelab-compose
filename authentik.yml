@@ -43,7 +43,7 @@ services:
     container_name: authentik_server
     hostname: authentik_server
     environment:
-      AUTHENTIK_REDIS__HOST: authentik_redis
+      AUTHENTIK_REDIS__HOST: redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
@@ -77,7 +77,7 @@ services:
     networks:
       - authentik
     environment:
-      AUTHENTIK_REDIS__HOST: authentik_redis
+      AUTHENTIK_REDIS__HOST: redis
       AUTHENTIK_POSTGRESQL__HOST: postgresql
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}

@@ -1,0 +1,11 @@
+services:
+  redis:
+    hostname: redis
+    image: redis:8.6-alpine
+    networks:
+      - nas
+    restart: always
+
+networks:
+  nas:
+    external: true
