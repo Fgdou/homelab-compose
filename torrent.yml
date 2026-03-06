@@ -156,6 +156,8 @@ services:
     volumes:
       - /films/slskd:/app
     restart: unless-stopped
+    ports:
+      - 50300:50300
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.slskd.rule=Host(`slskd.fgdou.ovh`)'
