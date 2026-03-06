@@ -2,7 +2,7 @@ services:
   homeassistant:
     container_name: homeassistant
     hostname: homeassistant
-    image: ghcr.io/home-assistant/home-assistant:2025.12
+    image: ghcr.io/home-assistant/home-assistant:2026.3
     volumes:
       - /data/Homeassistant/core:/config
       - /etc/localtime:/etc/localtime:ro
@@ -24,7 +24,7 @@ services:
       - nas
   zigbee2mqtt:
     container_name: zigbee2mqtt
-    image: ghcr.io/koenkk/zigbee2mqtt:2.7.1
+    image: ghcr.io/koenkk/zigbee2mqtt:2.9.1
     restart: unless-stopped
     volumes:
         - /data/Homeassistant/zigbee2mqtt:/app/data
@@ -56,7 +56,7 @@ services:
       - nas  
   musicassistant:
     container_name: musicassistant
-    image: ghcr.io/music-assistant/server:latest
+    image: ghcr.io/music-assistant/server:2.7.10
     restart: unless-stopped
     volumes:
       - /data/Homeassistant/musicassistant:/data
