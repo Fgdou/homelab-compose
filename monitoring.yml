@@ -95,12 +95,15 @@ services:
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
-      - /var/lib/docker:/var/lib/docker:ro
-      - /dev:/dev:ro
       - /sys:/sys:ro
+      - /var/lib/containerd:/var/lib/containerd:ro
+      - /run/containerd:/run/containerd:ro
     devices:
       - /dev/kmsg
-
+    command:
+      - --housekeeping_interval=60s
+      - --allow_dynamic_housekeeping=true
+      - --disable_metrics=advtcp,cpu_topology,disk,diskIO,memory_numa,network,percpu,process,referenced_memory,resctrl,sched,tcp,udp
 
   grafana:
     image: grafana/grafana:12.3.1
