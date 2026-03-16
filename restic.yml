@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   restic:
     image: lobaro/restic-backup-docker:latest
