@@ -10,8 +10,10 @@ services:
       - /run/dbus:/run/dbus
     restart: unless-stopped
     privileged: true
-    #ports:
+    ports:
     #  - 8123:8123
+       - 58867:58867 # Roborock
+       - 58866:58866/udp # Roborock
     user: "root:users"
       #devices:
       #- /dev/ttyACM0:/dev/ttyACM0
