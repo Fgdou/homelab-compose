@@ -3,9 +3,6 @@ services:
     image: ghcr.io/sassanix/warracker/main:1.0.2
     volumes:
       - /data/warracker/warracker_uploads:/data/uploads
-    depends_on:
-      warrackerdb:
-        condition: service_healthy
     restart: unless-stopped
     networks:
       - nas
@@ -16,10 +13,10 @@ services:
       - 'traefik.http.routers.warracker.entryPoints=websecure'
       - 'traefik.http.services.warracker.loadbalancer.server.port=80'
     environment:
-        DB_HOST: warrackerdb
-        DB_NAME: warranty_db
-        DB_USER: warranty_user
-        DB_PASSWORD: warranty_password
+        DB_HOST: postgres
+        DB_NAME: warracker
+        DB_USER: warracker
+        DB_PASSWORD: ${WARRACKER_DB_PASSWORD}
         SECRET_KEY: "${WARRACKER_SECRET_KEY}"
         FRONTEND_URL: https://warracker.fgdou.ovh
         APP_BASE_URL: https://warracker.fgdou.ovh
@@ -32,24 +29,6 @@ services:
         OIDC_ISSUER_URL: https://auth.fgdou.ovh/application/o/warracker/
         OIDC_SCOPE: openid email profile
         PYTHONUNBUFFERED: 1
-
-  warrackerdb:
-    image: postgres:15-alpine
-    volumes:
-      - /data/warracker/postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U warranty_user -d warranty_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - warracker
-    environment:
-      POSTGRES_PASSWORD: warranty_password
-      POSTGRES_USER: warranty_user
-      POSTGRES_DB: warranty_db
-
 
 networks:
   warracker:
