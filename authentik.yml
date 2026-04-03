@@ -1,53 +1,18 @@
 ---
 
 services:
-  postgresql:
-    image: docker.io/library/postgres:16-alpine
-    restart: unless-stopped
-    container_name: authentik_db
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 5s
-    volumes:
-      - /data/authentik/database:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: ${PG_PASS:-password}
-      POSTGRES_USER: ${PG_USER:-authentik}
-      POSTGRES_DB: ${PG_DB:-authentik}
-    env_file:
-      - .env
-    networks:
-      - authentik
-  authentik_redis:
-    image: docker.io/library/redis:alpine
-    command: --save 60 1 --loglevel warning
-    restart: unless-stopped
-    container_name: authentik_redis
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 3s
-    volumes:
-      - /data/authentik/redis:/data
-    networks:
-      - authentik
   server:
-    image: ghcr.io/goauthentik/server:2025.10.3
+    image: ghcr.io/goauthentik/server:2026.2
     restart: unless-stopped
     command: server
     container_name: authentik_server
     hostname: authentik_server
     environment:
       AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-password}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD}
       TZ: Europe/Paris
     volumes:
       - /data/authentik/media:/media
@@ -57,9 +22,6 @@ services:
     networks:
       - nas
       - authentik
-    depends_on:
-      - postgresql
-      - authentik_redis
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.authentik.rule=Host(`auth.fgdou.ovh`)'
@@ -70,7 +32,7 @@ services:
       - 'traefik.http.middlewares.authentik.forwardauth.authResponseHeaders=X-authentik-username,X-authentik-groups,X-authentik-email,X-authentik-name,X-authentik-uid,X-authentik-jwt,X-authentik-meta-jwks,X-authentik-meta-outpost,X-authentik-meta-provider,X-authentik-meta-app,X-authentik-meta-version'
 
   worker:
-    image: ghcr.io/goauthentik/server:2025.10.3
+    image: ghcr.io/goauthentik/server:2026.2
     restart: unless-stopped
     container_name: authentik_worker
     command: worker
@@ -78,10 +40,10 @@ services:
       - authentik
     environment:
       AUTHENTIK_REDIS__HOST: redis
-      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
       AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
-      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-password}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD}
     # `user: root` and the docker socket volume are optional.
     # See more for the docker socket integration here:
     # https://goauthentik.io/docs/outposts/integrations/docker
@@ -96,11 +58,8 @@ services:
       - /data/authentik/custom-templates:/templates
     env_file:
       - .env
-    depends_on:
-      - postgresql
-      - authentik_redis
   authentik_ldap:
-        image: ghcr.io/goauthentik/ldap:2025.10.3
+        image: ghcr.io/goauthentik/ldap:2026.2
         # Optionally specify which networks the container should be
         # might be needed to reach the core authentik server
         # networks:
