@@ -2,7 +2,6 @@ services:
   nextcloud:
     networks:
       - nas
-      - nextcloud
     image: nextcloud:32.0.3
     volumes:
       - /data/nextcloud/code:/var/www/html
@@ -12,14 +11,12 @@ services:
       - OVERWRITEHOST=nextcloud.fgdou.ovh
       - OVERWRITEPROTOCOL=https
       - POSTGRES_DB=nextcloud
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_HOST=nextcloud_db
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=${NEXTCLOUD_DB_PASSWORD}
+      - POSTGRES_HOST=postgres
       - PHP_MEMORY_LIMIT=1024M
       - PHP_UPLOAD_LIMIT=1024M
       - REDIS_HOST=redis
-    depends_on:
-      - nextcloud_db
     restart: unless-stopped
     labels:
       - 'traefik.enable=true'
@@ -34,20 +31,7 @@ services:
       done;
       exec apache2-foreground
       '
-  nextcloud_db:
-    image: postgres:16.1
-    container_name: nextcloud_db
-    volumes:
-      - /data/nextcloud/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_USER=user
-      - POSTGRES_DB=nextcloud
-    networks:
-      - nextcloud
-    restart: unless-stopped
 
 networks:
   nas:
     external: true
-  nextcloud:
