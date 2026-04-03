@@ -43,20 +43,6 @@ services:
     networks:
       - nas
       - ai
-
-  litellm_postgres:
-    image: postgres:15
-    container_name: litellm_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: litellm
-      POSTGRES_PASSWORD: litellm_pass
-      POSTGRES_DB: litellm_db
-    volumes:
-      - /data/ai/postgres:/var/lib/postgresql/data
-    networks:
-      - ai
-
 networks:
   nas:
     external: true
