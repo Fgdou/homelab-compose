@@ -18,6 +18,30 @@ services:
     ports:
       - 8080:8080
     restart: unless-stopped
+  pg_backups:
+    image: prodrigestivill/postgres-backup-local
+    restart: always
+    volumes:
+      - /data/postgres_backups:/backups
+    links:
+      - postgres
+    depends_on:
+      - postgres
+    networks:
+      - nas
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_CLUSTER=TRUE
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=${POSTGRES_ADMIN_PASSWORD}
+      - POSTGRES_EXTRA_OPTS=
+      - SCHEDULE=@daily
+      - BACKUP_ON_START=TRUE
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      - HEALTHCKECK_PORT=8080
 
 networks:
   nas:
