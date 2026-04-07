@@ -41,7 +41,7 @@ services:
     tty: true
     entrypoint: web-entrypoint.sh
     command: ['bin/rails', 'server', '-p', '3000', '-b', '::']
-    restart: on-failure
+    restart: always
     environment:
       TZ: Europe/Paris
       RAILS_ENV: ${RAILS_ENV:-production}
@@ -108,7 +108,7 @@ services:
     tty: true
     entrypoint: sidekiq-entrypoint.sh
     command: ['sidekiq']
-    restart: on-failure
+    restart: always
     environment:
       TZ: Europe/Paris
       RAILS_ENV: ${RAILS_ENV:-production}
