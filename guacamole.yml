@@ -9,22 +9,6 @@ services:
     - /data/guac/record:/record:rw
     networks:
       - nas
-  # postgres
-  postgres:
-    user: root:users
-    container_name: postgres_guacamole_compose
-    environment:
-      PGDATA: /var/lib/postgresql/data/guacamole
-      POSTGRES_DB: guacamole_db
-      POSTGRES_PASSWORD: ChooseYourOwnPasswordHere1234
-      POSTGRES_USER: guacamole_user
-    image: postgres:13.4
-    restart: always
-    volumes:
-    - /data/guac/init:/docker-entrypoint-initdb.d:ro
-    - /data/guac/data:/var/lib/postgresql/data:rw
-    networks:
-      - guac
 
   # guacamole
   guacamole:
@@ -32,13 +16,12 @@ services:
     container_name: guacamole_compose
     depends_on:
     - guacd
-    - postgres
     environment:
       GUACD_HOSTNAME: guacd
-      POSTGRESQL_DATABASE: guacamole_db
+      POSTGRESQL_DATABASE: guacamole
       POSTGRESQL_HOSTNAME: postgres
-      POSTGRESQL_PASSWORD: ChooseYourOwnPasswordHere1234
-      POSTGRESQL_USER: guacamole_user
+      POSTGRESQL_PASSWORD: ${GUACAMOLE_DB_PASSWORD}
+      POSTGRESQL_USER: guacamole
       OPENID_ENABLED: "true"
       OPENID_AUTHORIZATION_ENDPOINT: https://auth.fgdou.ovh/application/o/authorize/
       OPENID_CLIENT_ID: PaItAZvi1wxJuN1QVdhyxCM7xDaDIze6ZUp3Jr4D
