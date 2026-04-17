@@ -180,6 +180,20 @@ services:
     restart: unless-stopped
     networks:
       - nas
+  musiseerr:
+    image: ghcr.io/fgdou/musiseerr:latest
+    environment:
+      - LIDARR_API_KEY=${LIDARR_API_KEY}
+      - LIDARR_URL=http://lidarr:8686
+    restart: unless-stopped
+    networks:
+      - nas
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.musiseerr.rule=Host(`musiseerr.fgdou.ovh`)'
+      - 'traefik.http.routers.musiseerr.entryPoints=websecure'
+      - 'traefik.http.services.musiseerr.loadbalancer.server.port=3000'
+      - 'traefik.http.routers.musiseerr.middlewares=authentik@docker'
 
 networks:
   nas:
