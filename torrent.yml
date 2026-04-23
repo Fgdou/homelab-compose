@@ -152,9 +152,13 @@ services:
       - SLSKD_SLSK_USERNAME=fgdou
       - SLSKD_SLSK_PASSWORD=${SLSKD_PASSWORD}
       - SLSKD_API_KEY=${SLSKD_API}
-      - SLSKD_SHARED_DIR=/app/downloads
+      - SLSKD_SHARED_DIR=/music
+      - SLSKD_UPLOAD_SPEED_LIMIT=1000
+      - SLSKD_UPLOAD_SLOTS=10
+      - SLSKD_DOWNLOAD_SPEED_LIMIT=10000
     volumes:
       - /films/slskd:/app
+      - /films/music:/music:ro
     restart: unless-stopped
     ports:
       - 50300:50300
