@@ -1,0 +1,16 @@
+services:
+  mariage:
+    image: gitea.fgdou.ovh/fgdou/mariage:latest
+    container_name: mariage
+    networks:
+      - nas
+    restart: always
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mariage.rule=Host(`mariage.fgdou.ovh`)'
+      - 'traefik.http.routers.mariage.entryPoints=websecure'
+      - 'traefik.http.services.mariage.loadbalancer.server.port=80'
+
+networks:
+  nas:
+    external: true
