@@ -8,7 +8,7 @@ services:
       - "25566:25565"
     environment:
       EULA: "TRUE"
-      VERSION: "1.21.1"
+      VERSION: "26.1.2"
       TYPE: "PAPER"
       MAX_MEMORY: "4G"
       ENABLE_AUTOPAUSE: "true"
