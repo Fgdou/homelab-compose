@@ -24,7 +24,7 @@ services:
     # command: postgres -c config_file=/etc/postgresql/postgresql.conf # Use custom config, uncomment if you want to use a custom config
 
   dawarich_app:
-    image: freikin/dawarich:1.7.11
+    image: freikin/dawarich:1.9.1
     container_name: dawarich_app
     volumes:
       - /data/dawarich/public:/var/app/public
@@ -96,7 +96,7 @@ services:
       - 'traefik.http.services.dawarich.loadbalancer.server.port=3000'
 
   dawarich_sidekiq:
-    image: freikin/dawarich:1.7.11
+    image: freikin/dawarich:1.9.1
     container_name: dawarich_sidekiq
     volumes:
       - /data/dawarich/public:/var/app/public
@@ -104,6 +104,7 @@ services:
       - /data/dawarich/storage:/var/app/storage
     networks:
       - dawarich
+      - nas
     stdin_open: true
     tty: true
     entrypoint: sidekiq-entrypoint.sh
@@ -118,7 +119,7 @@ services:
       DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-password}
       DATABASE_NAME: ${DATABASE_NAME:-dawarich_development}
-      APPLICATION_HOSTS: ${APPLICATION_HOSTS:-localhost,::1,127.0.0.1,dawarich.fgdou.ovh,auth.fgdou.ovh}
+      APPLICATION_HOSTS: ${APPLICATION_HOSTS:-localhost,::1,127.0.0.1,dawarich_app,dawarich.fgdou.ovh,auth.fgdou.ovh}
       BACKGROUND_PROCESSING_CONCURRENCY: ${BACKGROUND_PROCESSING_CONCURRENCY:-10}
       APPLICATION_PROTOCOL: ${APPLICATION_PROTOCOL:-http}
       PROMETHEUS_EXPORTER_ENABLED: ${PROMETHEUS_EXPORTER_ENABLED:-false}
