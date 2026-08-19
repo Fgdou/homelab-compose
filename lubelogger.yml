@@ -1,0 +1,21 @@
+services:
+  app:
+    image: ghcr.io/hargata/lubelogger:v1.7.0
+    restart: unless-stopped
+    # volumes used to keep data persistent
+    networks:
+    - nas
+    volumes:
+      - /data/lubelogger/data:/App/data
+      - /data/lubelogger/keys:/root/.aspnet/DataProtection-Keys
+    # expose port and/or use serving via traefik
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.lubelogger.rule=Host(`lubelogger.fgdou.ovh`)'
+      - 'traefik.http.routers.lubelogger.entryPoints=websecure'
+      - 'traefik.http.services.lubelogger.loadbalancer.server.port=8080'
+      - 'traefik.http.routers.lubelogger.middlewares=authentik@docker'
+
+networks:
+  nas:
+    external: true
