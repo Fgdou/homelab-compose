@@ -1,0 +1,49 @@
+services:
+  grampsweb: &grampsweb
+    image: ghcr.io/gramps-project/grampsweb:26.8.1
+    restart: unless-stopped
+    environment:
+      GRAMPSWEB_TREE: "Fabien GOARDOU"
+      GRAMPSWEB_CELERY_CONFIG__broker_url: "redis://redis:6379/0"
+      GRAMPSWEB_CELERY_CONFIG__result_backend: "redis://redis:6379/0"
+      GRAMPSWEB_RATELIMIT_STORAGE_URI: redis://redis:6379/1
+      GRAMPSWEB_BASE_URL: https://gramps.fgdou.ovh/
+      GRAMPSWEB_OIDC_ENABLED: true
+      GRAMPSWEB_OIDC_ISSUER: https://auth.fgdou.ovh/application/o/gramps/
+      GRAMPSWEB_OIDC_CLIENT_ID: G4tIGDX7wN02YwRocsl9JKrqglY0E5KSIcjqeCDg
+      GRAMPSWEB_OIDC_CLIENT_SECRET: ${GRAMPS_OIDC_SECRET}
+      GRAMPSWEB_OIDC_NAME: Authentik
+      GRAMPSWEB_OIDC_GROUP_ADMIN: admin
+      GRAMPSWEB_OIDC_SCOPES: "openid email profile" 
+      GRAMPSWEB_TRUSTED_PROXIES: "*"
+      GRAMPSWEB_SECRET_KEY: ${GRAMPS_SECRET_KEY}
+    volumes:
+      - /data/gramps/gramps_users:/app/users
+      - /data/gramps/gramps_index:/app/indexdir
+      - /data/gramps/gramps_thumb_cache:/app/thumbnail_cache
+      - /data/gramps/gramps_cache:/app/cache
+      - /data/gramps/gramps_secret:/app/secret
+      - /data/gramps/gramps_db:/root/.gramps/grampsdb
+      - /data/gramps/gramps_media:/app/media
+      - /data/gramps/gramps_tmp:/tmp
+    networks:
+      - nas
+      - gramps-internal
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.grampsweb.rule=Host(`gramps.fgdou.ovh`)'
+      - 'traefik.http.routers.grampsweb.entryPoints=websecure'
+      - 'traefik.http.services.grampsweb.loadbalancer.server.port=5000'
+
+  grampsweb_celery:
+    <<: *grampsweb  # YAML merge key copying the entire grampsweb service config
+    networks:
+      - gramps-internal
+      - nas
+    command: celery -A gramps_webapi.celery worker --loglevel=INFO
+    labels: []
+
+networks:
+  nas:
+    external: true
+  gramps-internal:
