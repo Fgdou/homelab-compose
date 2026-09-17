@@ -1,0 +1,51 @@
+services:
+  sr:
+    image: ghcr.io/fgdou/sr_project:master
+    container_name: sr
+    networks:
+      - nas
+    restart: always
+    volumes:
+      - /data/sr/leaderboard:/app/leaderboard
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.sr.rule=Host(`sr.fgdou.ovh`)'
+      - 'traefik.http.routers.sr.entryPoints=websecure'
+      - 'traefik.http.services.sr.loadbalancer.server.port=80'
+  mariage:
+    image: gitea.fgdou.ovh/fgdou/mariage:latest
+    container_name: mariage
+    networks:
+      - nas
+    restart: always
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.mariage.rule=Host(`mariage.fgdou.ovh`)'
+      - 'traefik.http.routers.mariage.entryPoints=websecure'
+      - 'traefik.http.services.mariage.loadbalancer.server.port=80'
+  todoapp:
+    image: ghcr.io/fgdou/todoapp:latest
+    container_name: todoapp
+    networks:
+      - nas
+    restart: always
+    volumes:
+      - todoappdata:/app/data/
+    environment:
+      - OIDC_ENABLED=true
+      - OIDC_CLIENT_ID=Tz5dISJ5KtrZJl956VjPNPdk4KhShvSRxD72PJ07
+      - OIDC_CONFIGURATION_URI=https://auth.fgdou.ovh/application/o/todo-test/.well-known/openid-configuration
+      - OIDC_CLIENT_SECRET=${TODO_OIDC_SECRET}
+      - OIDC_REDIRECT_URI=https://todo.fgdou.ovh/auth/oidc/redirect
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.todoapp.rule=Host(`todo.fgdou.ovh`)'
+      - 'traefik.http.routers.todoapp.entryPoints=websecure'
+      - 'traefik.http.services.todoapp.loadbalancer.server.port=80'
+
+networks:
+  nas:
+    external: true
+
+volumes:
+  todoappdata:
