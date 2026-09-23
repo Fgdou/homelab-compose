@@ -3,7 +3,7 @@ services:
     restart: unless-stopped
     hostname: meshcentral
     container_name: meshcentral
-    image: typhonragewind/meshcentral:1.1.53
+    image: meshcentral/meshcentral:1.2.5
     networks:
       - nas
     volumes:
@@ -22,6 +22,8 @@ services:
       - BACKUPS_PW=${ADMIN_PASSWORD} #password for the autobackup function
       - BACKUP_INTERVAL=24 # Interval in hours for the autobackup function
       - BACKUP_KEEP_DAYS=10 #number of days of backups the function keeps
+      - DYNAMIC_CONFIG=true
+      - REDIR_PORT=80
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.meshcentral.rule=Host(`meshcentral.fgdou.ovh`)'
