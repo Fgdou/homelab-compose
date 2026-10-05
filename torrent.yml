@@ -3,7 +3,7 @@ services:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     environment:
-      - TZ=Europe/London
+      - TZ=Europe/Paris
     volumes:
       - /films/Radarr:/config
       - /films/Films/films:/movies #optional
@@ -25,7 +25,7 @@ services:
     image: ghcr.io/linuxserver/sonarr:latest
     container_name: sonarr
     environment:
-      - TZ=Europe/London
+      - TZ=Europe/Paris
     volumes:
       - /films/Sonarr:/config
       - /films/Films/series:/tv #optional
@@ -69,7 +69,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - LOG_HTML=${LOG_HTML:-false}
       - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
-      - TZ=Europe/London
+      - TZ=Europe/Paris
     restart: unless-stopped
     networks:
       - torrent
@@ -78,8 +78,8 @@ services:
     image: fallenbagel/jellyseerr:latest
     container_name: jellyseerr
     environment:
-      - LOG_LEVEL=debug
-      - TZ=Asia/Tashkent
+      - LOG_LEVEL=info
+      - TZ=Europe/Paris
     volumes:
       - /films/jellyseerr:/app/config
     restart: unless-stopped
@@ -97,7 +97,7 @@ services:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     environment:
-      - TZ=Etc/UTC
+      - TZ=Europe/Paris
       - WEBUI_PORT=8080
       - TORRENTING_PORT=6881
     volumes:
@@ -125,7 +125,7 @@ services:
       - PUID=1000
       - PGID=1000
       - UMASK=002
-      - TZ=Etc/UTC
+      - TZ=Europe/Paris
       - WEBUI_PORTS=8686/tcp 
     volumes:
       - /data/lidarr/config:/config

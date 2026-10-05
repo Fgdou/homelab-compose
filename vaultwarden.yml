@@ -7,7 +7,9 @@ services:
     volumes:
       - /data/VaultWarden:/data/
     environment:
-            - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
+      - ADMIN_TOKEN=${VAULTWARDEN_ADMIN_TOKEN}
+      - DOMAIN=https://vaultwarden.fgdou.ovh
+      - SIGNUPS_ALLOWED=false
     networks:
       - nas
     labels:

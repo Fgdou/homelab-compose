@@ -7,7 +7,7 @@ services:
       - /films/JDownloader:/config:rw
       - /films/Films/Download:/output:rw
     environment:
-      - JAVA_OPTS="-Xms128m -Xmx512"
+      - JDOWNLOADER_MAX_MEM=512M
     networks:
       - nas
     labels:
