@@ -4,7 +4,7 @@ services:
     container_name: jellyfin
     user: root:users
     environment:
-      - TZ=Europe/London
+      - TZ=Europe/Paris
       #- JELLYFIN_PublishedServerUrl=192.168.0.5 #optional
     volumes:
       - /data/Jellyfin:/config

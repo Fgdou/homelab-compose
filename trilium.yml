@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       - TRILIUM_DATA_DIR=/home/node/trilium-data
-      - TRILIUM_NETWORK_TRUSTEDREVERSEPROXY=72.18.0.21/16
+      - TRILIUM_NETWORK_TRUSTEDREVERSEPROXY=172.18.0.0/16
       - TRILIUM_GENERAL_NOAUTHENTICATION=true
     volumes:
       - /data/trilium:/home/node/trilium-data

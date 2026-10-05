@@ -1,6 +1,3 @@
-volumes:
-  prometheus_data: {}
-
 services:
   node-exporter:
     image: quay.io/prometheus/node-exporter:v1.10.2

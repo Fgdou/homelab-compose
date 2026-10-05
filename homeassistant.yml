@@ -37,7 +37,7 @@ services:
         # Frontend port
         #- 8080:8080
     environment:
-        - TZ=Europe/Berlin
+        - TZ=Europe/Paris
     devices:
       - /dev/ttyACM0:/dev/ttyACM0
     networks:
