@@ -46,6 +46,17 @@ services:
       - monitoring
       - nas
 
+  postgres_exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    restart: always
+    networks:
+      - monitoring
+      - nas
+    environment:
+      DATA_SOURCE_URI: "postgres:5432/postgres?sslmode=disable"
+      DATA_SOURCE_USER: admin
+      DATA_SOURCE_PASS: ${POSTGRES_ADMIN_PASSWORD}
+
   s3_exporter:
     image: ribbybibby/s3-exporter:v0.5.0
     restart: always
