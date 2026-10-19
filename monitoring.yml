@@ -69,7 +69,7 @@ services:
     command: "--s3.endpoint-url 'https://s3.gra.io.cloud.ovh.net/'"
 
   prometheus:
-    image: prom/prometheus:v3.9.1
+    image: prom/prometheus:v3.15.0
     container_name: prometheus
     restart: unless-stopped
     volumes:
@@ -114,7 +114,7 @@ services:
       - --disable_metrics=advtcp,cpu_topology,disk,diskIO,memory_numa,network,percpu,process,referenced_memory,resctrl,sched,tcp,udp
 
   grafana:
-    image: grafana/grafana:12.3.1
+    image: grafana/grafana:13.2.4
     container_name: grafana
     restart: unless-stopped
     volumes:
@@ -152,7 +152,7 @@ services:
 
 
   ntfy:
-    image: binwiederhier/ntfy:v2.15.0
+    image: binwiederhier/ntfy:v2.32.0
     container_name: ntfy
     environment:
       NTFY_BASE_URL: https://ntfy.fgdou.ovh

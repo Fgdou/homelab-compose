@@ -1,6 +1,6 @@
 services:
   grampsweb: &grampsweb
-    image: ghcr.io/gramps-project/grampsweb:26.8.1
+    image: ghcr.io/gramps-project/grampsweb:26.10.1
     restart: unless-stopped
     environment:
       GRAMPSWEB_TREE: "Fabien GOARDOU"
