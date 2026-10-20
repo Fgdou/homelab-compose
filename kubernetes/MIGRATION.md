@@ -27,8 +27,7 @@ These exist today, independent of Kubernetes, and are easier to fix while moving
 | Issue | Why it matters | Decision |
 |---|---|---|
 | `postgres` data is in `/home/fgdou/postgres` (NVMe root disk) | Not on the RAID1 and not covered by restic. Only the daily dumps in `/data/postgres_backups` are protected. | **Keep it on the NVMe** (faster disk). Static `local` PV on `/home/fgdou/postgres`. Accepted risk: if the NVMe dies, restore from the last daily dump (up to 24 h of data lost). Increase the dump frequency to shrink that window. |
-| Named docker volumes: `todoappdata`, `model-cache` (immich), `cache` (bind9) | Live in `/var/lib/docker`, not backed up. `todoappdata` is real data; the others are caches. | **`todoappdata` → `/data/todoapp`** (Phase 0). **Both caches → `emptyDir`**. Immich ML re-downloads its models on each pod restart (slower start). |
-| Two LDAP outposts run (`compose-authentik_ldap-1` **and** `ak-outpost-ldap` managed by authentik through docker.sock) | Duplicate. | **Keep the authentik-managed one.** Switch the outpost integration to Kubernetes (ServiceAccount + RBAC) and drop `compose-authentik_ldap-1`. |
+| Named docker volumes: `todoappdata`, `model-cache` (immich), `cache` (bind9) | Live in `/var/lib/docker`, not backed up. `todoappdata` holds app data; the others are caches. | **All three → `emptyDir`.** todoapp data is disposable and is wiped on every pod restart or redeploy. Immich ML re-downloads its models on each pod restart (slower start). |
 | Hardcoded passwords (`password`, `user`) in `ciq`, `pca`, `immich`, `endurain`, `dawarich`; AWS access key ID in `restic`/`monitoring` | Plain text in git. | **Move them into SOPS Secrets with the same values** while converting (no rotation; they are internal-only DB credentials). |
 | Unused `.env` keys (`VOUCHERVAULT_*`, `CURSE_API`, `LITELLM_MASTER_KEY`, `LDAP_SEED`, `LDAP_JWT`, `CIQ_AUTHENTIK_*`) | Noise when splitting `.env` into per-namespace Secrets. | **Delete them from `.env` now** (Phase 0). |
 | `openwebui`, `audiobookshelf/config`, `jellyseerr`, arr configs (`Radarr`, `Sonarr`, `prowlarr`, `qbittorrent`) are on `/films` | Single disk, not backed up; the arr/jellyseerr configs take time to recreate. | **Leave them on `/films`.** Losing them with the disk is accepted. |
@@ -152,13 +151,14 @@ When a second node arrives, these must become NFS (exported from the NAS) or the
 | monitoring | `/data/monitoring/{prometheus,grafana,ntfy,json_exporter}` | | |
 | gramps | `/data/gramps/*` (8 folders → 1 PV + subPaths) | | `/tmp` |
 | ciq / pca / wekan / endurain | their `/data/<app>` folders | | |
-| small apps (actual, vaultwarden, trilium, mealie, lubelogger, ihatemoney, meshcentral, warracker, guacamole, minecraft, sr, todoapp, lidarr, soularr, navidrome, jellyfin config, bind9, ddclient, homarr, matrix/element) | `/data/<app>` | | |
+| small apps (actual, vaultwarden, trilium, mealie, lubelogger, ihatemoney, meshcentral, warracker, guacamole, minecraft, sr, lidarr, soularr, navidrome, jellyfin config, bind9, ddclient, homarr, matrix/element) | `/data/<app>` | | |
 | arr suite + jellyseerr + qbittorrent + slskd + jdownloader | | `/films/<app>` configs | |
 | media libraries | | `/films/Films`, `/films/music` | |
 | openwebui, audiobookshelf | | `/films/<app>` | |
 | frigate | `/data/frigate/config` | `/films/frigate` | `/tmp/cache` 1Gi, `/dev/shm` 512Mi |
 | firefox | | | `/dev/shm` 1Gi |
 | bind9 cache | | | `/var/cache/bind` |
+| todoapp | | | data volume (was `todoappdata`) |
 | restic | `/data` read-only (`hostPath`) | | |
 
 Host files currently bind-mounted (`/etc/localtime`, `/etc/timezone`, `/run/dbus`, `/run/udev`, `/proc`, `/sys`, `/`) → `hostPath` volumes, or simply `TZ=Europe/Paris` for the timezone.
@@ -253,7 +253,7 @@ With `hostNetwork`, set `dnsPolicy: ClusterFirstWithHostNet` so the pod still re
 | Service | Problem | Solution |
 |---|---|---|
 | traefik | docker.sock for the docker provider | replaced by k3s Traefik + kubernetesCRD provider |
-| authentik worker | docker.sock, `user: root`, manages outposts through Docker | Use the **official Helm chart**, switch the outpost integration to *Kubernetes* (ServiceAccount + RBAC), keep a single LDAP outpost |
+| authentik worker | docker.sock + `user: root` mounted for the Docker outpost integration (no longer used: the LDAP outpost is manual) | Use the **official Helm chart** without docker.sock. LDAP outpost (used by jellyfin on 6636): plain Deployment with its token as today, or authentik's *Kubernetes* integration (ServiceAccount + RBAC) |
 | gitea_runner | docker.sock to run CI jobs | act_runner + **docker-in-docker sidecar** (privileged), or the runner's Kubernetes mode |
 | homarr | docker.sock integration | Homarr 1.x has a Kubernetes integration; or drop the integration (not running anyway) |
 | watchtower | auto-update `mariage`, `todoapp` every minute | No docker socket anymore. Options: `imagePullPolicy: Always` + a CronJob running `kubectl rollout restart`, **Keel**, or Flux image automation. Better long-term: CI pushes a versioned tag and updates the manifest |
@@ -340,8 +340,7 @@ The apps use the same memory in a pod as in a container — same image, same pro
 | cadvisor (kubelet has it) | ~220 MB |
 | watchtower | ~35 MB |
 | docker daemon (once everything is migrated; k3s uses its own containerd) | ~150 MB |
-| duplicated LDAP outpost | ~40–75 MB |
-| **Total** | **≈ 0.45 GB** |
+| **Total** | **≈ 0.4 GB** |
 
 ### Optional add-ons
 
@@ -413,8 +412,8 @@ Alternatives considered: **k0s** (similar to k3s, less homelab ecosystem), **Mic
 Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are host ports (80, 443, 22, 53, 25…).
 
 **Phase 0 — prepare (on Docker)**
-1. Move `todoappdata` → `/data/todoapp`. Postgres stays on `/home/fgdou/postgres`; consider more frequent dumps.
-2. Remove the compose LDAP outpost (keep the authentik-managed one), pin `:latest` images, delete the unused `.env` keys.
+1. Postgres stays on `/home/fgdou/postgres`; consider more frequent dumps.
+2. Pin `:latest` images, delete the unused `.env` keys.
 3. Take a full restic snapshot + postgres dump.
 
 **Phase 1 — install k3s next to Docker**
