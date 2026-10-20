@@ -23,7 +23,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | 3.2 | immich | `immich` | `immich.yml` | ✅ | 2026-10-20 |
 | 3.2 | dawarich | `dawarich` | `dawarich.yaml` | ✅ | 2026-10-20 |
 | 3.2 | ciq | `ciq` | `ciq.yml` | ✅ | 2026-10-20 |
-| 3.2 | gitea (+ SSH, runner) | `gitea` | `gitea.yaml` | ⏳ | |
+| 3.2 | gitea (+ SSH, runner) | `gitea` | `gitea.yaml` | ✅ | 2026-10-20 |
 | 3.3 | media (arr, jellyfin, navidrome, slskd, musiseerr) | `media` | `jellyfin.yml`, `navidrome.yml`, `torrent.yml`, … | ⏳ | |
 | 3.4 | monitoring | `monitoring` | `monitoring.yml` | ⏳ | |
 | 3.5 | postgres, adminer, pg-backups | `databases` | `postgres.yml` | ⏳ | |
