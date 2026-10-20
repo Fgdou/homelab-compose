@@ -32,7 +32,7 @@ provisioner: rancher.io/local-path
 reclaimPolicy: Retain
 volumeBindingMode: WaitForFirstConsumer
 parameters:
-  pathPattern: "{{ .PVC.Namespace }}/{{ .PVC.Name }}"
+  pathPattern: "{{ .PVC.Namespace }}/{{ .PVC.Name }}/"   # trailing / required since local-path v0.0.37
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -42,4 +42,4 @@ provisioner: rancher.io/local-path
 reclaimPolicy: Retain
 volumeBindingMode: WaitForFirstConsumer
 parameters:
-  pathPattern: "{{ .PVC.Namespace }}/{{ .PVC.Name }}"
+  pathPattern: "{{ .PVC.Namespace }}/{{ .PVC.Name }}/"   # trailing / required since local-path v0.0.37

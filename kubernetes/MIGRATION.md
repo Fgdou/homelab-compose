@@ -1,6 +1,6 @@
 # Docker Compose → Kubernetes migration
 
-Status: **Phase 2 step 1 done** (2026-10-20): k3s `v1.36.5+k3s1` installed next to Docker, bundled Traefik on 8000/8443/2222. Phase 1 manifests written and validated offline, see [README.md](README.md).
+Status: **Phase 2 steps 1–2 done** (2026-10-20): k3s `v1.36.5+k3s1` installed next to Docker, bundled Traefik on 8000/8443/2222, storage classes + namespaces created. Phase 1 manifests written and validated offline, see [README.md](README.md).
 Snapshot taken 2026-10-20 on the NAS (Ryzen 3 3200G, 4 threads, 32 GB RAM / 29 GiB usable).
 
 TL;DR
@@ -157,7 +157,7 @@ spec:
 
 ### New apps: `local-path`, two classes
 
-Volumes for apps added after the migration use the k3s `local-path` provisioner, configured with two classes: `data-dynamic` → `/data/k8s`, `films-dynamic` → `/films/k8s`, `reclaimPolicy: Retain`, and a `pathPattern` of `{{ .PVC.Namespace }}/{{ .PVC.Name }}` so folders stay readable (`/data/k8s/<namespace>/<pvc>`).
+Volumes for apps added after the migration use the k3s `local-path` provisioner, configured with two classes: `data-dynamic` → `/data/k8s`, `films-dynamic` → `/films/k8s`, `reclaimPolicy: Retain`, and a `pathPattern` of `{{ .PVC.Namespace }}/{{ .PVC.Name }}/` (trailing `/` required since v0.0.37) so folders stay readable (`/data/k8s/<namespace>/<pvc>`).
 
 ### Shared media folders
 
@@ -529,7 +529,7 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 
 **Phase 2 — install k3s next to Docker (bootstrap)**
 1. Install k3s with `--cluster-init`, the kubelet memory reservations, and the bundled Traefik moved to other ports (e.g. hostPort 8000/8443) so Docker's Traefik keeps 80/443. — ✅ done 2026-10-20 (Traefik `HelmChartConfig` dropped in `/var/lib/rancher/k3s/server/manifests/` before the first start)
-2. Create storage classes (`data`, `films`, `data-dynamic`, `films-dynamic`) and namespaces.
+2. Create storage classes (`data`, `films`, `data-dynamic`, `films-dynamic`) and namespaces. — ✅ done 2026-10-20 (local-path v0.0.37 requires `pathPattern` to end with `/`: `{{ .PVC.Namespace }}/{{ .PVC.Name }}/`)
 3. Install **OpenBao**, initialise it, store the unseal keys + root token in Vaultwarden, unseal, enable the Kubernetes auth method, and import the `.env` values (`kv/<namespace>/<app>`).
 4. Install **External Secrets Operator** + the `ClusterSecretStore`.
 5. Install **cert-manager** + Cloudflare `ClusterIssuer` + wildcard certificates, then the authentik forward-auth Middleware.
