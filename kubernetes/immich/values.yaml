@@ -6,6 +6,7 @@ controllers:
       main:
         env:
           REDIS_HOSTNAME: redis.databases
+          REDIS_DBINDEX: "2"            # shared redis: db 0-1 = gramps
           DB_HOSTNAME: immich-database
           DB_USERNAME: user
           DB_DATABASE_NAME: db
