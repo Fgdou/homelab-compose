@@ -12,11 +12,11 @@ spec:
       helm:
         releaseName: argocd-image-updater
         valueFiles: [$values/kubernetes/platform/image-updater/values.yaml]
-    - repoURL: git@github.com:Fgdou/homelab-compose.git
-      targetRevision: main
+    - repoURL: https://github.com/Fgdou/homelab-compose.git
+      targetRevision: kube
       ref: values
-    - repoURL: git@github.com:Fgdou/homelab-compose.git
-      targetRevision: main
+    - repoURL: https://github.com/Fgdou/homelab-compose.git
+      targetRevision: kube
       path: kubernetes/platform/image-updater
   destination: { server: https://kubernetes.default.svc, namespace: argocd }
   syncPolicy:

@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: git@github.com:Fgdou/homelab-compose.git
-    targetRevision: main
+    repoURL: https://github.com/Fgdou/homelab-compose.git
+    targetRevision: kube
     path: kubernetes/home
   destination: { server: https://kubernetes.default.svc, namespace: home }
   # Manual sync first; once the stack is verified, uncomment (MIGRATION.md §8):

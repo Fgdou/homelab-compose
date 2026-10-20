@@ -5,8 +5,19 @@ configs:
   cm:
     url: https://argocd.fgdou.ovh
     exec.enabled: false
-    admin.enabled: true
-  # Repository credentials (deploy key) are created by hand at bootstrap, see README.md
+    admin.enabled: true            # local admin kept until the OIDC login is verified, then false
+    oidc.config: |
+      name: authentik
+      issuer: https://auth.fgdou.ovh/application/o/argocd/
+      clientID: argocd
+      clientSecret: $argocd-oidc:clientSecret
+      requestedScopes: ["openid", "profile", "email"]
+  rbac:
+    policy.default: ""             # no access unless a rule below matches
+    policy.csv: |
+      g, admin, role:admin
+    scopes: "[groups]"
+  # The repository is public and read over HTTPS: no repository credentials.
 dex:
   enabled: false
 notifications:

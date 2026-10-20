@@ -12,11 +12,11 @@ spec:
       helm:
         releaseName: openbao
         valueFiles: [$values/kubernetes/platform/openbao/values.yaml]
-    - repoURL: git@github.com:Fgdou/homelab-compose.git
-      targetRevision: main
+    - repoURL: https://github.com/Fgdou/homelab-compose.git
+      targetRevision: kube
       ref: values
-    - repoURL: git@github.com:Fgdou/homelab-compose.git
-      targetRevision: main
+    - repoURL: https://github.com/Fgdou/homelab-compose.git
+      targetRevision: kube
       path: kubernetes/platform/openbao
   destination: { server: https://kubernetes.default.svc, namespace: openbao }
   syncPolicy:

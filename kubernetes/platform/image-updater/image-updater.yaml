@@ -20,5 +20,5 @@ spec:
   writeBackConfig:
     method: git
     gitConfig:
-      branch: main
+      branch: kube        # migration branch (MIGRATION.md §11); main once merged
       writeBackTarget: kustomization

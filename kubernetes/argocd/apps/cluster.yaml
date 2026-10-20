@@ -1,15 +1,15 @@
-# Needs cert-manager + the cloudflare Secret (cluster-secret-store)
+# Namespaces, storage classes, Traefik configuration
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cluster-certs
+  name: cluster
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: git@github.com:Fgdou/homelab-compose.git
-    targetRevision: main
-    path: kubernetes/cluster/certs
+    repoURL: https://github.com/Fgdou/homelab-compose.git
+    targetRevision: kube
+    path: kubernetes/cluster/base
   destination: { server: https://kubernetes.default.svc, namespace: kube-system }
   # Manual sync first; once the stack is verified, uncomment (MIGRATION.md §8):
   # syncPolicy:
