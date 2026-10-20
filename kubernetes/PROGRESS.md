@@ -21,7 +21,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | 3.1 | vaultwarden | `apps-vaultwarden` | `vaultwarden.yml` | ✅ | 2026-10-20 |
 | 3.1 | sr, mariage, todoapp | `projects` | `projects.yml` | ✅ | 2026-10-20 |
 | 3.2 | immich | `immich` | `immich.yml` | ✅ | 2026-10-20 |
-| 3.2 | dawarich | `dawarich` | `dawarich.yaml` | ⏳ | |
+| 3.2 | dawarich | `dawarich` | `dawarich.yaml` | ✅ | 2026-10-20 |
 | 3.2 | ciq | `ciq` | `ciq.yml` | ⏳ | |
 | 3.2 | gitea (+ SSH, runner) | `gitea` | `gitea.yaml` | ⏳ | |
 | 3.3 | media (arr, jellyfin, navidrome, slskd, musiseerr) | `media` | `jellyfin.yml`, `navidrome.yml`, `torrent.yml`, … | ⏳ | |
