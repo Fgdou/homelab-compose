@@ -19,6 +19,11 @@ spec:
               permanent: true
       websecure:
         exposedPort: 8443           # Phase 4: 443
+        forwardedHeaders:
+          # Docker Traefik bridge (Phase 2 step 7): traffic from the NAS itself (Docker Traefik's container)
+          # reaches k3s Traefik masqueraded to the cni0 gateway 10.42.0.1. Trusting only that address keeps the
+          # real client IP that Docker Traefik puts in X-Forwarded-For. Re-check at Phase 4 (remote LAN client).
+          trustedIPs: ["10.42.0.1/32"]
         http:
           encodedCharacters:
             allowEncodedHash: true
