@@ -22,6 +22,7 @@ Status: **Phase 2 done** (2026-10-20) — k3s `v1.36.5+k3s1` next to Docker (Tra
 | `platform/image-updater/` | Helm values + `ImageUpdater` rule (mariage, todoapp) | `platform-image-updater` |
 | `platform/local-path/` | local-path-provisioner with `data-dynamic` / `films-dynamic` | `platform-local-path` |
 | `<namespace>/` | one folder per namespace (`databases`, `authentik`, `monitoring`, `media`, `home`, `immich`, `dawarich`, `gitea`, `mail`, `nextcloud`, `projects`, `games`, `infra`, `ciq`) | same name |
+| `databases/redis/` | shared Redis (no persistence) for every migrated app, split out of `databases` so it runs before Postgres (group 5) | `databases-redis` |
 | `apps/<app>/` | namespace `apps` split per app (actual, vaultwarden, trilium, mealie, lubelogger, speedtest, openwebui, firefox, meshcentral, gramps, warracker, guacamole): each folder holds the app, its PV/PVC and its ExternalSecret, so apps migrate one at a time | `apps-<app>` |
 
 `authentik` and `immich` are official Helm charts (`values.yaml`) plus plain resources (`kustomization.yaml`) in the same Application. Everything else is plain YAML + Kustomize.
@@ -38,7 +39,7 @@ Status: **Phase 2 done** (2026-10-20) — k3s `v1.36.5+k3s1` next to Docker (Tra
 ## Validate (no cluster needed)
 
 ```sh
-for d in cluster/* platform/* databases authentik monitoring media home immich dawarich gitea mail nextcloud apps/* projects games infra ciq; do
+for d in cluster/* platform/* databases databases/redis authentik monitoring media home immich dawarich gitea mail nextcloud apps/* projects games infra ciq; do
   [ -f $d/kustomization.yaml ] && kustomize build $d > /tmp/render-$(echo $d | tr / -).yaml
 done
 helm template authentik authentik/authentik --version 2026.8.4 -n authentik -f authentik/values.yaml > /tmp/render-chart-authentik.yaml
@@ -167,7 +168,7 @@ Things that the manifests cannot do by themselves, to do on migration day.
 | Stack | Before enabling |
 |---|---|
 | all | Remove the stack's watchtower / Traefik-label dependency; the Docker Traefik bridge forwards its hostnames. |
-| `databases` | Migrate together with all its consumers (authentik, nextcloud, guacamole, warracker, postgres-exporter). |
+| `databases` | Postgres: migrate together with all its consumers (authentik, nextcloud, guacamole, warracker, postgres-exporter). Redis is **already on k3s** (`databases-redis`, 2026-10-20): each app switches to `redis.databases` when it migrates (transient data only); remove Docker's `redis.yml` with its last consumer. |
 | `nextcloud` | In `/data/nextcloud/code/config/config.php`: `'dbhost' => 'postgres'` → `'postgres.databases'`, redis `'host' => 'redis'` → `'redis.databases'`. |
 | `media` | Jellyfin LDAP plugin (`/data/Jellyfin/data/plugins/configurations/LDAP-Auth.xml`): `<LdapServer>authentik_ldap</LdapServer>` → `authentik-ldap.authentik`. Enable VAAPI (`/dev/dri/renderD128`) in Jellyfin's playback settings. |
 | `authentik` | Stop the whole compose stack (server, worker, LDAP outpost). The LDAP outpost keeps its token. Switch `authentik/middleware.yaml` back to `http://authentik-server.authentik/...` (see its comment) in the same commit; then drop the interim `ports: 10.0.0.2:9000` from `authentik.yml`. |

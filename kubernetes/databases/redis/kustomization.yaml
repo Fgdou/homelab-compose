@@ -1,0 +1,6 @@
+# Shared Redis for every migrated app (no persistence: queues, caches, rate limits only).
+# Own Application (databases-redis) so it can run before Postgres (Phase 3 group 5).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - redis.yaml

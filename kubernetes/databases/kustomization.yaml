@@ -1,9 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+# redis: own folder + Application (databases/redis, databases-redis)
 resources:
   - storage.yaml
   - secrets.yaml
   - postgres.yaml
   - pg-backups.yaml
-  - redis.yaml
   - adminer.yaml
