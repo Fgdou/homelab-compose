@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: actual }
     spec:
+      enableServiceLinks: false   # the Service "actual" would inject ACTUAL_PORT=tcp://…, which Actual reads as its port
       containers:
         - name: actual
           image: docker.io/actualbudget/actual-server:26.10.0@sha256:24645e971da6bb1a1f953d6859e307a0b29be1e8b4130a35b3220c209b5b860c
