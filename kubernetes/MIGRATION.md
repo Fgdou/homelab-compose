@@ -528,6 +528,7 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 4. Write the OpenBao key list (`kv/<namespace>/<app>`) from the ExternalSecrets, to know exactly which `.env` values to import.
 
 **Phase 2 — install k3s next to Docker (bootstrap)** — ✅ done 2026-10-20
+0. Host tuning: `fs.inotify.max_user_instances=1024`, `max_user_watches=524288` (`bootstrap/sysctl-90-inotify.conf`; the default 128 instances ran out once k3s ran next to Docker — added 2026-10-20). — ✅
 1. Install k3s with `--cluster-init`, the kubelet memory reservations, and the bundled Traefik moved to other ports (e.g. hostPort 8000/8443) so Docker's Traefik keeps 80/443. — ✅ done 2026-10-20 (Traefik `HelmChartConfig` dropped in `/var/lib/rancher/k3s/server/manifests/` before the first start)
 2. Create storage classes (`data`, `films`, `data-dynamic`, `films-dynamic`) and namespaces. — ✅ done 2026-10-20 (local-path v0.0.37 requires `pathPattern` to end with `/`: `{{ .PVC.Namespace }}/{{ .PVC.Name }}/`)
 3. Install **OpenBao**, initialise it, store the unseal keys + root token in Vaultwarden, unseal, enable the Kubernetes auth method, and import the `.env` values (`kv/<namespace>/<app>`). — ✅ done 2026-10-20 (5 key shares / threshold 3; see README.md "Unseal after a reboot")
