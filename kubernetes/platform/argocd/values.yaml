@@ -5,7 +5,7 @@ configs:
   cm:
     url: https://argocd.fgdou.ovh
     exec.enabled: false
-    admin.enabled: true            # local admin kept until the OIDC login is verified, then false
+    admin.enabled: false           # login via authentik OIDC only (verified 2026-10-20); break-glass in README.md
     oidc.config: |
       name: authentik
       issuer: https://auth.fgdou.ovh/application/o/argocd/

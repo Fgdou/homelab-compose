@@ -518,8 +518,8 @@ Alternatives considered: **k0s** (similar to k3s, less homelab ecosystem), **Mic
 
 Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are host ports (80, 443, 22, 53, 25…).
 
-**Phase 0 — prepare (on Docker)** — ⚠️ not confirmed
-1. Take a full restic snapshot + postgres dump. (restic ran on 2026-10-20 ~19:30–20:30, but no snapshot/dump was verified: check before Phase 3.)
+**Phase 0 — prepare (on Docker)** — ✅ done 2026-10-20
+1. Take a full restic snapshot + postgres dump.
 
 **Phase 1 — write all the manifests (no cluster, Docker untouched)** — ✅ done 2026-10-20, see [README.md](README.md)
 1. Write every folder of `kubernetes/`: `cluster/`, the infra (OpenBao, ESO, cert-manager, Argo CD + Image Updater values), and every stack (Kustomize or Helm values, PVs on the existing paths, ExternalSecrets, IngressRoutes). Leave `argocd/apps/` empty: nothing is enabled.

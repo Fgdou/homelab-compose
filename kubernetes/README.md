@@ -124,7 +124,8 @@ browser → Docker Traefik :443 (router in /data/traefik/config.yaml) → k3s Tr
 
 ### Left over from the bootstrap
 
-- Once the OIDC login to Argo CD works: set `admin.enabled: false` in `platform/argocd/values.yaml` and `kubectl -n argocd delete secret argocd-initial-admin-secret`.
+- ~~Disable the Argo CD local admin~~ — done 2026-10-20 (OIDC login verified): `admin.enabled: false`, `argocd-initial-admin-secret` deleted.
+  Break-glass if authentik is down: the CLI still works with `argocd ... --core` (kubeconfig). For the UI: `kubectl -n argocd patch cm argocd-cm -p '{"data":{"admin.enabled":"true"}}'`, set a password with `argocd account bcrypt --password <pw>` → `kubectl -n argocd patch secret argocd-secret -p '{"stringData":{"admin.password":"<bcrypt>","admin.passwordMtime":"'$(date +%FT%TZ)'"}}'`, log in, then sync `platform-argocd` to revert.
 - Helm release metadata (`sh.helm.release.v1.*` Secrets in openbao, external-secrets, cert-manager, argocd) is now stale: Argo CD owns the resources. Never `helm upgrade/uninstall` these releases; delete the release Secrets (only metadata) to avoid confusion.
 - `applicationSet.enabled: false` is ignored by chart 10.10.5 (the controller runs): find the right key.
 - Turn on `automated: { prune: false, selfHeal: true }` in the bootstrap Applications once trusted.
