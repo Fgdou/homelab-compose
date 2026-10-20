@@ -3,7 +3,7 @@
 Kubernetes manifests for the NAS (k3s, single node `nas`), replacing the Docker compose files in the repository root.
 The plan and every decision behind it are in [MIGRATION.md](MIGRATION.md). Secrets: [OPENBAO-KEYS.md](OPENBAO-KEYS.md).
 
-Status: **Phase 2 steps 1–2 done** (2026-10-20) — k3s `v1.36.5+k3s1` runs next to Docker, Traefik on 8000/8443/2222, namespaces + storage classes + local-path-provisioner applied. `argocd/apps/` is empty.
+Status: **Phase 2 steps 1–3 done** (2026-10-20) — k3s `v1.36.5+k3s1` runs next to Docker, Traefik on 8000/8443/2222, namespaces + storage classes + local-path-provisioner applied, OpenBao installed, unsealed and loaded. `argocd/apps/` is empty.
 
 ## Layout
 
@@ -67,7 +67,24 @@ Order matters: OpenBao and External Secrets must not depend on secrets served by
    k3s re-applies `/var/lib/rancher/k3s/server/manifests/traefik-config.yaml` on every start: keep it identical to `cluster/base/traefik-config.yaml` (Phase 4 port change included).
 2. `kubectl apply --server-side -k cluster/base` and `kubectl apply --server-side -k platform/local-path` (done 2026-10-20). Server-side apply leaves the k3s-managed Traefik `HelmChartConfig` untouched when it is identical.
 3. Install the platform charts with Helm, same versions and values as `argocd/available/platform-*.yaml` (OpenBao, External Secrets, cert-manager), plus `kubectl apply -k platform/openbao` for its PV.
-4. OpenBao: `bao operator init` (keep unseal keys + root token in Vaultwarden), `bao operator unseal`, `bao login`, `bao secrets enable -version=2 kv`, enable the Kubernetes auth method with a role `external-secrets` bound to the `external-secrets/external-secrets` ServiceAccount and a read policy on `kv/data/*`. Then `bootstrap/openbao-import.sh` (try `--dry-run` first).
+4. OpenBao (done 2026-10-20 for OpenBao itself; ESO and cert-manager charts are steps 4–5). Helm v4.3.1 is installed in `/usr/local/bin`.
+   ```sh
+   sudo chown 100:1000 /data/openbao && sudo chmod 0770 /data/openbao      # pod runs as uid 100 / fsGroup 1000
+   kubectl apply --server-side -k platform/openbao                           # PV (+ IngressRoute, inert until authentik exists)
+   helm repo add openbao https://openbao.github.io/openbao-helm
+   helm install openbao openbao/openbao --version 0.30.4 -n openbao -f platform/openbao/values.yaml
+   kubectl -n openbao exec openbao-0 -- bao operator init -format=json > openbao-init.json   # 5 shares, threshold 3 → Vaultwarden, then shred
+   ```
+   Then unseal (3 keys), `bao login -no-print -` (token on stdin), `bao secrets enable -version=2 -path=kv kv`, `bao auth enable kubernetes`, `bao write auth/kubernetes/config kubernetes_host=https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT`, policy `external-secrets` = `read` on `kv/data/*`, role `external-secrets` bound to `external-secrets/external-secrets` (ttl 1h). Then `bootstrap/openbao-import.sh --dry-run`, then without `--dry-run` (23 paths). Finally delete the root token from the pod: `kubectl -n openbao exec openbao-0 -- rm /home/openbao/.vault-token`.
+   The pod stays `0/1 Ready` while sealed: its readiness probe is `bao status`, which exits 2 when sealed.
+
+### Unseal after a reboot or pod restart
+
+`bao operator unseal` does **not** read stdin (`-` is taken as the key). Run it 3 times, pasting a different key from Vaultwarden at the hidden prompt each time:
+
+```sh
+kubectl -n openbao exec -it openbao-0 -- bao operator unseal
+```
 5. `kubectl apply -k cluster/secret-store`, then `kubectl apply -k cluster/certs` — wait for both wildcard certificates to be `Ready`.
 6. Install Argo CD with Helm (`platform/argocd/values.yaml`), add the repository deploy key (`argocd repo add git@github.com:Fgdou/homelab-compose.git --ssh-private-key-path …`), `kubectl apply -f argocd/root.yaml`.
 7. `git mv` the `cluster*` and `platform-*` Applications from `argocd/available/` to `argocd/apps/`, commit, push: Argo CD adopts what was installed by hand.
