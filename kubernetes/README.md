@@ -3,7 +3,7 @@
 Kubernetes manifests for the NAS (k3s, single node `nas`), replacing the Docker compose files in the repository root.
 The plan and every decision behind it are in [MIGRATION.md](MIGRATION.md). Secrets: [OPENBAO-KEYS.md](OPENBAO-KEYS.md).
 
-Status: **Phase 2 steps 1–3 done** (2026-10-20) — k3s `v1.36.5+k3s1` runs next to Docker, Traefik on 8000/8443/2222, namespaces + storage classes + local-path-provisioner applied, OpenBao installed, unsealed and loaded. `argocd/apps/` is empty.
+Status: **Phase 2 steps 1–4 done** (2026-10-20) — k3s `v1.36.5+k3s1` runs next to Docker, Traefik on 8000/8443/2222, namespaces + storage classes + local-path-provisioner applied, OpenBao installed, unsealed and loaded, External Secrets Operator + `ClusterSecretStore` working. `argocd/apps/` is empty.
 
 ## Layout
 
@@ -85,7 +85,8 @@ Order matters: OpenBao and External Secrets must not depend on secrets served by
 ```sh
 kubectl -n openbao exec -it openbao-0 -- bao operator unseal
 ```
-5. `kubectl apply -k cluster/secret-store`, then `kubectl apply -k cluster/certs` — wait for both wildcard certificates to be `Ready`.
+5. External Secrets (done 2026-10-20): `helm repo add external-secrets https://charts.external-secrets.io`, `helm install external-secrets external-secrets/external-secrets --version 2.13.0 -n external-secrets -f platform/external-secrets/values.yaml --wait`, then `kubectl apply --server-side -k cluster/secret-store` → `clustersecretstore/openbao` Ready, `cert-manager/cloudflare` SecretSynced.
+   Then `kubectl apply -k cluster/certs` — wait for both wildcard certificates to be `Ready`.
 6. Install Argo CD with Helm (`platform/argocd/values.yaml`), add the repository deploy key (`argocd repo add git@github.com:Fgdou/homelab-compose.git --ssh-private-key-path …`), `kubectl apply -f argocd/root.yaml`.
 7. `git mv` the `cluster*` and `platform-*` Applications from `argocd/available/` to `argocd/apps/`, commit, push: Argo CD adopts what was installed by hand.
 
