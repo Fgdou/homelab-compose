@@ -339,7 +339,7 @@ Also:
 
 - **Config location**: the config sits inside the TSDB folder (`/data/monitoring/prometheus/prometheus.yml`). Move it to a ConfigMap mounted at `/etc/prometheus/prometheus.yml` and change `--config.file`; the PV keeps only the TSDB.
 - **Grafana dashboards**: standalone cadvisor labels containers with `name="compose-xxx-1"`; the kubelet's cAdvisor uses `namespace` / `pod` / `container`. Rewrite the queries using `name=`, and those filtering on `job="cadvisor"` / `job="docker"`.
-- **During Phase 2**: an exporter moved to k8s while Prometheus is still on Docker shows `DOWN`. Migrate the exporters together with Prometheus (Phase 2 step 4), or accept gaps in the graphs.
+- **During Phase 3**: an exporter moved to k8s while Prometheus is still on Docker shows `DOWN`. Migrate the exporters together with Prometheus (Phase 3 step 4), or accept gaps in the graphs.
 
 ### Image versions
 
@@ -378,7 +378,8 @@ Repository layout:
 ```
 kubernetes/
 ├── MIGRATION.md
-├── argocd/             # app-of-apps: one Application per folder below, Image Updater config
+├── argocd/             # root app-of-apps, Image Updater config
+│   └── apps/           # one Application file per ENABLED stack only (the gate, see below)
 ├── cluster/            # k3s config, HelmChartConfig traefik, cert-manager issuers, storage classes, ClusterSecretStore
 ├── databases/          # kustomization.yaml, postgres.yaml, redis.yaml, pv.yaml, externalsecret.yaml
 ├── authentik/          # Helm values + LDAP outpost Deployment
@@ -395,7 +396,16 @@ kubernetes/
 
 Rule: upstream maintains a chart and the software has many moving parts → Helm. A single container you configure yourself → plain YAML. Don't write your own Helm charts (not even one generic "app" chart): every app ends up needing a special case and the chart turns into a pile of `if`s. Argo CD handles both natively (an Application points at a Kustomize folder or at a chart + values).
 
-Argo CD watches the repository and syncs every folder (app-of-apps). Bootstrap only (`cluster/`, OpenBao, ESO, Argo CD itself) is applied by hand with `kubectl apply -k` / `helm install`, then Argo CD takes over its own management.
+### Argo CD does not deploy everything
+
+All stack folders are written before the migration starts (§11 Phase 1), but **Argo CD must only deploy the stacks already migrated**. Otherwise pods would start next to the Docker containers on the same `/data` folders (two databases on the same files = corruption).
+
+- The root app-of-apps only reads `argocd/apps/`. A stack folder without an Application file in `argocd/apps/` is ignored by Argo CD.
+- **Enabling a stack** = stopping it on Docker, then committing its Application file into `argocd/apps/`.
+- A new Application starts with **manual sync** (no `automated:`); turn on automated sync + `selfHeal` only once the stack is verified. Keep `prune` off during the migration.
+- **Rollback** = `docker compose up -d` after removing the Application file (with `resources-finalizer` absent, deleting the Application leaves the PVs and data untouched; `Retain` on every PV is the second safety).
+
+Bootstrap only (`cluster/`, OpenBao, ESO, cert-manager, Argo CD itself) is applied by hand with `kubectl apply -k` / `helm install`, then their Applications are added to `argocd/apps/` so Argo CD takes over their management.
 
 ---
 
@@ -511,26 +521,35 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 **Phase 0 — prepare (on Docker)**
 1. Take a full restic snapshot + postgres dump.
 
-**Phase 1 — install k3s next to Docker (bootstrap)**
+**Phase 1 — write all the manifests (no cluster, Docker untouched)**
+1. Write every folder of `kubernetes/`: `cluster/`, the infra (OpenBao, ESO, cert-manager, Argo CD + Image Updater values), and every stack (Kustomize or Helm values, PVs on the existing paths, ExternalSecrets, IngressRoutes). Leave `argocd/apps/` empty: nothing is enabled.
+2. Pin each image to the version running on Docker (`docker inspect`).
+3. Validate offline: `kustomize build` / `helm template` on every folder, then `kubeconform` with the CRD schemas (Traefik, cert-manager, ESO). Optionally smoke-test a stack on a throwaway k3d cluster.
+4. Write the OpenBao key list (`kv/<namespace>/<app>`) from the ExternalSecrets, to know exactly which `.env` values to import.
+
+**Phase 2 — install k3s next to Docker (bootstrap)**
 1. Install k3s with `--cluster-init`, the kubelet memory reservations, and the bundled Traefik moved to other ports (e.g. hostPort 8000/8443) so Docker's Traefik keeps 80/443.
 2. Create storage classes (`data`, `films`, `data-dynamic`, `films-dynamic`) and namespaces.
 3. Install **OpenBao**, initialise it, store the unseal keys + root token in Vaultwarden, unseal, enable the Kubernetes auth method, and import the `.env` values (`kv/<namespace>/<app>`).
 4. Install **External Secrets Operator** + the `ClusterSecretStore`.
 5. Install **cert-manager** + Cloudflare `ClusterIssuer` + wildcard certificates, then the authentik forward-auth Middleware.
-6. Install **Argo CD** (+ Image Updater), point it at this repository (app-of-apps), and let it adopt everything above.
+6. Install **Argo CD** (+ Image Updater), point the root app-of-apps at `argocd/apps/`, and add the Applications of the bootstrap components only, so Argo CD adopts them. No app stack is enabled yet.
 7. In Docker Traefik's file provider (`/data/traefik/config.yaml`), add a router per migrated hostname forwarding to `https://127.0.0.1:8443` → apps can move one by one with no DNS change.
 
-**Phase 2 — migrate apps, one stack at a time** (note the running image version → `docker compose down` → commit the folder with that version pinned → Argo CD sync → test → next)
-1. Stateless / self-contained: speedtest, sr, mariage, todoapp (with Image Updater), actual, vaultwarden, trilium, lubelogger, mealie, warracker…
+**Phase 3 — migrate apps, one stack at a time**
+
+Per stack: check the running image version still matches the pin (fix it if not) → `docker compose down` → commit its Application into `argocd/apps/` → manual sync → test → turn on automated sync → next.
+
+1. Stateless / self-contained: speedtest, sr, mariage, todoapp (with Image Updater), actual, vaultwarden, trilium, lubelogger, mealie…
 2. Stacks with their own DB: immich (Helm chart), dawarich, ciq, gitea (+ SSH, DinD runner), gramps.
 3. Media: the arr suite, jellyfin (with iGPU), navidrome, slskd (port 50300), musiseerr.
 4. Monitoring, with all its exporters at once (rewrite the Prometheus scrape config as in §7, config to a ConfigMap, drop cadvisor, fix the Grafana cadvisor queries).
 5. Shared `databases` (postgres + redis) together with their consumers: authentik (Helm chart + LDAP outpost), nextcloud, guacamole, warracker. Pods can reach Docker services in the meantime through host-published ports if needed.
 6. Home automation (hostNetwork, USB) — test zigbee carefully.
 
-**Phase 3 — cutover**
+**Phase 4 — cutover**
 1. Move Traefik: stop Docker Traefik, reconfigure k3s Traefik on 80/443/22.
 2. Mailserver (ports 25/143/465/587/993, cert from cert-manager), bind9 (53), minecraft, ddclient, restic (CronJob).
 3. Remove watchtower; `docker ps` must be empty → disable Docker (saves ~150 MB). Keep the compose files in git as a fallback for a while.
 
-Rollback at any step: disable auto-sync and delete the Argo CD Application (or `kubectl delete -k …`), then `docker compose up -d` on the same `/data` folders (that's why static PVs on the existing paths matter).
+Rollback at any step: remove the stack's Application from `argocd/apps/` (or `kubectl delete -k …`), then `docker compose up -d` on the same `/data` folders (that's why static PVs on the existing paths matter).
