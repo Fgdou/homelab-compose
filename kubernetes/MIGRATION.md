@@ -297,7 +297,7 @@ With `hostNetwork`, set `dnsPolicy: ClusterFirstWithHostNet` so the pod still re
 | traefik | docker.sock for the docker provider | replaced by k3s Traefik + kubernetesCRD provider |
 | authentik | docker.sock + `user: root` on the worker for the Docker outpost integration (no longer used) | **Official Helm chart** (Argo CD Application with a values file), without docker.sock |
 | authentik LDAP outpost | used by jellyfin on 6636 | **Manual Deployment** (`ghcr.io/goauthentik/ldap`) with its token from OpenBao, as today; Service `authentik-ldap` in `authentik`. Bump its image tag together with the authentik chart |
-| gitea_runner | docker.sock to run CI jobs | act_runner + **docker-in-docker sidecar** (`docker:dind`, privileged), `DOCKER_HOST=tcp://localhost:2376`, emptyDir for the DinD storage. Existing workflows work unchanged |
+| gitea_runner | docker.sock to run CI jobs | act_runner + **docker-in-docker sidecar** (`docker:dind`, privileged), DinD listens only on a unix socket in an emptyDir shared with the runner (`DOCKER_HOST=unix:///run/dind/docker.sock`, mounted into job containers by act_runner), emptyDir for the DinD storage. Existing workflows work unchanged |
 | watchtower | auto-update `mariage`, `todoapp` every minute | **Argo CD Image Updater**: watches the registry for new images of these two apps and writes the new tag back to git (`kustomization.yaml` `images:`), Argo CD then syncs it. Needs registry read credentials and git write credentials. Watchtower is removed |
 | cadvisor | container metrics | **removed**: the kubelet embeds cAdvisor (`/metrics/cadvisor`). Saves ~220 MB |
 | node-exporter | host mounts | DaemonSet with `hostPID`, `hostNetwork`, hostPath `/proc` `/sys` `/` |

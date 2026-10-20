@@ -19,13 +19,12 @@ spec:
         - name: dind
           image: docker:29.9.1-dind@sha256:3e5756e2b6dad6a5f1f5deacf0a19f9eaa2581b76ae092b2d4a118162e1d4d4e
           restartPolicy: Always
-          env:
-            - { name: DOCKER_TLS_CERTDIR, value: "" }      # plain TCP, only reachable inside the pod
-          # args start with "dockerd": otherwise the entrypoint prepends --host=tcp://0.0.0.0:2375
-          # (open to the whole cluster, and it collides with our own --host on the same port)
-          args: [dockerd, --host=tcp://127.0.0.1:2375, --tls=false]
+          # Unix socket only, on an emptyDir shared with the runner at the same path: act_runner mounts it
+          # into job containers (docker/build-push-action needs it), as it did with the host socket.
+          # args start with "dockerd": otherwise the entrypoint adds --host=tcp://0.0.0.0:2375 (whole cluster).
+          args: [dockerd, --host=unix:///run/dind/docker.sock]
           startupProbe:
-            exec: { command: [docker, -H, "tcp://127.0.0.1:2375", version] }
+            exec: { command: [docker, -H, "unix:///run/dind/docker.sock", version] }
             periodSeconds: 2
             failureThreshold: 60
           securityContext:
@@ -34,16 +33,20 @@ spec:
             requests: { cpu: 50m, memory: 128Mi }
           volumeMounts:
             - { name: docker, mountPath: /var/lib/docker }
+            - { name: dind-sock, mountPath: /run/dind }
       containers:
         - name: runner
           image: gitea/act_runner:nightly@sha256:7940221bcfc9df16f3401ddafb2231bf98bba5517bc381224c7a2c504b558974
           env:
             - { name: GITEA_INSTANCE_URL, value: "https://gitea.fgdou.ovh" }
             - { name: GITEA_RUNNER_NAME, value: Runner1 }
-            - { name: DOCKER_HOST, value: "tcp://127.0.0.1:2375" }
+            - { name: DOCKER_HOST, value: "unix:///run/dind/docker.sock" }
           envFrom:
             - secretRef: { name: gitea-runner }
           resources:
             requests: { cpu: 20m, memory: 64Mi }
+          volumeMounts:
+            - { name: dind-sock, mountPath: /run/dind }
       volumes:
         - { name: docker, emptyDir: {} }
+        - { name: dind-sock, emptyDir: {} }
