@@ -122,7 +122,7 @@ browser → Docker Traefik :443 (router in /data/traefik/config.yaml) → k3s Tr
 - Add a hostname: copy a router block (`rule: Host(...)`, `entryPoints: [websecure]`, `service: k3s`, `tls: {}`, plus `middlewares: [lan-only]` only for admin UIs). Edit in place (`sudo tee`, not `install`/`mv`: replacing the file makes Traefik briefly log "no such file").
 - Real client IP: Docker Traefik's container reaches k3s Traefik masqueraded to `10.42.0.1` (cni0 gateway). k3s Traefik's `websecure` trusts `X-Forwarded-For` from `10.42.0.1/32` only (`cluster/base/traefik-config.yaml`), so pods get the real client in `X-Real-Ip` / `X-Forwarded-For`. Side effect: a process on the NAS itself calling `:8443` directly could inject `X-Forwarded-For` (remote clients can't: Docker Traefik overwrites it).
 - Verified with a whoami test app: real client IP, `X-Forwarded-Proto: https`, WebSocket upgrade 101, port 80 → 443 redirect by Docker Traefik.
-- Bridged today: `bao.fgdou.ovh`, `argocd.fgdou.ovh` (both `lan-only`), `speedtest.fgdou.ovh` (public), `firefox.fgdou.ovh` (public router, authentik forward-auth in k3s), `actual.fgdou.ovh` (public), `trilium.fgdou.ovh` (public router, forward-auth in k3s), `lubelogger.fgdou.ovh` (public router, forward-auth in k3s).
+- Bridged today: `bao.fgdou.ovh`, `argocd.fgdou.ovh` (both `lan-only`), `speedtest.fgdou.ovh` (public), `firefox.fgdou.ovh` (public router, authentik forward-auth in k3s), `actual.fgdou.ovh` (public), `trilium.fgdou.ovh` (public router, forward-auth in k3s), `lubelogger.fgdou.ovh` (public router, forward-auth in k3s), `mealie.fgdou.ovh` (public).
 
 ### Migrated stacks (Phase 3)
 
@@ -133,6 +133,7 @@ browser → Docker Traefik :443 (router in /data/traefik/config.yaml) → k3s Tr
 | 2026-10-20 | actual | `apps-actual` | `docker compose -f actual_budget.yml rm -sf actual_server` | 14 s switch, then **~2 min crash loop**: the Service `actual` injected `ACTUAL_PORT=tcp://…` (Kubernetes service links), which Actual reads as its port → fixed with `enableServiceLinks: false` (`d77e706`). Data identical to the pre-switch snapshot; `bootstrapped: true`, OpenID login. |
 | 2026-10-20 | trilium | `apps-trilium` | `docker compose -f trilium.yml rm -sf trilium` | 26 s switch. No own auth (`NOAUTHENTICATION=true`): forward-auth verified (302 on `/` and `/api`, LAN and non-LAN). db=234, consistency checks passed. Trusted proxy now `10.42.0.0/16` (the Docker container had a typo, `72.18.0.21/16`). |
 | 2026-10-20 | lubelogger | `apps-lubelogger` | `docker compose -f lubelogger.yml rm -sf app` | 18 s switch, then **~2 min crash loop**: root had exhausted `fs.inotify.max_user_instances` (128; k3s + containerd shims) → raised to 1024 (`bootstrap/sysctl-90-inotify.conf`). Data and DataProtection keys unchanged; OIDC via public `auth.fgdou.ovh` URLs. |
+| 2026-10-20 | mealie | `apps-mealie` | `docker compose -f mealie.yml rm -sf mealie` | 26 s switch. ExternalSecret synced alone first (`argocd app sync --resource`) and compared with the running container before stopping it. Same DB; OIDC redirect OK; SMTP to Docker mailserver (`mail.fgdou.ovh:587` → 10.0.0.2) OK from the pod. |
 
 ### Left over from the bootstrap
 
