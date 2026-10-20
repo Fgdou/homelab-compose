@@ -540,7 +540,7 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 
 Per stack: check the running image version still matches the pin (fix it if not) → `docker compose down` → commit its Application into `argocd/apps/` and push to `kube` → manual sync → add its hostnames to the Docker Traefik bridge → test → turn on automated sync → next.
 
-1. Stateless / self-contained: speedtest, sr, mariage, todoapp (with Image Updater), actual, vaultwarden, trilium, lubelogger, mealie…
+1. Stateless / self-contained: speedtest, sr, mariage, todoapp (with Image Updater), actual, vaultwarden, trilium, lubelogger, mealie, plus openwebui, firefox, meshcentral, gramps. The `apps` namespace is split into one folder + one Application per app (`apps/<app>/`, `apps-<app>`, 2026-10-20) so they migrate one at a time; warracker and guacamole wait for step 5. mariage/todoapp migrate without auto-update (Image Updater git write access comes later); todoapp data stays disposable (emptyDir).
 2. Stacks with their own DB: immich (Helm chart), dawarich, ciq, gitea (+ SSH, DinD runner), gramps.
 3. Media: the arr suite, jellyfin (with iGPU), navidrome, slskd (port 50300), musiseerr.
 4. Monitoring, with all its exporters at once (rewrite the Prometheus scrape config as in §7, config to a ConfigMap, drop cadvisor, fix the Grafana cadvisor queries).

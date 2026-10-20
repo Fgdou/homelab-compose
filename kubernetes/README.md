@@ -21,7 +21,8 @@ Status: **Phase 2 done** (2026-10-20) — k3s `v1.36.5+k3s1` next to Docker (Tra
 | `platform/argocd/` | Helm values + UI route | `platform-argocd` |
 | `platform/image-updater/` | Helm values + `ImageUpdater` rule (mariage, todoapp) | `platform-image-updater` |
 | `platform/local-path/` | local-path-provisioner with `data-dynamic` / `films-dynamic` | `platform-local-path` |
-| `<namespace>/` | one folder per namespace (`databases`, `authentik`, `monitoring`, `media`, `home`, `immich`, `dawarich`, `gitea`, `mail`, `nextcloud`, `apps`, `projects`, `games`, `infra`, `ciq`) | same name |
+| `<namespace>/` | one folder per namespace (`databases`, `authentik`, `monitoring`, `media`, `home`, `immich`, `dawarich`, `gitea`, `mail`, `nextcloud`, `projects`, `games`, `infra`, `ciq`) | same name |
+| `apps/<app>/` | namespace `apps` split per app (actual, vaultwarden, trilium, mealie, lubelogger, speedtest, openwebui, firefox, meshcentral, gramps, warracker, guacamole): each folder holds the app, its PV/PVC and its ExternalSecret, so apps migrate one at a time | `apps-<app>` |
 
 `authentik` and `immich` are official Helm charts (`values.yaml`) plus plain resources (`kustomization.yaml`) in the same Application. Everything else is plain YAML + Kustomize.
 
@@ -37,7 +38,7 @@ Status: **Phase 2 done** (2026-10-20) — k3s `v1.36.5+k3s1` next to Docker (Tra
 ## Validate (no cluster needed)
 
 ```sh
-for d in cluster/* platform/* databases authentik monitoring media home immich dawarich gitea mail nextcloud apps projects games infra ciq; do
+for d in cluster/* platform/* databases authentik monitoring media home immich dawarich gitea mail nextcloud apps/* projects games infra ciq; do
   [ -f $d/kustomization.yaml ] && kustomize build $d > /tmp/render-$(echo $d | tr / -).yaml
 done
 helm template authentik authentik/authentik --version 2026.8.4 -n authentik -f authentik/values.yaml > /tmp/render-chart-authentik.yaml

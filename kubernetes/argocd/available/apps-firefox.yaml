@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps-firefox
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Fgdou/homelab-compose.git
+    targetRevision: kube
+    path: kubernetes/apps/firefox
+  destination: { server: https://kubernetes.default.svc, namespace: apps }
+  # Manual sync first; once the app is verified, uncomment (MIGRATION.md §8):
+  # syncPolicy:
+  #   automated: { prune: false, selfHeal: true }
