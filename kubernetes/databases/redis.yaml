@@ -1,0 +1,30 @@
+# Shared redis (dawarich, gramps, immich, nextcloud). No persistence, like today.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: databases
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: redis }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: redis }
+    spec:
+      containers:
+        - name: redis
+          image: redis:8.6-alpine@sha256:2afba59292f25f5d1af200496db41bea2c6c816b059f57ae74703a50a03a27d0
+          ports: [{ name: redis, containerPort: 6379 }]
+          resources:
+            requests: { cpu: 20m, memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: databases
+spec:
+  selector: { app.kubernetes.io/name: redis }
+  ports:
+    - { name: redis, port: 6379 }

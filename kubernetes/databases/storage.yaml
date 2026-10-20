@@ -1,0 +1,55 @@
+# postgres data stays on the NVMe (accepted risk, MIGRATION.md §1)
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: databases-postgres-data
+spec:
+  storageClassName: nvme
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /home/fgdou/postgres }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: databases
+spec:
+  storageClassName: nvme
+  volumeName: databases-postgres-data
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: databases-postgres-backups
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/postgres_backups }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-backups
+  namespace: databases
+spec:
+  storageClassName: data
+  volumeName: databases-postgres-backups
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }

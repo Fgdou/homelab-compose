@@ -1,0 +1,8 @@
+# Chart jetstack/cert-manager v1.21.2
+crds:
+  enabled: true
+  keep: true
+resources:
+  requests: { cpu: 10m, memory: 64Mi }
+dns01RecursiveNameservers: "1.1.1.1:53,8.8.8.8:53"   # same resolvers as Docker Traefik's DNS challenge
+dns01RecursiveNameserversOnly: true

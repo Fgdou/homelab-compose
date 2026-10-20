@@ -1,0 +1,326 @@
+# Configs on /films are accepted as losable (MIGRATION.md §1).
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-jellyfin-config
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/Jellyfin }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config
+  namespace: media
+spec:
+  storageClassName: data
+  volumeName: media-jellyfin-config
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-navidrome
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/navidrome }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: navidrome
+  namespace: media
+spec:
+  storageClassName: data
+  volumeName: media-navidrome
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-lidarr
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/lidarr }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lidarr
+  namespace: media
+spec:
+  storageClassName: data
+  volumeName: media-lidarr
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-soularr
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/soularr }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: soularr
+  namespace: media
+spec:
+  storageClassName: data
+  volumeName: media-soularr
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-radarr
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/Radarr }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: radarr
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-radarr
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-sonarr
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/Sonarr }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sonarr
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-sonarr
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-prowlarr
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/prowlarr }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prowlarr
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-prowlarr
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-jellyseerr
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/jellyseerr }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-jellyseerr
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-qbittorrent
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/qbittorrent }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-qbittorrent
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-slskd
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/slskd }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: slskd
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-slskd
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+# Shared media folders, mounted by several pods (single node: ReadWriteOnce is per node)
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-films
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/Films }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: films
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-films
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-music
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/music }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: music
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-music
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }

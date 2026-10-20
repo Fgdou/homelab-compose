@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: infra-bind9
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/bind9 }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bind9
+  namespace: infra
+spec:
+  storageClassName: data
+  volumeName: infra-bind9
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: infra-ddclient
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/ddclient }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ddclient
+  namespace: infra
+spec:
+  storageClassName: data
+  volumeName: infra-ddclient
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }

@@ -1,0 +1,29 @@
+# Chart argo/argo-cd 10.10.5 (Argo CD v3.5.5)
+configs:
+  params:
+    server.insecure: true          # TLS is terminated by Traefik
+  cm:
+    url: https://argocd.fgdou.ovh
+    exec.enabled: false
+    admin.enabled: true
+  # Repository credentials (deploy key) are created by hand at bootstrap, see README.md
+dex:
+  enabled: false
+notifications:
+  enabled: false
+applicationSet:
+  enabled: false
+controller:
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { memory: 768Mi }      # §9: keep a big sync from starving the apps
+repoServer:
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 512Mi }
+server:
+  resources:
+    requests: { cpu: 20m, memory: 64Mi }
+redis:
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }

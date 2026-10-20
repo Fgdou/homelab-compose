@@ -1,0 +1,9 @@
+# Plain resources next to the immich Helm chart (Argo CD multi-source Application).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: immich
+resources:
+  - storage.yaml
+  - secrets.yaml
+  - database.yaml
+  - ingressroute.yaml

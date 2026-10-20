@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openwebui
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: openwebui }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: openwebui }
+    spec:
+      containers:
+        - name: openwebui
+          image: ghcr.io/open-webui/open-webui:main@sha256:24669393b06bc05b5193b26ae59483b6d53e8b47a5a74217053373cef5e1ae7d
+          env:
+            - { name: WEBUI_URL, value: https://ai.fgdou.ovh }
+            - { name: ENABLE_SIGNUP, value: "False" }
+            - { name: ENABLE_LOGIN_FORM, value: "false" }
+            - { name: OAUTH_CLIENT_ID, value: R1MSywhWWLqp6CvE3iskOMgnJBuZx0SOWTiBgYmH }
+            - { name: OPENID_PROVIDER_URL, value: https://auth.fgdou.ovh/application/o/openwebui/.well-known/openid-configuration }
+            - { name: ENABLE_OAUTH_ROLE_MANAGEMENT, value: "True" }
+            - { name: ENABLE_OAUTH_SIGNUP, value: "True" }
+            - { name: OAUTH_ROLES_CLAIM, value: groups }
+          envFrom:
+            - secretRef: { name: openwebui }
+          ports: [{ name: http, containerPort: 8080 }]
+          resources:
+            requests: { cpu: 20m, memory: 700Mi }
+            limits: { memory: 2Gi }
+          volumeMounts:
+            - { name: data, mountPath: /app/backend/data }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: openwebui } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openwebui
+  namespace: apps
+spec:
+  selector: { app.kubernetes.io/name: openwebui }
+  ports:
+    - { name: http, port: 8080, targetPort: 8080 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: openwebui
+  namespace: apps
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`ai.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: openwebui, port: 8080 }]

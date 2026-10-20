@@ -1,0 +1,40 @@
+# Was ciq-mysql: WordPress keeps WORDPRESS_DB_HOST=mysql inside the namespace
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: mysql
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: mysql }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: mysql }
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: mysql
+          image: mysql:8.0@sha256:99d774bf02a48a1bb1c599920d2571946d31e5940b854b02737d5e95c184358f
+          env:
+            - { name: MYSQL_USER, value: user }
+            - { name: MYSQL_DATABASE, value: wordpress }
+            - { name: MYSQL_RANDOM_ROOT_PASSWORD, value: "1" }
+            - name: MYSQL_PASSWORD
+              valueFrom: { secretKeyRef: { name: wordpress, key: MYSQL_PASSWORD } }
+          ports: [{ name: mysql, containerPort: 3306 }]
+          resources:
+            requests: { cpu: 20m, memory: 600Mi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/mysql }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: mysql } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  selector: { app.kubernetes.io/name: mysql }
+  ports:
+    - { name: mysql, port: 3306 }

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea-runner
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: gitea-runner }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: gitea-runner }
+    spec:
+      # act_runner + docker-in-docker sidecar (decision): workflows keep using docker.
+      # No volume for the runner state: it re-registers at each start, like today.
+      containers:
+        - name: runner
+          image: gitea/act_runner:nightly@sha256:7940221bcfc9df16f3401ddafb2231bf98bba5517bc381224c7a2c504b558974
+          env:
+            - { name: GITEA_INSTANCE_URL, value: "https://gitea.fgdou.ovh" }
+            - { name: GITEA_RUNNER_NAME, value: Runner1 }
+            - { name: DOCKER_HOST, value: "tcp://localhost:2375" }
+          envFrom:
+            - secretRef: { name: gitea-runner }
+          resources:
+            requests: { cpu: 20m, memory: 64Mi }
+        - name: dind
+          image: docker:29.9.1-dind@sha256:3e5756e2b6dad6a5f1f5deacf0a19f9eaa2581b76ae092b2d4a118162e1d4d4e
+          env:
+            - { name: DOCKER_TLS_CERTDIR, value: "" }      # plain TCP, only reachable inside the pod
+          args: [--host=tcp://127.0.0.1:2375]
+          securityContext:
+            privileged: true
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+          volumeMounts:
+            - { name: docker, mountPath: /var/lib/docker }
+      volumes:
+        - { name: docker, emptyDir: {} }

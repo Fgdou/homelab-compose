@@ -1,0 +1,12 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`argocd.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: argocd-server, port: 80 }]

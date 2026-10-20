@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slskd
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: slskd }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: slskd }
+    spec:
+      securityContext: { runAsUser: 1000, runAsGroup: 1000 }
+      containers:
+        - name: slskd
+          image: slskd/slskd:latest@sha256:ecd4026d4f8fb504e2cc55323efa2c1f5b56d20d3686b018249cc36b48ea17a6  # 0.26.0.0+e42a525d
+          env:
+            - { name: SLSKD_REMOTE_CONFIGURATION, value: "true" }
+            - { name: SLSKD_NO_AUTH, value: "true" }
+            - { name: SLSKD_SLSK_USERNAME, value: fgdou }
+            - { name: SLSKD_SHARED_DIR, value: /music }
+            - { name: SLSKD_UPLOAD_SPEED_LIMIT, value: "100" }
+            - { name: SLSKD_UPLOAD_SLOTS, value: "1" }
+            - { name: SLSKD_DOWNLOAD_SPEED_LIMIT, value: "10000" }
+          envFrom:
+            - secretRef: { name: slskd }
+          ports:
+            - { name: http, containerPort: 5030 }
+            - { name: soulseek, containerPort: 50300 }
+          resources:
+            requests: { cpu: 20m, memory: 192Mi }
+          volumeMounts:
+            - { name: app, mountPath: /app }
+            - { name: music, mountPath: /music, readOnly: true }
+      volumes:
+        - { name: app, persistentVolumeClaim: { claimName: slskd } }
+        - { name: music, persistentVolumeClaim: { claimName: music } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slskd
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: slskd }
+  ports:
+    - { name: http, port: 5030, targetPort: 5030 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: slskd
+  namespace: media
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`slskd.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: slskd, port: 5030 }]
+---
+# Soulseek peer port, bound on the host by ServiceLB (was ports: 50300:50300)
+apiVersion: v1
+kind: Service
+metadata:
+  name: slskd-peer
+  namespace: media
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  selector: { app.kubernetes.io/name: slskd }
+  ports:
+    - { name: soulseek, port: 50300, targetPort: 50300 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soularr
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: soularr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: soularr }
+    spec:
+      # Kept as a Deployment: soularr loops itself (SCRIPT_INTERVAL), it has no one-shot mode
+      securityContext: { runAsUser: 1000, runAsGroup: 1000 }
+      containers:
+        - name: soularr
+          image: mrusse08/soularr:latest@sha256:89b6809a169f6c78032c9a66abf5130e4877c46c0b95391818a38ab66cd71548  # main
+          env:
+            - { name: TZ, value: Europe/Paris }
+            - { name: SCRIPT_INTERVAL, value: "36000" }
+          resources:
+            requests: { cpu: 10m, memory: 64Mi }
+          volumeMounts:
+            - { name: slskd, mountPath: /app/downloads, subPath: downloads }
+            - { name: data, mountPath: /data }
+      volumes:
+        - { name: slskd, persistentVolumeClaim: { claimName: slskd } }
+        - { name: data, persistentVolumeClaim: { claimName: soularr } }

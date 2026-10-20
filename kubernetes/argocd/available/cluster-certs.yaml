@@ -1,0 +1,16 @@
+# Needs cert-manager + the cloudflare Secret (cluster-secret-store)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-certs
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:Fgdou/homelab-compose.git
+    targetRevision: main
+    path: kubernetes/cluster/certs
+  destination: { server: https://kubernetes.default.svc, namespace: kube-system }
+  # Manual sync first; once the stack is verified, uncomment (MIGRATION.md §8):
+  # syncPolicy:
+  #   automated: { prune: false, selfHeal: true }

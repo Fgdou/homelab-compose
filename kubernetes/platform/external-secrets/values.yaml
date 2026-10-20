@@ -1,0 +1,10 @@
+# Chart external-secrets/external-secrets 2.13.0
+installCRDs: true
+resources:
+  requests: { cpu: 10m, memory: 64Mi }
+webhook:
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }
+certController:
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }

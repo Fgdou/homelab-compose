@@ -1,0 +1,13 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: cloudflare
+  namespace: cert-manager
+spec:
+  secretStoreRef: { kind: ClusterSecretStore, name: openbao }
+  refreshInterval: 1h
+  target:
+    name: cloudflare
+  dataFrom:
+    - extract:
+        key: cert-manager/cloudflare

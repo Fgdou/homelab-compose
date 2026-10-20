@@ -1,0 +1,49 @@
+# Configures the Traefik bundled with k3s (chart traefik 40.1.x, Traefik 3.7).
+# MIGRATION PORTS: web/websecure/ssh are exposed on 8000/8443/2222 while Docker
+# Traefik still owns 80/443/22. At the Phase 4 cutover, set exposedPort to 80/443/22.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      web:
+        exposedPort: 8000           # Phase 4: 80
+        http:
+          redirections:
+            entryPoint:
+              to: websecure
+              scheme: https
+              permanent: true
+      websecure:
+        exposedPort: 8443           # Phase 4: 443
+        http:
+          encodedCharacters:
+            allowEncodedHash: true
+            allowEncodedSlash: true
+        transport:
+          respondingTimeouts:
+            readTimeout: 600s
+            writeTimeout: 600s
+            idleTimeout: 600s
+      ssh:
+        port: 2222
+        exposedPort: 2222           # Phase 4: 22 (host sshd stays on another port)
+        expose:
+          default: true
+        protocol: TCP
+      metrics:
+        port: 8082
+    providers:
+      kubernetesCRD:
+        allowCrossNamespace: true   # authentik Middleware used from every namespace
+    additionalArguments:
+      - --serversTransport.insecureSkipVerify=true   # MeshCentral serves HTTPS
+    service:
+      spec:
+        externalTrafficPolicy: Local                 # keep real client IPs
+    logs:
+      access:
+        enabled: false

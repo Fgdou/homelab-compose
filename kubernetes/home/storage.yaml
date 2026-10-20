@@ -1,0 +1,27 @@
+# One PV for /data/Homeassistant, each app mounts its sub-folder
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: home-homeassistant
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/Homeassistant }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: homeassistant
+  namespace: home
+spec:
+  storageClassName: data
+  volumeName: home-homeassistant
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }

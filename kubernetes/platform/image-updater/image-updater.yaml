@@ -1,0 +1,24 @@
+# Replaces watchtower: follows the :latest tag of mariage and todoapp (digest strategy)
+# and commits the new digest to projects/kustomization.yaml; Argo CD then syncs it.
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: projects
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: projects
+      images:
+        - alias: mariage
+          imageName: gitea.fgdou.ovh/fgdou/mariage:latest
+          commonUpdateSettings:
+            updateStrategy: digest
+        - alias: todoapp
+          imageName: ghcr.io/fgdou/todoapp:latest
+          commonUpdateSettings:
+            updateStrategy: digest
+  writeBackConfig:
+    method: git
+    gitConfig:
+      branch: main
+      writeBackTarget: kustomization

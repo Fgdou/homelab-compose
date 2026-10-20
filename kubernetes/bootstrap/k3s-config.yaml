@@ -1,0 +1,12 @@
+# Copy to /etc/rancher/k3s/config.yaml before installing k3s (Phase 2 step 1):
+#   curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.36.5+k3s1 sh -
+cluster-init: true              # embedded etcd, ready for HA (MIGRATION.md §10)
+write-kubeconfig-mode: "0600"
+node-name: nas
+disable:
+  - local-storage               # replaced by platform/local-path (two storage classes)
+kubelet-arg:
+  - kube-reserved=memory=512Mi
+  - system-reserved=memory=1Gi
+  - eviction-hard=memory.available<500Mi
+# etcd snapshots: k3s defaults (every 12 h, 5 kept) in /var/lib/rancher/k3s/server/db/snapshots

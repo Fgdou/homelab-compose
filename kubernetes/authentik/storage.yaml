@@ -1,0 +1,81 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: authentik-media
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/authentik/media }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media
+  namespace: authentik
+spec:
+  storageClassName: data
+  volumeName: authentik-media
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: authentik-custom-templates
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/authentik/custom-templates }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: custom-templates
+  namespace: authentik
+spec:
+  storageClassName: data
+  volumeName: authentik-custom-templates
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: authentik-certs
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/authentik/certs }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: certs
+  namespace: authentik
+spec:
+  storageClassName: data
+  volumeName: authentik-certs
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }

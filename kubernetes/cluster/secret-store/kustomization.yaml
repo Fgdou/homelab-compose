@@ -1,0 +1,6 @@
+# Needs the External Secrets CRDs and an unsealed OpenBao (see bootstrap in README.md).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - cluster-secret-store.yaml
+  - cloudflare.yaml

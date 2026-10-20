@@ -1,0 +1,6 @@
+# Plain resources next to the Helm chart (the Argo CD Application uses both sources).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - pv.yaml
+  - ingressroute.yaml

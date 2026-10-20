@@ -1,0 +1,7 @@
+# Needs the cert-manager and Traefik CRDs, and the cloudflare Secret from cluster/secret-store.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - cluster-issuer.yaml
+  - wildcard-certificates.yaml
+  - tls-store.yaml

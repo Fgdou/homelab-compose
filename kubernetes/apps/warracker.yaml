@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warracker
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: warracker }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: warracker }
+    spec:
+      containers:
+        - name: warracker
+          image: ghcr.io/sassanix/warracker/main:1.0.2@sha256:9a0aa0e57a4635e0955cea4d13abe89fd65d10625ee95836ec14ae0789884f22
+          env:
+            - { name: DB_HOST, value: postgres.databases }
+            - { name: DB_NAME, value: warracker }
+            - { name: DB_USER, value: warracker }
+            - { name: FRONTEND_URL, value: https://warracker.fgdou.ovh }
+            - { name: APP_BASE_URL, value: https://warracker.fgdou.ovh }
+            - { name: WARRACKER_MEMORY_MODE, value: optimized }
+            - { name: MAX_UPLOAD_MB, value: "16" }
+            - { name: NGINX_MAX_BODY_SIZE_VALUE, value: 16M }
+            - { name: OIDC_PROVIDER_NAME, value: oidc }
+            - { name: OIDC_CLIENT_ID, value: qwsh6xqOHAbazotUTADmjqIhoH4ymUbFPGiJrAFi }
+            - { name: OIDC_ISSUER_URL, value: https://auth.fgdou.ovh/application/o/warracker/ }
+            - { name: OIDC_SCOPE, value: openid email profile }
+            - { name: PYTHONUNBUFFERED, value: "1" }
+          envFrom:
+            - secretRef: { name: warracker }
+          ports: [{ name: http, containerPort: 80 }]
+          resources:
+            requests: { cpu: 10m, memory: 128Mi }
+          volumeMounts:
+            - { name: data, mountPath: /data/uploads, subPath: warracker_uploads }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: warracker } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: warracker
+  namespace: apps
+spec:
+  selector: { app.kubernetes.io/name: warracker }
+  ports:
+    - { name: http, port: 80, targetPort: 80 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: warracker
+  namespace: apps
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`warracker.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: warracker, port: 80 }]

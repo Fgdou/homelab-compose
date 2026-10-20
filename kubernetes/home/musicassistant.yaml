@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: musicassistant
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: musicassistant }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: musicassistant }
+    spec:
+      hostNetwork: true                  # 8095 (UI), 8097 (streams) + player discovery
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: musicassistant
+          image: ghcr.io/music-assistant/server:2.10.4@sha256:37a9a2776e838a754c9f5b38c432567389952304e7cb8f6b44b6cd28043de6de
+          env:
+            - { name: LOG_LEVEL, value: warning }
+          securityContext:
+            capabilities:
+              add: [SYS_ADMIN, DAC_READ_SEARCH]
+            appArmorProfile: { type: Unconfined }
+          ports:
+            - { name: http, containerPort: 8095 }
+            - { name: stream, containerPort: 8097 }
+          resources:
+            requests: { cpu: 50m, memory: 256Mi }
+          volumeMounts:
+            - { name: data, mountPath: /data, subPath: musicassistant }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: homeassistant } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: musicassistant
+  namespace: home
+spec:
+  selector: { app.kubernetes.io/name: musicassistant }
+  ports:
+    - { name: http, port: 8095, targetPort: 8095 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: musicassistant
+  namespace: home
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`musicassistant.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: musicassistant, port: 8095 }]

@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: dawarich
+resources:
+  - storage.yaml
+  - secrets.yaml
+  - database.yaml
+  - app.yaml
+configMapGenerator:
+  - name: dawarich-env
+    literals:
+      - TZ=Europe/Paris
+      - TIME_ZONE=Europe/Paris
+      - RAILS_ENV=production
+      - REDIS_URL=redis://redis.databases:6379
+      - DATABASE_HOST=dawarich-db
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=postgres
+      - DATABASE_NAME=dawarich_development
+      - MIN_MINUTES_SPENT_IN_CITY=60
+      - APPLICATION_PROTOCOL=http
+      - PROMETHEUS_EXPORTER_ENABLED=false
+      - PROMETHEUS_EXPORTER_PORT=9394
+      - RAILS_LOG_TO_STDOUT=true
+      - SELF_HOSTED=true
+      - STORE_GEODATA=true
+      - OIDC_ISSUER=https://auth.fgdou.ovh/application/o/dawarich/
+      - OIDC_CLIENT_ID=b4nORfYgQkhay8kMsudgUAZwAnxhKS51v2BjPMAy
+      - OIDC_REDIRECT_URI=https://dawarich.fgdou.ovh/users/auth/openid_connect/callback
+      - OIDC_AUTO_REGISTER=true
+      - ALLOW_EMAIL_PASSWORD_REGISTRATION=false

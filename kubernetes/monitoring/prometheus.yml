@@ -1,0 +1,111 @@
+# Rewritten from /data/monitoring/prometheus/prometheus.yml (MIGRATION.md §7 "Prometheus scrape config")
+global:
+  scrape_interval: 1m
+
+scrape_configs:
+  - job_name: prometheus
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: node
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: authentik
+    static_configs:
+      - targets: ['authentik-server-metrics.authentik:9300']
+
+  # job "docker" (host.docker.internal:9323) removed: no dockerd after the cutover
+
+  - job_name: traefik
+    static_configs:
+      - targets: ['traefik-metrics.kube-system:8082']
+
+  # replaces the cadvisor container: the kubelet's embedded cAdvisor, through the API server.
+  # Labels differ from standalone cadvisor: namespace/pod/container instead of name.
+  - job_name: kubelet-cadvisor
+    scheme: https
+    metrics_path: /metrics/cadvisor
+    authorization:
+      credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
+
+  - job_name: kubelet
+    scheme: https
+    authorization:
+      credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics
+
+  - job_name: s3
+    metrics_path: /probe
+    http_sd_configs:
+      - url: http://s3-exporter:9340/discovery
+    scrape_interval: 30m
+    scrape_timeout: 10m
+
+  - job_name: blackbox
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://nextcloud.fgdou.ovh
+        - https://films.fgdou.ovh
+        - https://dash.fgdou.ovh
+        - https://auth.fgdou.ovh
+        - https://immich.fgdou.ovh
+        - https://mealie.fgdou.ovh
+        - https://vaultwarden.fgdou.ovh
+        - https://ciq-panier.fr
+        - https://music.fgdou.ovh
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115
+
+  - job_name: json
+    metrics_path: /probe
+    params:
+      module: [jellyfin]
+    static_configs:
+      - targets:
+        - https://films.fgdou.ovh/Sessions
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: json-exporter:7979
+
+  - job_name: jellyfin_exporter
+    static_configs:
+      - targets: ['jellyfin-exporter:9594']
+
+  - job_name: postgres-exporter
+    static_configs:
+      - targets: ['postgres-exporter:9187']

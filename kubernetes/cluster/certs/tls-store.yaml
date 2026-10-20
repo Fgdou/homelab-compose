@@ -1,0 +1,12 @@
+# Traefik picks the matching certificate by SNI; fgdou.ovh is the fallback.
+apiVersion: traefik.io/v1alpha1
+kind: TLSStore
+metadata:
+  name: default
+  namespace: kube-system
+spec:
+  defaultCertificate:
+    secretName: wildcard-fgdou-ovh
+  certificates:
+    - secretName: wildcard-fgdou-ovh
+    - secretName: wildcard-ciq-panier-fr

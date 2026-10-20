@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actual
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: actual }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: actual }
+    spec:
+      containers:
+        - name: actual
+          image: docker.io/actualbudget/actual-server:26.10.0@sha256:24645e971da6bb1a1f953d6859e307a0b29be1e8b4130a35b3220c209b5b860c
+          ports: [{ name: http, containerPort: 5006 }]
+          livenessProbe:
+            exec: { command: [node, src/scripts/health-check.js] }
+            periodSeconds: 60
+            timeoutSeconds: 10
+          resources:
+            requests: { cpu: 10m, memory: 128Mi }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: actual } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: actual
+  namespace: apps
+spec:
+  selector: { app.kubernetes.io/name: actual }
+  ports:
+    - { name: http, port: 5006, targetPort: 5006 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: actual
+  namespace: apps
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`actual.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: actual, port: 5006 }]

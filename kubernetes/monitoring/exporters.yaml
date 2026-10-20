@@ -1,0 +1,167 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blackbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: blackbox }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: blackbox }
+    spec:
+      dnsPolicy: None                 # was dns: 1.1.1.1 (only probes public URLs)
+      dnsConfig: { nameservers: [1.1.1.1] }
+      containers:
+        - name: blackbox
+          image: quay.io/prometheus/blackbox-exporter:v0.28.0@sha256:e753ff9f3fc458d02cca5eddab5a77e1c175eee484a8925ac7d524f04366c2fc
+          ports: [{ name: http, containerPort: 9115 }]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blackbox
+  namespace: monitoring
+spec:
+  selector: { app.kubernetes.io/name: blackbox }
+  ports:
+    - { name: http, port: 9115, targetPort: 9115 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: json-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: json-exporter }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: json-exporter }
+    spec:
+      containers:
+        - name: json-exporter
+          image: prometheuscommunity/json-exporter:v0.8.0@sha256:3aad20d41a0b31dfaaf7ab1a091440e92a82a61ef68b76750eac0ad50a983652
+          args: [--config.file=/config/config.yml]
+          ports: [{ name: http, containerPort: 7979 }]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+          volumeMounts:
+            - { name: config, mountPath: /config, readOnly: true }
+      volumes:
+        - name: config
+          persistentVolumeClaim: { claimName: json-exporter, readOnly: true }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: json-exporter
+  namespace: monitoring
+spec:
+  selector: { app.kubernetes.io/name: json-exporter }
+  ports:
+    - { name: http, port: 7979, targetPort: 7979 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: jellyfin-exporter }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: jellyfin-exporter }
+    spec:
+      containers:
+        - name: jellyfin-exporter
+          image: rebelcore/jellyfin-exporter:latest@sha256:b90a980524e93a153294459f718bea6f3bf33b29b23b78f577c6c61286c9e26f
+          args:
+            - --jellyfin.address=http://jellyfin.media:8096
+            - --jellyfin.token=$(JELLYFIN_EXPORTER_API_KEY)
+          envFrom:
+            - secretRef: { name: jellyfin-exporter }
+          ports: [{ name: http, containerPort: 9594 }]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-exporter
+  namespace: monitoring
+spec:
+  selector: { app.kubernetes.io/name: jellyfin-exporter }
+  ports:
+    - { name: http, port: 9594, targetPort: 9594 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: postgres-exporter }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: postgres-exporter }
+    spec:
+      containers:
+        - name: postgres-exporter
+          image: quay.io/prometheuscommunity/postgres-exporter:latest@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
+          env:
+            - { name: DATA_SOURCE_URI, value: "postgres.databases:5432/postgres?sslmode=disable" }
+            - { name: DATA_SOURCE_USER, value: admin }
+          envFrom:
+            - secretRef: { name: postgres-exporter }
+          ports: [{ name: http, containerPort: 9187 }]
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-exporter
+  namespace: monitoring
+spec:
+  selector: { app.kubernetes.io/name: postgres-exporter }
+  ports:
+    - { name: http, port: 9187, targetPort: 9187 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: s3-exporter }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: s3-exporter }
+    spec:
+      containers:
+        - name: s3-exporter
+          image: ribbybibby/s3-exporter:v0.5.0@sha256:998184c51a006ca923b59a0c5e7f7ad9028b06c130b7c6bd021701d7fb451a10
+          args: [--s3.endpoint-url, "https://s3.gra.io.cloud.ovh.net/"]
+          env:
+            - { name: AWS_REGION, value: gra }
+          envFrom:
+            - secretRef: { name: s3 }
+          ports: [{ name: http, containerPort: 9340 }]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s3-exporter
+  namespace: monitoring
+spec:
+  selector: { app.kubernetes.io/name: s3-exporter }
+  ports:
+    - { name: http, port: 9340, targetPort: 9340 }

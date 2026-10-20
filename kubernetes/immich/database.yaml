@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: immich-database
+spec:
+  serviceName: immich-database
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: immich-database }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: immich-database }
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: postgres
+          image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23  # 14-vectorchord0.4.3-pgvector0.8.1-pgvectors0.2.0
+          env:
+            - { name: POSTGRES_USER, value: user }
+            - { name: POSTGRES_DB, value: db }
+            - { name: POSTGRES_INITDB_ARGS, value: --data-checksums }
+            - { name: DB_STORAGE_TYPE, value: HDD }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: immich, key: POSTGRES_PASSWORD } }
+          ports: [{ name: postgres, containerPort: 5432 }]
+          resources:
+            requests: { cpu: 50m, memory: 256Mi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+            - { name: shm, mountPath: /dev/shm }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: database } }
+        - { name: shm, emptyDir: { medium: Memory, sizeLimit: 128Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-database
+spec:
+  selector: { app.kubernetes.io/name: immich-database }
+  ports:
+    - { name: postgres, port: 5432 }

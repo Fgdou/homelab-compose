@@ -1,0 +1,20 @@
+# Same certificates as Docker Traefik today. Used by Traefik as its default certificate.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-fgdou-ovh
+  namespace: kube-system
+spec:
+  secretName: wildcard-fgdou-ovh
+  issuerRef: { kind: ClusterIssuer, name: letsencrypt }
+  dnsNames: [fgdou.ovh, "*.fgdou.ovh"]
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-ciq-panier-fr
+  namespace: kube-system
+spec:
+  secretName: wildcard-ciq-panier-fr
+  issuerRef: { kind: ClusterIssuer, name: letsencrypt }
+  dnsNames: [ciq-panier.fr, "*.ciq-panier.fr"]

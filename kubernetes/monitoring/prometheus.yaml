@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+  - apiGroups: [""]
+    resources: [nodes, nodes/proxy, nodes/metrics, services, endpoints, pods]
+    verbs: [get, list, watch]
+  - nonResourceURLs: [/metrics, /metrics/cadvisor]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: prometheus }
+subjects:
+  - { kind: ServiceAccount, name: prometheus, namespace: monitoring }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: prometheus }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: prometheus }
+    spec:
+      serviceAccountName: prometheus
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v3.15.0@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml   # was inside the TSDB folder
+            - --storage.tsdb.path=/prometheus
+            - --storage.tsdb.retention.time=60d
+            - --web.enable-lifecycle
+          ports: [{ name: http, containerPort: 9090 }]
+          resources:
+            requests: { cpu: 100m, memory: 400Mi }
+          volumeMounts:
+            - { name: data, mountPath: /prometheus }
+            - { name: config, mountPath: /etc/prometheus }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: prometheus }
+        - name: config
+          configMap: { name: prometheus-config }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  selector: { app.kubernetes.io/name: prometheus }
+  ports:
+    - { name: http, port: 9090, targetPort: 9090 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`prometheus.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: prometheus, port: 9090 }]

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: nextcloud }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: nextcloud }
+    spec:
+      containers:
+        - name: nextcloud
+          image: nextcloud:33.0.5@sha256:fe5166b04f217c9e3a263bfe76eef5e13de0dd3919966827de1b47bae2308b01
+          # Same as compose: wait for authentik (OIDC) before starting apache
+          command: [/bin/sh, -c]
+          args:
+            - |
+              until curl -fsS https://auth.fgdou.ovh/-/health/ready/; do
+                echo "Waiting for oauth2..."; sleep 5;
+              done;
+              exec apache2-foreground
+          env:
+            - { name: APACHE_DISABLE_REWRITE_IP, value: "true" }
+            - { name: TRUSTED_PROXIES, value: "10.0.0.0/8 172.16.0.0/8" }
+            - { name: OVERWRITEHOST, value: nextcloud.fgdou.ovh }
+            - { name: OVERWRITEPROTOCOL, value: https }
+            - { name: POSTGRES_DB, value: nextcloud }
+            - { name: POSTGRES_USER, value: nextcloud }
+            - { name: POSTGRES_HOST, value: postgres.databases }
+            - { name: REDIS_HOST, value: redis.databases }
+            - { name: PHP_MEMORY_LIMIT, value: 1024M }
+            - { name: PHP_UPLOAD_LIMIT, value: 1024M }
+          envFrom:
+            - secretRef: { name: nextcloud }
+          ports: [{ name: http, containerPort: 80 }]
+          resources:
+            requests: { cpu: 50m, memory: 256Mi }
+          volumeMounts:
+            - { name: code, mountPath: /var/www/html }
+      volumes:
+        - { name: code, persistentVolumeClaim: { claimName: code } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  selector: { app.kubernetes.io/name: nextcloud }
+  ports:
+    - { name: http, port: 80, targetPort: 80 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`nextcloud.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: nextcloud, port: 80 }]

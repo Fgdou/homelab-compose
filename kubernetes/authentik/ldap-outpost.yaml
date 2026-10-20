@@ -1,0 +1,39 @@
+# Manual LDAP outpost (decision: not managed by authentik). Used by jellyfin: authentik-ldap.authentik:6636
+# Bump its tag together with the authentik chart.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentik-ldap
+  namespace: authentik
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: authentik-ldap }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: authentik-ldap }
+    spec:
+      containers:
+        - name: ldap
+          image: ghcr.io/goauthentik/ldap:2026.8@sha256:22a310988276cb9cf1e683bfde232c203b34126ded7c02121b349969d644f440  # 2026.8.4
+          env:
+            - { name: AUTHENTIK_HOST, value: https://auth.fgdou.ovh }
+            - { name: AUTHENTIK_INSECURE, value: "false" }
+          envFrom:
+            - secretRef: { name: authentik-ldap }
+          ports:
+            - { name: ldap, containerPort: 3389 }
+            - { name: ldaps, containerPort: 6636 }
+          resources:
+            requests: { cpu: 10m, memory: 40Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-ldap
+  namespace: authentik
+spec:
+  selector: { app.kubernetes.io/name: authentik-ldap }
+  ports:
+    - { name: ldap, port: 3389 }
+    - { name: ldaps, port: 6636 }

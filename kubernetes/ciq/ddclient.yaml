@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ddclient
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: ddclient }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: ddclient }
+    spec:
+      containers:
+        - name: ddclient
+          image: lscr.io/linuxserver/ddclient:3.11.2@sha256:56c4f0cef0a05fa784204a9f862220228874f2063e4d99b2b4d71b5468923064  # v3.11.2-ls184
+          env:
+            - { name: PUID, value: "1000" }
+            - { name: PGID, value: "1000" }
+            - { name: TZ, value: Europe/Paris }
+          resources:
+            requests: { cpu: 5m, memory: 32Mi }
+          volumeMounts:
+            - { name: config, mountPath: /config }
+      volumes:
+        - { name: config, persistentVolumeClaim: { claimName: ddclient } }

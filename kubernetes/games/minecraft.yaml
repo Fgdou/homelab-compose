@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: minecraft }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: minecraft }
+    spec:
+      containers:
+        - name: minecraft
+          image: itzg/minecraft-server:latest@sha256:bb1cf73b342bdf6fa03b9d689b699bd1f8c6989f81ea07d520985eb2f18e6f30  # Paper 26.3 (VERSION env)
+          stdin: true
+          tty: true
+          env:
+            - { name: EULA, value: "TRUE" }
+            - { name: VERSION, value: "26.3" }
+            - { name: TYPE, value: PAPER }
+            - { name: MAX_MEMORY, value: 4G }
+            - { name: ENABLE_AUTOPAUSE, value: "true" }
+            - { name: JVM_DD_OPTS, value: "disable.watchdog:true" }
+            - { name: MAX_TICK_TIME, value: "-1" }
+            - { name: AUTOPAUSE_TIMEOUT_EST, value: "10" }
+            - { name: AUTOPAUSE_TIMEOUT_INIT, value: "10" }
+            - { name: AUTOPAUSE_TIMEOUT_KN, value: "10" }
+            - { name: STOP_SERVER_ANNOUNCE_DELAY, value: "10" }
+            - { name: ENABLE_WHITELIST, value: "true" }
+          ports:
+            - { name: minecraft, containerPort: 25565 }
+            - { name: bluemap, containerPort: 8123 }
+          resources:
+            requests: { cpu: 200m, memory: 2Gi }
+            limits: { memory: 5Gi }                   # MAX_MEMORY 4G + JVM overhead
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: minecraft } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft
+  namespace: games
+spec:
+  type: LoadBalancer                              # was ports: 25566:25565
+  selector: { app.kubernetes.io/name: minecraft }
+  ports:
+    - { name: minecraft, port: 25566, targetPort: 25565 }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bluemap
+  namespace: games
+spec:
+  selector: { app.kubernetes.io/name: minecraft }
+  ports:
+    - { name: http, port: 8123, targetPort: 8123 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bluemap
+  namespace: games
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`minecraft.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: bluemap, port: 8123 }]

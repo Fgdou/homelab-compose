@@ -1,0 +1,33 @@
+# Chart authentik/authentik 2026.8.4 — same version as Docker (server 2026.8.4).
+# Configuration comes from the Secret "authentik" (ExternalSecret in secrets.yaml).
+global:
+  image:
+    tag: "2026.8.4"
+    digest: "sha256:e7226ae116dac5aa0a5643803e735b010038f492c401e08e16b3bf1ac54c090c"
+  env:
+    - { name: AUTHENTIK_POSTGRESQL__HOST, value: postgres.databases }
+    - { name: AUTHENTIK_POSTGRESQL__USER, value: authentik }
+    - { name: AUTHENTIK_POSTGRESQL__NAME, value: authentik }
+    - { name: TZ, value: Europe/Paris }
+  volumes:
+    - name: media
+      persistentVolumeClaim: { claimName: media }
+    - name: custom-templates
+      persistentVolumeClaim: { claimName: custom-templates }
+    - name: certs
+      persistentVolumeClaim: { claimName: certs }
+  volumeMounts:
+    - { name: media, mountPath: /media }
+    - { name: custom-templates, mountPath: /templates }
+    - { name: certs, mountPath: /certs }
+authentik:
+  existingSecret:
+    secretName: authentik
+server:
+  metrics:
+    enabled: true                # authentik-server-metrics:9300, scraped by Prometheus
+  resources:
+    requests: { cpu: 100m, memory: 800Mi }
+worker:
+  resources:
+    requests: { cpu: 50m, memory: 600Mi }

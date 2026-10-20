@@ -1,0 +1,38 @@
+# Daily dump, same image and retention as the Docker pg_backups container, run one-shot.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pg-backups
+  namespace: databases
+spec:
+  schedule: "0 0 * * *"            # @daily, like today
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pg-backups
+              image: prodrigestivill/postgres-backup-local:latest@sha256:f70742ebe42b2277689b028d1fd15aa80f77cffa01da163cc9f85a6ff1866e7f
+              command: [/backup.sh]
+              env:
+                - { name: POSTGRES_HOST, value: postgres }
+                - { name: POSTGRES_DB, value: postgres }
+                - { name: POSTGRES_CLUSTER, value: "TRUE" }
+                - { name: POSTGRES_USER, value: admin }
+                - name: POSTGRES_PASSWORD
+                  valueFrom: { secretKeyRef: { name: postgres, key: POSTGRES_PASSWORD } }
+                - { name: POSTGRES_EXTRA_OPTS, value: "" }
+                - { name: BACKUP_KEEP_DAYS, value: "7" }
+                - { name: BACKUP_KEEP_WEEKS, value: "4" }
+                - { name: BACKUP_KEEP_MONTHS, value: "6" }
+              volumeMounts:
+                - { name: backups, mountPath: /backups }
+          volumes:
+            - name: backups
+              persistentVolumeClaim: { claimName: postgres-backups }

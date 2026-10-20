@@ -1,0 +1,59 @@
+# OpenBao keys
+
+Every value the cluster needs, as read by the ExternalSecrets in this repo.
+KV v2 engine mounted at `kv/`; one path per app: `kv/<namespace>/<app>`.
+Property names are the **environment variable names the container expects** (so `envFrom` works as is), which sometimes differ from the old `.env` key.
+
+`bootstrap/openbao-import.sh` loads all of this from `/data/compose/.env` in one go (Phase 2 step 3).
+
+## Shared values — `kv/shared`
+
+| Property | Source | Used by |
+|---|---|---|
+| `SMTP_PASSWORD` | `.env` `SMTP_PASSWORD` | apps/mealie, monitoring/grafana (as `GF_SMTP_PASSWORD`) |
+| `POSTGRES_ADMIN_PASSWORD` | `.env` `POSTGRES_ADMIN_PASSWORD` | databases/postgres + pg-backups (as `POSTGRES_PASSWORD`), monitoring/postgres-exporter (as `DATA_SOURCE_PASS`) |
+| `S3_ACCESS_KEY_ID` | hardcoded in `restic.yml` / `monitoring.yml` (`a7586b3e…`) | infra/restic, monitoring/s3-exporter (as `AWS_ACCESS_KEY_ID`) |
+| `S3_SECRET_ACCESS_KEY` | `.env` `RESTIC_AWS_SECRET_ACCESS_KEY` | infra/restic, monitoring/s3-exporter (as `AWS_SECRET_ACCESS_KEY`) |
+
+## Per app
+
+| Path | Property | Source |
+|---|---|---|
+| `kv/cert-manager/cloudflare` | `CLOUDFLARE_API_KEY` | `.env` `CLOUDFLARE_API_KEY` |
+| `kv/authentik/authentik` | `AUTHENTIK_SECRET_KEY` | `.env` `AUTHENTIK_SECRET_KEY` |
+| | `AUTHENTIK_POSTGRESQL__PASSWORD` | `.env` `AUTHENTIK_DB_PASSWORD` |
+| | `AUTHENTIK_EMAIL__HOST`, `__PORT`, `__USERNAME`, `__PASSWORD`, `__USE_TLS`, `__USE_SSL`, `__TIMEOUT`, `__FROM` | `.env`, same names |
+| `kv/authentik/authentik-ldap` | `AUTHENTIK_TOKEN` | `.env` `AUTHENTIK_LDAP_TOKEN` |
+| `kv/monitoring/grafana` | `GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET` | `.env` `AUTHENTIK_GRAFANA_SECRET` |
+| `kv/monitoring/jellyfin-exporter` | `JELLYFIN_EXPORTER_API_KEY` | `.env`, same name |
+| `kv/media/slskd` | `SLSKD_SLSK_PASSWORD` | `.env` `SLSKD_PASSWORD` |
+| | `SLSKD_API_KEY` | `.env` `SLSKD_API` |
+| `kv/media/musiseerr` | `LIDARR_API_KEY` | `.env`, same name |
+| `kv/immich/immich` | `DB_PASSWORD`, `POSTGRES_PASSWORD` | hardcoded `password` in `immich.yml` (kept) |
+| `kv/dawarich/dawarich` | `DATABASE_PASSWORD`, `POSTGRES_PASSWORD` | compose default `password` (kept) |
+| | `SECRET_KEY_BASE` | **not in `.env`**: copy it from the running `dawarich_app` container (`docker inspect`) |
+| | `OIDC_CLIENT_SECRET` | `.env` `DAWARICH_OIDC_SECRET` |
+| `kv/gitea/gitea-runner` | `GITEA_RUNNER_REGISTRATION_TOKEN` | `.env` `GITEA_REGISTRATION_TOKEN` |
+| `kv/mail/mailserver` | `RELAY_USER` | `.env` `MAILJET_EMAIL` |
+| | `RELAY_PASSWORD` | `.env` `MAILJET_PASSWORD` |
+| `kv/nextcloud/nextcloud` | `POSTGRES_PASSWORD` | `.env` `NEXTCLOUD_DB_PASSWORD` |
+| `kv/apps/openwebui` | `OAUTH_CLIENT_SECRET` | `.env` `OPENWEBUI_SECRET` |
+| `kv/apps/vaultwarden` | `ADMIN_TOKEN` | `.env` `VAULTWARDEN_ADMIN_TOKEN` |
+| `kv/apps/mealie` | `OIDC_CLIENT_SECRET` | `.env` `AUTHENTIK_MEALIE_SECRET` |
+| `kv/apps/meshcentral` | `BACKUPS_PW` | `.env` `ADMIN_PASSWORD` |
+| `kv/apps/warracker` | `DB_PASSWORD` | `.env` `WARRACKER_DB_PASSWORD` |
+| | `SECRET_KEY` | `.env` `WARRACKER_SECRET_KEY` |
+| | `OIDC_CLIENT_SECRET` | `.env` `WARRACKER_SECRET` |
+| `kv/apps/gramps` | `GRAMPSWEB_OIDC_CLIENT_SECRET` | `.env` `GRAMPS_OIDC_SECRET` |
+| | `GRAMPSWEB_SECRET_KEY` | `.env` `GRAMPS_SECRET_KEY` |
+| `kv/apps/guacamole` | `POSTGRESQL_PASSWORD` | `.env` `GUACAMOLE_DB_PASSWORD` |
+| `kv/projects/todoapp` | `OIDC_CLIENT_SECRET` | `.env` `TODO_OIDC_SECRET` |
+| `kv/infra/restic` | `RESTIC_PASSWORD` | `.env`, same name |
+| `kv/ciq/wordpress` | `WORDPRESS_DB_PASSWORD`, `MYSQL_PASSWORD` | hardcoded `password` in `ciq.yml` (kept) |
+
+## `.env` keys not imported
+
+| Key | Why |
+|---|---|
+| `CLOUDFLARE_EMAIL` | not secret, written in `cluster/certs/cluster-issuer.yaml` |
+| `IHATEMONEY_ADMIN_PASSWORD`, `AUTHENTIK_HOMARR_SECRET`, `AUTHENTIK_WEKAN_SECRET`, `ENDURAIN_SECRET`, `ENDURAIN_FERNET` | stacks not migrated |

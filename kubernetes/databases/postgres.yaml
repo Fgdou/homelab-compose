@@ -1,0 +1,44 @@
+# Shared postgres: authentik, nextcloud, guacamole, warracker (+ postgres-exporter)
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: databases
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: postgres }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: postgres }
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: postgres
+          image: postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
+          env:
+            - { name: POSTGRES_USER, value: admin }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: postgres, key: POSTGRES_PASSWORD } }
+          ports: [{ name: postgres, containerPort: 5432 }]
+          readinessProbe:
+            exec: { command: [pg_isready, -U, admin, -d, postgres] }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 100m, memory: 850Mi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: postgres-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: databases
+spec:
+  selector: { app.kubernetes.io/name: postgres }
+  ports:
+    - { name: postgres, port: 5432 }

@@ -1,0 +1,21 @@
+# Chart openbao/openbao 0.30.4 (OpenBao 2.7.1). Single node, integrated (raft) storage on /data/openbao.
+injector:
+  enabled: false
+server:
+  ha:
+    enabled: true
+    replicas: 1
+    raft:
+      enabled: true
+      setNodeId: true
+  dataStorage:
+    enabled: true
+    size: 1Gi
+    storageClass: data            # bound to the static PV in pv.yaml (claimRef data-openbao-0)
+  auditStorage:
+    enabled: false
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+ui:
+  enabled: true

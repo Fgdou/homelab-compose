@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dawarich-db
+spec:
+  serviceName: dawarich-db
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: dawarich-db }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: dawarich-db }
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: postgis
+          image: postgis/postgis:17-3.5-alpine@sha256:894f570c0cf0664ed5576a8fd5d5bfb8fb1b19d592885b686c3a88c8bd90c41f
+          env:
+            - { name: POSTGRES_USER, value: postgres }
+            - { name: POSTGRES_DB, value: dawarich_development }
+            - name: POSTGRES_PASSWORD
+              valueFrom: { secretKeyRef: { name: dawarich, key: POSTGRES_PASSWORD } }
+          ports: [{ name: postgres, containerPort: 5432 }]
+          readinessProbe:
+            exec: { command: [pg_isready, -U, postgres, -d, dawarich_development] }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 50m, memory: 768Mi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data, subPath: db_data }
+            - { name: data, mountPath: /var/shared, subPath: shared }
+            - { name: shm, mountPath: /dev/shm }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: data } }
+        - { name: shm, emptyDir: { medium: Memory, sizeLimit: 1Gi } }   # was shm_size: 1G
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dawarich-db
+spec:
+  selector: { app.kubernetes.io/name: dawarich-db }
+  ports:
+    - { name: postgres, port: 5432 }

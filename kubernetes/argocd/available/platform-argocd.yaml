@@ -1,0 +1,26 @@
+# Argo CD manages itself after the bootstrap helm install
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-argocd
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 10.10.5
+      helm:
+        releaseName: argocd
+        valueFiles: [$values/kubernetes/platform/argocd/values.yaml]
+    - repoURL: git@github.com:Fgdou/homelab-compose.git
+      targetRevision: main
+      ref: values
+    - repoURL: git@github.com:Fgdou/homelab-compose.git
+      targetRevision: main
+      path: kubernetes/platform/argocd
+  destination: { server: https://kubernetes.default.svc, namespace: argocd }
+  syncPolicy:
+    syncOptions: [ServerSideApply=true]
+    # Manual sync first; once verified, add:
+    # automated: { prune: false, selfHeal: true }

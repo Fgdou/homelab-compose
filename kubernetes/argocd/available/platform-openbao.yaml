@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-openbao
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://openbao.github.io/openbao-helm
+      chart: openbao
+      targetRevision: 0.30.4
+      helm:
+        releaseName: openbao
+        valueFiles: [$values/kubernetes/platform/openbao/values.yaml]
+    - repoURL: git@github.com:Fgdou/homelab-compose.git
+      targetRevision: main
+      ref: values
+    - repoURL: git@github.com:Fgdou/homelab-compose.git
+      targetRevision: main
+      path: kubernetes/platform/openbao
+  destination: { server: https://kubernetes.default.svc, namespace: openbao }
+  syncPolicy:
+    syncOptions: [ServerSideApply=true]
+    # Manual sync first; once verified, add:
+    # automated: { prune: false, selfHeal: true }

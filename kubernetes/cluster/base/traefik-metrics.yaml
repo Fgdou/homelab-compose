@@ -1,0 +1,13 @@
+# Scraped by Prometheus as traefik-metrics.kube-system:8082
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-metrics
+  namespace: kube-system
+spec:
+  selector:
+    app.kubernetes.io/name: traefik
+  ports:
+    - name: metrics
+      port: 8082
+      targetPort: 8082

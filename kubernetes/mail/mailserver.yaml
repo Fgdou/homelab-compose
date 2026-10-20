@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailserver
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: mailserver }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: mailserver }
+    spec:
+      terminationGracePeriodSeconds: 60          # was stop_grace_period: 1m
+      dnsPolicy: None                            # was dns: 8.8.8.8
+      dnsConfig: { nameservers: [8.8.8.8] }
+      containers:
+        - name: mailserver
+          image: ghcr.io/docker-mailserver/docker-mailserver:15.1.0@sha256:af51b15dd3fc72153c0e90eb7692bb5e3a463212d87959a80fa7aa89b617d44a  # v15.1.0
+          env:
+            - { name: OVERRIDE_HOSTNAME, value: mail.fgdou.ovh }   # was hostname: mail.fgdou.ovh
+            - { name: DMS_DEBUG, value: info }
+            - { name: SSL_TYPE, value: manual }
+            - { name: SSL_CERT_PATH, value: /certs/tls.crt }
+            - { name: SSL_KEY_PATH, value: /certs/tls.key }
+            - { name: RELAY_HOST, value: in-v3.mailjet.com }
+            - { name: RELAY_PORT, value: "587" }
+            - { name: TZ, value: Europe/Paris }
+          envFrom:
+            - secretRef: { name: mailserver }
+          ports:
+            - { name: smtp, containerPort: 25 }
+            - { name: imap, containerPort: 143 }
+            - { name: smtps, containerPort: 465 }
+            - { name: submission, containerPort: 587 }
+            - { name: imaps, containerPort: 993 }
+          readinessProbe:
+            tcpSocket: { port: 25 }
+            periodSeconds: 30
+          resources:
+            requests: { cpu: 50m, memory: 256Mi }
+          volumeMounts:
+            - { name: data, mountPath: /var/mail, subPath: mail-data }
+            - { name: data, mountPath: /var/mail-state, subPath: mail-state }
+            - { name: data, mountPath: /var/log/mail, subPath: mail-logs }
+            - { name: data, mountPath: /tmp/docker-mailserver, subPath: config }
+            - { name: certs, mountPath: /certs, readOnly: true }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: data } }
+        - { name: certs, secret: { secretName: mail-tls } }
+---
+# Ports bound on the host by ServiceLB. Conflicts with Docker until the Phase 4 cutover.
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailserver
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local                   # keep client IPs (spam filtering, logs)
+  selector: { app.kubernetes.io/name: mailserver }
+  ports:
+    - { name: smtp, port: 25 }
+    - { name: imap, port: 143 }
+    - { name: smtps, port: 465 }
+    - { name: submission, port: 587 }
+    - { name: imaps, port: 993 }

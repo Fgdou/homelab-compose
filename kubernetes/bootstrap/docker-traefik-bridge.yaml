@@ -1,0 +1,18 @@
+# Example for Phase 2 step 7 — NOT applied automatically.
+# Add a router like this to Docker Traefik's file provider (/data/traefik/config.yaml)
+# for each hostname whose stack is migrated, so traffic keeps entering through
+# Docker Traefik (80/443) and is forwarded to k3s Traefik (websecure on 8443)
+# until the Phase 4 cutover. Remove the Docker labels of the migrated stack at the same time.
+http:
+  routers:
+    k3s-actual:
+      rule: Host(`actual.fgdou.ovh`)
+      entryPoints: [websecure]
+      service: k3s
+      tls: {}
+  services:
+    k3s:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: https://10.0.0.2:8443     # NAS LAN IP, ServiceLB port of k3s Traefik

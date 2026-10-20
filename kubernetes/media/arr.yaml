@@ -1,0 +1,390 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: radarr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: radarr }
+    spec:
+      containers:
+        - name: radarr
+          image: lscr.io/linuxserver/radarr:latest@sha256:7dfd049e79c00b16fbc29c3f5d96a9e7b9e73a23930b4c5b3c4541d60b366814  # 6.4.4.10685-ls319
+          env:
+            - { name: TZ, value: Europe/Paris }
+          ports: [{ name: http, containerPort: 7878 }]
+          resources:
+            requests: { cpu: 20m, memory: 128Mi }
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: films, mountPath: /movies, subPath: films }
+            - { name: films, mountPath: /downloads, subPath: Download }
+      volumes:
+        - { name: config, persistentVolumeClaim: { claimName: radarr } }
+        - { name: films, persistentVolumeClaim: { claimName: films } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: radarr }
+  ports:
+    - { name: http, port: 7878, targetPort: 7878 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: radarr
+  namespace: media
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`radarr.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: radarr, port: 7878 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: sonarr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: sonarr }
+    spec:
+      containers:
+        - name: sonarr
+          image: ghcr.io/linuxserver/sonarr:latest@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06  # 4.0.20.3014-ls326
+          env:
+            - { name: TZ, value: Europe/Paris }
+          ports: [{ name: http, containerPort: 8989 }]
+          resources:
+            requests: { cpu: 20m, memory: 128Mi }
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: films, mountPath: /tv, subPath: series }
+            - { name: films, mountPath: /downloads, subPath: Download }
+      volumes:
+        - { name: config, persistentVolumeClaim: { claimName: sonarr } }
+        - { name: films, persistentVolumeClaim: { claimName: films } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: sonarr }
+  ports:
+    - { name: http, port: 8989, targetPort: 8989 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarr
+  namespace: media
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`sonarr.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: sonarr, port: 8989 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: prowlarr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: prowlarr }
+    spec:
+      containers:
+        - name: prowlarr
+          image: lscr.io/linuxserver/prowlarr:latest@sha256:f2b26429893d4c4cb71941b7ee50b1bdecd9d5f9f9e02d5410615e9f4f7c8d95  # 2.6.5.5623-ls162
+          env:
+            - { name: TZ, value: Europe/Paris }
+          ports: [{ name: http, containerPort: 9696 }]
+          resources:
+            requests: { cpu: 20m, memory: 128Mi }
+          volumeMounts:
+            - { name: config, mountPath: /config }
+      volumes:
+        - { name: config, persistentVolumeClaim: { claimName: prowlarr } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: prowlarr }
+  ports:
+    - { name: http, port: 9696, targetPort: 9696 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: prowlarr
+  namespace: media
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`prowlarr.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: prowlarr, port: 9696 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: qbittorrent }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: qbittorrent }
+    spec:
+      containers:
+        - name: qbittorrent
+          image: lscr.io/linuxserver/qbittorrent:latest@sha256:b522f9f4b769f8f36d49d22d5eb6a92e9aa18904c6a1830b1439df511ec21983  # 5.2.4_v2.0.15-ls479
+          env:
+            - { name: TZ, value: Europe/Paris }
+          ports: [{ name: http, containerPort: 8080 }]
+          resources:
+            requests: { cpu: 20m, memory: 128Mi }
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: films, mountPath: /downloads, subPath: Download }
+      volumes:
+        - { name: config, persistentVolumeClaim: { claimName: qbittorrent } }
+        - { name: films, persistentVolumeClaim: { claimName: films } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: qbittorrent }
+  ports:
+    - { name: http, port: 8080, targetPort: 8080 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: qbittorrent
+  namespace: media
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`qbittorrent.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: qbittorrent, port: 8080 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flaresolverr
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: flaresolverr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: flaresolverr }
+    spec:
+      containers:
+        - name: flaresolverr
+          image: ghcr.io/flaresolverr/flaresolverr:latest@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767  # v3.5.2
+          env:
+            - { name: LOG_LEVEL, value: info }
+            - { name: LOG_HTML, value: "false" }
+            - { name: CAPTCHA_SOLVER, value: none }
+            - { name: TZ, value: Europe/Paris }
+          ports: [{ name: http, containerPort: 8191 }]
+          resources:
+            requests: { cpu: 10m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: flaresolverr }
+  ports:
+    - { name: http, port: 8191, targetPort: 8191 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyseerr
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: jellyseerr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: jellyseerr }
+    spec:
+      containers:
+        - name: jellyseerr
+          image: fallenbagel/jellyseerr:latest@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764
+          env:
+            - { name: LOG_LEVEL, value: info }
+            - { name: TZ, value: Europe/Paris }
+          ports: [{ name: http, containerPort: 5055 }]
+          resources:
+            requests: { cpu: 20m, memory: 192Mi }
+          volumeMounts:
+            - { name: config, mountPath: /app/config }
+      volumes:
+        - { name: config, persistentVolumeClaim: { claimName: jellyseerr } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: jellyseerr }
+  ports:
+    - { name: http, port: 5055, targetPort: 5055 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: jellyseerr
+  namespace: media
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`jellyseerr.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: jellyseerr, port: 5055 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lidarr
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: lidarr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: lidarr }
+    spec:
+      containers:
+        - name: lidarr
+          image: ghcr.io/hotio/lidarr:latest@sha256:226b11ba5b5c3bb8e59002f89f6671ba88758bd0d0d5f69badadb3ad45af7749  # 3.1.0.4875
+          env:
+            - { name: PUID, value: "1000" }
+            - { name: PGID, value: "1000" }
+            - { name: UMASK, value: "002" }
+            - { name: TZ, value: Europe/Paris }
+            - { name: WEBUI_PORTS, value: 8686/tcp }
+          ports: [{ name: http, containerPort: 8686 }]
+          resources:
+            requests: { cpu: 20m, memory: 192Mi }
+          volumeMounts:
+            - { name: lidarr, mountPath: /config, subPath: config }
+            - { name: lidarr, mountPath: /data, subPath: data }
+            - { name: music, mountPath: /music }
+            - { name: slskd, mountPath: /downloads, subPath: downloads }
+      volumes:
+        - { name: lidarr, persistentVolumeClaim: { claimName: lidarr } }
+        - { name: music, persistentVolumeClaim: { claimName: music } }
+        - { name: slskd, persistentVolumeClaim: { claimName: slskd } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lidarr
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: lidarr }
+  ports:
+    - { name: http, port: 8686, targetPort: 8686 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lidarr
+  namespace: media
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`lidarr.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: lidarr, port: 8686 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: musiseerr
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: musiseerr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: musiseerr }
+    spec:
+      containers:
+        - name: musiseerr
+          image: ghcr.io/fgdou/musiseerr:latest@sha256:c41686b4d2721b34d1a25b90d83e8d1e29257e1d5efd09c97e314bd7a9193134  # v0.1.0
+          env:
+            - { name: LIDARR_URL, value: "http://lidarr:8686" }
+          envFrom:
+            - secretRef: { name: musiseerr }
+          ports: [{ name: http, containerPort: 3000 }]
+          resources:
+            requests: { cpu: 10m, memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: musiseerr
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: musiseerr }
+  ports:
+    - { name: http, port: 3000, targetPort: 3000 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: musiseerr
+  namespace: media
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`musiseerr.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: musiseerr, port: 3000 }]

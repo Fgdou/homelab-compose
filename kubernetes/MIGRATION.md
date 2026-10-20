@@ -1,6 +1,6 @@
 # Docker Compose → Kubernetes migration
 
-Status: **plan decided** — nothing migrated yet.
+Status: **Phase 1 done** (manifests written and validated offline, see [README.md](README.md)) — nothing deployed yet.
 Snapshot taken 2026-10-20 on the NAS (Ryzen 3 3200G, 4 threads, 32 GB RAM / 29 GiB usable).
 
 TL;DR
@@ -177,7 +177,7 @@ When a second node arrives, these must become NFS (exported from the NAS) or the
 | mailserver | `/data/mail/{mail-data,mail-state,mail-logs,config}` | | |
 | homeassistant | `/data/Homeassistant/{core,media,zigbee2mqtt,mosquitto,musicassistant}` | | |
 | monitoring | `/data/monitoring/{prometheus,grafana,ntfy,json_exporter}` | | |
-| gramps | `/data/gramps/*` (8 folders → 1 PV + subPaths) | | `/tmp` |
+| gramps | `/data/gramps/*` (8 folders → 1 PV + subPaths, `gramps_tmp` stays mounted on `/tmp` as today) | | |
 | ciq | `/data/ciq` | | |
 | openbao | `/data/openbao` (integrated storage) | | |
 | small apps (actual, vaultwarden, trilium, mealie, lubelogger, meshcentral, warracker, guacamole, minecraft, sr, lidarr, soularr, navidrome, jellyfin config, bind9, ddclient) | `/data/<app>` | | |
@@ -311,9 +311,9 @@ With `hostNetwork`, set `dnsPolicy: ClusterFirstWithHostNet` so the pod still re
 | mailserver | `hostname: mail.fgdou.ovh`, `dns: 8.8.8.8`, uses Traefik's acme.json | `hostname`+`subdomain` or `setHostnameAsFQDN`, `dnsConfig`, cert Secret from cert-manager; `terminationGracePeriodSeconds: 60` |
 | restic | `privileged`, internal cron | **CronJob** with the plain `restic` image (backup + forget/prune), `/data` mounted read-only |
 | pg_backups | internal cron | **CronJob** running `pg_dumpall` into `/data/postgres_backups` |
-| soularr | internal loop | CronJob if it can run one pass and exit, else Deployment as today |
+| soularr | internal loop (`SCRIPT_INTERVAL`) | **Deployment** as today: the image has no one-shot mode |
 | nextcloud | custom command waiting for authentik | keep as is, or move to an `initContainer` |
-| gramps | YAML anchor shared by web + celery | Kustomize: one base Deployment, patch command for celery |
+| gramps | YAML anchor shared by web + celery | two Deployments in one file (same env and volumes, celery has its own command) |
 | immich | official compose | **official Helm chart** (immich-charts) as an Argo CD Application; model cache on emptyDir |
 | `:latest` images (arr suite, wordpress, flaresolverr, adminer…) | on k8s, any pod restart (reboot, eviction) can silently pull a newer version, and git can't roll it back | **pin in the k8s manifests** (see below); the compose files are not changed |
 
@@ -330,10 +330,10 @@ Today's `/data/monitoring/prometheus/prometheus.yml` won't crash Prometheus on k
 | traefik | `traefik:8082` | Traefik is in `kube-system` and the k3s chart doesn't expose 8082 on its Service → add a metrics Service in the `HelmChartConfig` |
 | cadvisor | `cadvisor:8080` | **replace** with the kubelet's `/metrics/cadvisor` (HTTPS, ServiceAccount token, RBAC on `nodes/metrics`) |
 | s3 | `s3_exporter:9340` (http_sd) | `s3-exporter:9340` |
-| blackbox | `blackbox:9115` + public URLs | unchanged; **remove `dash.fgdou.ovh`** (homarr, not migrated) |
+| blackbox | `blackbox:9115` + public URLs | unchanged (`dash.fgdou.ovh` is Home Assistant, kept) |
 | json | `json_exporter:7979` | `json-exporter:7979` |
 | jellyfin_exporter | `jellyfin_exporter:9594` | `jellyfin-exporter:9594` |
-| postgres-exporter | `postgres_exporter:9187` | `postgres-exporter.databases:9187` if it moves with postgres |
+| postgres-exporter | `postgres_exporter:9187` | `postgres-exporter:9187` (stays in `monitoring`, connects to `postgres.databases`) |
 
 Also:
 
@@ -371,7 +371,7 @@ Goal: be able to restore a service from backup with the image version that wrote
 | `projects` | sr, mariage, todoapp |
 | `games` | minecraft |
 | `infra` | bind9, ddclient, restic |
-| `ciq` | external website (WordPress + MySQL) |
+| `ciq` | external website (WordPress + MySQL + its ddclient) |
 
 Repository layout:
 
@@ -521,7 +521,7 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 **Phase 0 — prepare (on Docker)**
 1. Take a full restic snapshot + postgres dump.
 
-**Phase 1 — write all the manifests (no cluster, Docker untouched)**
+**Phase 1 — write all the manifests (no cluster, Docker untouched)** — ✅ done 2026-10-20, see [README.md](README.md)
 1. Write every folder of `kubernetes/`: `cluster/`, the infra (OpenBao, ESO, cert-manager, Argo CD + Image Updater values), and every stack (Kustomize or Helm values, PVs on the existing paths, ExternalSecrets, IngressRoutes). Leave `argocd/apps/` empty: nothing is enabled.
 2. Pin each image to the version running on Docker (`docker inspect`).
 3. Validate offline: `kustomize build` / `helm template` on every folder, then `kubeconform` with the CRD schemas (Traefik, cert-manager, ESO). Optionally smoke-test a stack on a throwaway k3d cluster.

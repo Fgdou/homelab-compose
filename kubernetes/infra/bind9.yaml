@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bind9
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: bind9 }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: bind9 }
+    spec:
+      containers:
+        - name: bind9
+          image: ubuntu/bind9:9.18-22.04_beta@sha256:d31acc46a5c43c12be091ce2b49deb3a17a906cc153d9ce821966875444b9150
+          env:
+            - { name: BIND9_USER, value: root }
+          ports:
+            - { name: dns-udp, containerPort: 53, protocol: UDP }
+            - { name: dns-tcp, containerPort: 53, protocol: TCP }
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+          volumeMounts:
+            - { name: config, mountPath: /etc/bind }
+            - { name: cache, mountPath: /var/cache/bind }
+      volumes:
+        - { name: config, persistentVolumeClaim: { claimName: bind9 } }
+        - { name: cache, emptyDir: {} }               # was the named volume "cache"
+---
+# Was a fixed IP on the nas network (172.18.0.254): clients now use the host IP. Conflicts with Docker until Phase 4.
+apiVersion: v1
+kind: Service
+metadata:
+  name: bind9
+  namespace: infra
+spec:
+  type: LoadBalancer
+  selector: { app.kubernetes.io/name: bind9 }
+  ports:
+    - { name: dns-udp, port: 53, protocol: UDP }
+    - { name: dns-tcp, port: 53, protocol: TCP }

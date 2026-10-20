@@ -1,0 +1,9 @@
+# Plain resources next to the authentik Helm chart (Argo CD multi-source Application).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - storage.yaml
+  - secrets.yaml
+  - ldap-outpost.yaml
+  - middleware.yaml
+  - ingressroute.yaml

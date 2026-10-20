@@ -1,0 +1,17 @@
+# Root app-of-apps: deploys ONLY the Application files committed in argocd/apps/ (the gate).
+# Ready-made Applications wait in argocd/available/: enabling a stack = git mv available/x.yaml apps/
+# Applied once by hand at bootstrap: kubectl apply -f kubernetes/argocd/root.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: git@github.com:Fgdou/homelab-compose.git
+    targetRevision: main
+    path: kubernetes/argocd/apps
+  destination: { server: https://kubernetes.default.svc, namespace: argocd }
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }   # only creates/removes Application objects

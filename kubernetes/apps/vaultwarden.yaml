@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: vaultwarden }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: vaultwarden }
+    spec:
+      securityContext: { runAsUser: 0, runAsGroup: 100 }   # was user: root:users
+      containers:
+        - name: vaultwarden
+          image: vaultwarden/server:1.37.1@sha256:ebdfe70701c60ac0c28c697e787cea767d7972940b786037b29fe0d507f821e8
+          env:
+            - { name: DOMAIN, value: https://vaultwarden.fgdou.ovh }
+            - { name: SIGNUPS_ALLOWED, value: "false" }
+          envFrom:
+            - secretRef: { name: vaultwarden }
+          ports: [{ name: http, containerPort: 80 }]
+          resources:
+            requests: { cpu: 10m, memory: 64Mi }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: vaultwarden } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden
+  namespace: apps
+spec:
+  selector: { app.kubernetes.io/name: vaultwarden }
+  ports:
+    - { name: http, port: 80, targetPort: 80 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vaultwarden
+  namespace: apps
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`vaultwarden.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: vaultwarden, port: 80 }]

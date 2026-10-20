@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+spec:
+  selector:
+    matchLabels: { app.kubernetes.io/name: node-exporter }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: node-exporter }
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+        - name: node-exporter
+          image: quay.io/prometheus/node-exporter:v1.10.2@sha256:337ff1d356b68d39cef853e8c6345de11ce7556bb34cda8bd205bcf2ed30b565
+          args:
+            - --path.procfs=/host/proc
+            - --path.rootfs=/rootfs
+            - --path.sysfs=/host/sys
+          ports: [{ name: metrics, containerPort: 9100 }]
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+          volumeMounts:
+            - { name: proc, mountPath: /host/proc, readOnly: true }
+            - { name: sys, mountPath: /host/sys, readOnly: true }
+            - { name: root, mountPath: /rootfs, readOnly: true, mountPropagation: HostToContainer }
+      volumes:
+        - { name: proc, hostPath: { path: /proc } }
+        - { name: sys, hostPath: { path: /sys } }
+        - { name: root, hostPath: { path: / } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-exporter
+spec:
+  selector: { app.kubernetes.io/name: node-exporter }
+  ports:
+    - { name: metrics, port: 9100 }

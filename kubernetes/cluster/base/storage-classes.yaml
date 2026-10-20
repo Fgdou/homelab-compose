@@ -1,0 +1,45 @@
+# Static classes: PVs are created by hand on existing folders (MIGRATION.md §4).
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: data                      # /data — RAID1 + restic
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: films                     # /films — single disk, re-downloadable
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nvme                      # NVMe root disk — postgres only (not backed up by restic)
+provisioner: kubernetes.io/no-provisioner
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+---
+# Dynamic classes for new apps (platform/local-path): /data/k8s/<ns>/<pvc>, /films/k8s/<ns>/<pvc>
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: data-dynamic
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  pathPattern: "{{ .PVC.Namespace }}/{{ .PVC.Name }}"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: films-dynamic
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  pathPattern: "{{ .PVC.Namespace }}/{{ .PVC.Name }}"

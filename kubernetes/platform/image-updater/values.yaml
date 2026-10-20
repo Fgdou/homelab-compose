@@ -1,0 +1,15 @@
+# Chart argo/argocd-image-updater 1.3.2. Update rules: image-updater.yaml
+config:
+  git.user: argocd-image-updater
+  git.email: argocd-image-updater@fgdou.ovh
+  registries:
+    - name: Gitea
+      api_url: https://gitea.fgdou.ovh
+      prefix: gitea.fgdou.ovh
+      ping: no
+    - name: GitHub Container Registry
+      api_url: https://ghcr.io
+      prefix: ghcr.io
+      ping: no
+resources:
+  requests: { cpu: 10m, memory: 64Mi }

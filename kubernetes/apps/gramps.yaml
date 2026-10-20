@@ -1,0 +1,114 @@
+# grampsweb + celery worker: same image, env and volumes (was a YAML anchor), different command
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grampsweb
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: grampsweb }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: grampsweb }
+    spec:
+      containers:
+        - name: grampsweb
+          image: ghcr.io/gramps-project/grampsweb:26.10.1@sha256:4348222c2ab2f5c53f15e7e170bd8b17db1c1691326e0e72b0d0d6df87724b94
+          env:
+            - { name: GRAMPSWEB_TREE, value: Fabien GOARDOU }
+            - { name: GRAMPSWEB_CELERY_CONFIG__broker_url, value: "redis://redis.databases:6379/0" }
+            - { name: GRAMPSWEB_CELERY_CONFIG__result_backend, value: "redis://redis.databases:6379/0" }
+            - { name: GRAMPSWEB_RATELIMIT_STORAGE_URI, value: "redis://redis.databases:6379/1" }
+            - { name: GRAMPSWEB_BASE_URL, value: https://gramps.fgdou.ovh/ }
+            - { name: GRAMPSWEB_OIDC_ENABLED, value: "true" }
+            - { name: GRAMPSWEB_OIDC_ISSUER, value: https://auth.fgdou.ovh/application/o/gramps/ }
+            - { name: GRAMPSWEB_OIDC_CLIENT_ID, value: G4tIGDX7wN02YwRocsl9JKrqglY0E5KSIcjqeCDg }
+            - { name: GRAMPSWEB_OIDC_NAME, value: Authentik }
+            - { name: GRAMPSWEB_OIDC_GROUP_ADMIN, value: admin }
+            - { name: GRAMPSWEB_OIDC_SCOPES, value: openid email profile }
+            - { name: GRAMPSWEB_TRUSTED_PROXIES, value: "*" }
+          envFrom:
+            - secretRef: { name: gramps }
+          ports: [{ name: http, containerPort: 5000 }]
+          resources:
+            requests: { cpu: 20m, memory: 1Gi }
+          volumeMounts:
+            - { name: data, mountPath: /app/users, subPath: gramps_users }
+            - { name: data, mountPath: /app/indexdir, subPath: gramps_index }
+            - { name: data, mountPath: /app/thumbnail_cache, subPath: gramps_thumb_cache }
+            - { name: data, mountPath: /app/cache, subPath: gramps_cache }
+            - { name: data, mountPath: /app/secret, subPath: gramps_secret }
+            - { name: data, mountPath: /root/.gramps/grampsdb, subPath: gramps_db }
+            - { name: data, mountPath: /app/media, subPath: gramps_media }
+            - { name: data, mountPath: /tmp, subPath: gramps_tmp }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: gramps } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grampsweb
+  namespace: apps
+spec:
+  selector: { app.kubernetes.io/name: grampsweb }
+  ports:
+    - { name: http, port: 5000, targetPort: 5000 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grampsweb
+  namespace: apps
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`gramps.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: grampsweb, port: 5000 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grampsweb-celery
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: grampsweb-celery }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: grampsweb-celery }
+    spec:
+      containers:
+        - name: celery
+          image: ghcr.io/gramps-project/grampsweb:26.10.1@sha256:4348222c2ab2f5c53f15e7e170bd8b17db1c1691326e0e72b0d0d6df87724b94
+          command: [celery, -A, gramps_webapi.celery, worker, --loglevel=INFO]
+          env:
+            - { name: GRAMPSWEB_TREE, value: Fabien GOARDOU }
+            - { name: GRAMPSWEB_CELERY_CONFIG__broker_url, value: "redis://redis.databases:6379/0" }
+            - { name: GRAMPSWEB_CELERY_CONFIG__result_backend, value: "redis://redis.databases:6379/0" }
+            - { name: GRAMPSWEB_RATELIMIT_STORAGE_URI, value: "redis://redis.databases:6379/1" }
+            - { name: GRAMPSWEB_BASE_URL, value: https://gramps.fgdou.ovh/ }
+            - { name: GRAMPSWEB_OIDC_ENABLED, value: "true" }
+            - { name: GRAMPSWEB_OIDC_ISSUER, value: https://auth.fgdou.ovh/application/o/gramps/ }
+            - { name: GRAMPSWEB_OIDC_CLIENT_ID, value: G4tIGDX7wN02YwRocsl9JKrqglY0E5KSIcjqeCDg }
+            - { name: GRAMPSWEB_OIDC_NAME, value: Authentik }
+            - { name: GRAMPSWEB_OIDC_GROUP_ADMIN, value: admin }
+            - { name: GRAMPSWEB_OIDC_SCOPES, value: openid email profile }
+            - { name: GRAMPSWEB_TRUSTED_PROXIES, value: "*" }
+          envFrom:
+            - secretRef: { name: gramps }
+          resources:
+            requests: { cpu: 20m, memory: 256Mi }
+          volumeMounts:
+            - { name: data, mountPath: /app/users, subPath: gramps_users }
+            - { name: data, mountPath: /app/indexdir, subPath: gramps_index }
+            - { name: data, mountPath: /app/thumbnail_cache, subPath: gramps_thumb_cache }
+            - { name: data, mountPath: /app/cache, subPath: gramps_cache }
+            - { name: data, mountPath: /app/secret, subPath: gramps_secret }
+            - { name: data, mountPath: /root/.gramps/grampsdb, subPath: gramps_db }
+            - { name: data, mountPath: /app/media, subPath: gramps_media }
+            - { name: data, mountPath: /tmp, subPath: gramps_tmp }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: gramps } }

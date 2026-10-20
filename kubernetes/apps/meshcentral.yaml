@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meshcentral
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: meshcentral }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: meshcentral }
+    spec:
+      containers:
+        - name: meshcentral
+          image: meshcentral/meshcentral:1.2.5@sha256:45873f56b1221cf4c33a65c6a9a8c2ae8b503bd4f605a19f8b1527fbb80a7b6c
+          env:
+            - { name: HOSTNAME, value: meshcentral.fgdou.ovh }
+            - { name: REVERSE_PROXY, value: meshcentral.fgdou.ovh }
+            - { name: REVERSE_PROXY_TLS_PORT, value: "443" }
+            - { name: IFRAME, value: "false" }
+            - { name: ALLOW_NEW_ACCOUNTS, value: "false" }
+            - { name: WEBRTC, value: "false" }
+            - { name: BACKUP_INTERVAL, value: "24" }
+            - { name: BACKUP_KEEP_DAYS, value: "10" }
+            - { name: DYNAMIC_CONFIG, value: "true" }
+            - { name: REDIR_PORT, value: "80" }
+            - { name: TZ, value: Europe/Paris }
+          envFrom:
+            - secretRef: { name: meshcentral }
+          ports: [{ name: https, containerPort: 443 }]
+          resources:
+            requests: { cpu: 20m, memory: 128Mi }
+          volumeMounts:
+            - { name: data, mountPath: /opt/meshcentral/meshcentral-data, subPath: data }
+            - { name: data, mountPath: /opt/meshcentral/meshcentral-files, subPath: user_files }
+            - { name: data, mountPath: /opt/meshcentral/meshcentral-backups, subPath: backups }
+      volumes:
+        - { name: data, persistentVolumeClaim: { claimName: meshcentral } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meshcentral
+  namespace: apps
+spec:
+  selector: { app.kubernetes.io/name: meshcentral }
+  ports:
+    - { name: https, port: 443 }
+---
+# MeshCentral serves HTTPS itself (self-signed): Traefik skips verification (insecureSkipVerify)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: meshcentral
+  namespace: apps
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`meshcentral.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: meshcentral, port: 443, scheme: https }]

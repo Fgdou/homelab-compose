@@ -1,0 +1,96 @@
+# Namespaces (MIGRATION.md §8). Stacks never create their own namespace.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openbao
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: external-secrets
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: databases
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: authentik
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: home
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: immich
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dawarich
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitea
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mail
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nextcloud
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: apps
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: projects
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: games
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ciq
