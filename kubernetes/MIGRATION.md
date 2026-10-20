@@ -29,9 +29,10 @@ TL;DR
 | Postgres data | stays on the NVMe (`/home/fgdou/postgres`) |
 | LDAP outpost | manual Deployment with its token, as today |
 | Gitea runner | act_runner + docker-in-docker sidecar |
-| Immich, authentik | official Helm charts |
+| Manifest format | plain YAML + Kustomize for own/simple apps; official Helm charts for complex third-party software (immich, authentik, infra) — §8 |
 | Jellyfin | mount the iGPU (`/dev/dri`) for hardware transcoding |
 | Stopped stacks | not migrated |
+| Image versions | compose files left as they are (`:latest` stays); every image **pinned** in the k8s manifests |
 
 ---
 
@@ -50,7 +51,7 @@ These exist today, independent of Kubernetes, and are easier to fix while moving
 
 | Issue | Why it matters | Decision |
 |---|---|---|
-| `postgres` data is in `/home/fgdou/postgres` (NVMe root disk) | Not on the RAID1 and not covered by restic. Only the daily dumps in `/data/postgres_backups` are protected. | **Keep it on the NVMe** (faster disk). Static `local` PV on `/home/fgdou/postgres`. Accepted risk: if the NVMe dies, restore from the last daily dump (up to 24 h of data lost). Increase the dump frequency to shrink that window. |
+| `postgres` data is in `/home/fgdou/postgres` (NVMe root disk) | Not on the RAID1 and not covered by restic. Only the daily dumps in `/data/postgres_backups` are protected. | **Keep it on the NVMe** (faster disk). Static `local` PV on `/home/fgdou/postgres`. Accepted risk: if the NVMe dies, restore from the last daily dump (up to 24 h of data lost). Dump frequency stays daily. |
 | Named docker volumes: `todoappdata`, `model-cache` (immich), `cache` (bind9) | Live in `/var/lib/docker`, not backed up. `todoappdata` holds app data; the others are caches. | **All three → `emptyDir`.** todoapp data is disposable and is wiped on every pod restart or redeploy. Immich ML re-downloads its models on each pod restart (slower start). |
 | Hardcoded passwords (`password`, `user`) in `ciq`, `pca`, `immich`, `endurain`, `dawarich`; AWS access key ID in `restic`/`monitoring` | Plain text in git. | **Move them into OpenBao with the same values** while converting (no rotation; they are internal-only DB credentials). |
 | Unused `.env` keys (`VOUCHERVAULT_*`, `CURSE_API`, `LITELLM_MASTER_KEY`, `LDAP_SEED`, `LDAP_JWT`, `CIQ_AUTHENTIK_*`) | Noise when splitting `.env` into per-namespace Secrets. | **Done** (2026-10-20): deleted from `.env`. |
@@ -300,7 +301,7 @@ With `hostNetwork`, set `dnsPolicy: ClusterFirstWithHostNet` so the pod still re
 | watchtower | auto-update `mariage`, `todoapp` every minute | **Argo CD Image Updater**: watches the registry for new images of these two apps and writes the new tag back to git (`kustomization.yaml` `images:`), Argo CD then syncs it. Needs registry read credentials and git write credentials. Watchtower is removed |
 | cadvisor | container metrics | **removed**: the kubelet embeds cAdvisor (`/metrics/cadvisor`). Saves ~220 MB |
 | node-exporter | host mounts | DaemonSet with `hostPID`, `hostNetwork`, hostPath `/proc` `/sys` `/` |
-| prometheus | static targets on docker names | add `kubernetes_sd_configs` (pods/services/nodes) + scrape kubelet/cAdvisor; RBAC to read the API. Expect more series (k8s metrics) → a bit more RAM |
+| prometheus | static targets on docker names, config file inside the TSDB folder | rewrite the scrape config (see **Prometheus scrape config** below); add `kubernetes_sd_configs` + scrape kubelet/cAdvisor; RBAC to read the API. Expect more series (k8s metrics) → a bit more RAM |
 | zigbee2mqtt | `/dev/ttyACM0` | hostPath `type: CharDevice` + `privileged: true` (or a device plugin), pinned to the NAS node |
 | homeassistant | `privileged`, `/run/dbus`, mDNS/HomeKit | `hostNetwork`, privileged, hostPath `/run/dbus` |
 | musicassistant | `SYS_ADMIN`, `DAC_READ_SEARCH`, `apparmor:unconfined` | `securityContext.capabilities.add`, `appArmorProfile: Unconfined`, `hostNetwork` |
@@ -314,7 +315,40 @@ With `hostNetwork`, set `dnsPolicy: ClusterFirstWithHostNet` so the pod still re
 | nextcloud | custom command waiting for authentik | keep as is, or move to an `initContainer` |
 | gramps | YAML anchor shared by web + celery | Kustomize: one base Deployment, patch command for celery |
 | immich | official compose | **official Helm chart** (immich-charts) as an Argo CD Application; model cache on emptyDir |
-| `:latest` images (arr suite, wordpress, flaresolverr, adminer…) | | pin versions; with `:latest` set `imagePullPolicy: Always` |
+| `:latest` images (arr suite, wordpress, flaresolverr, adminer…) | on k8s, any pod restart (reboot, eviction) can silently pull a newer version, and git can't roll it back | **pin in the k8s manifests** (see below); the compose files are not changed |
+
+### Prometheus scrape config
+
+Today's `/data/monitoring/prometheus/prometheus.yml` won't crash Prometheus on k8s (unresolvable targets just show `DOWN`), but almost every job stops collecting:
+
+| Job | Target today | On k8s |
+|---|---|---|
+| prometheus | `localhost:9090` | unchanged |
+| node | `node-exporter:9100` | node-exporter is a hostNetwork DaemonSet → node IP, or `kubernetes_sd_configs` role `node` |
+| authentik | `authentik_server:9300` | `authentik-server.authentik:9300` (check the Service name and that the Helm chart exposes the metrics port) |
+| docker | `host.docker.internal:9323` | **remove** (no `host.docker.internal` in k8s, dockerd disabled at cutover) |
+| traefik | `traefik:8082` | Traefik is in `kube-system` and the k3s chart doesn't expose 8082 on its Service → add a metrics Service in the `HelmChartConfig` |
+| cadvisor | `cadvisor:8080` | **replace** with the kubelet's `/metrics/cadvisor` (HTTPS, ServiceAccount token, RBAC on `nodes/metrics`) |
+| s3 | `s3_exporter:9340` (http_sd) | `s3-exporter:9340` |
+| blackbox | `blackbox:9115` + public URLs | unchanged; **remove `dash.fgdou.ovh`** (homarr, not migrated) |
+| json | `json_exporter:7979` | `json-exporter:7979` |
+| jellyfin_exporter | `jellyfin_exporter:9594` | `jellyfin-exporter:9594` |
+| postgres-exporter | `postgres_exporter:9187` | `postgres-exporter.databases:9187` if it moves with postgres |
+
+Also:
+
+- **Config location**: the config sits inside the TSDB folder (`/data/monitoring/prometheus/prometheus.yml`). Move it to a ConfigMap mounted at `/etc/prometheus/prometheus.yml` and change `--config.file`; the PV keeps only the TSDB.
+- **Grafana dashboards**: standalone cadvisor labels containers with `name="compose-xxx-1"`; the kubelet's cAdvisor uses `namespace` / `pod` / `container`. Rewrite the queries using `name=`, and those filtering on `job="cadvisor"` / `job="docker"`.
+- **During Phase 2**: an exporter moved to k8s while Prometheus is still on Docker shows `DOWN`. Migrate the exporters together with Prometheus (Phase 2 step 4), or accept gaps in the graphs.
+
+### Image versions
+
+Goal: be able to restore a service from backup with the image version that wrote its data. A large version gap between data and image is what breaks startups (failed migrations, especially immich and authentik).
+
+- **Docker compose: not changed.** `:latest` tags stay as they are until each stack is migrated.
+- **Kubernetes manifests: every image is pinned** when the manifest is written, to the version running on Docker at that moment (`docker inspect` the running container), so the migration itself changes no app version. Pinning by digest (`image: radarr:5.14@sha256:…`) also protects against re-pushed tags.
+- **Updates in small steps:** an automated tool (Renovate, or Argo CD Image Updater with semver constraints — to decide) proposes each new version as a git commit. Pinned tags never drift far behind, and every upgrade is dated in git.
+- **Restore:** take the backup date, check out the matching git commit, and the images match the data.
 
 ---
 
@@ -351,6 +385,15 @@ kubernetes/
 ├── media/
 └── ...                 # one folder per namespace
 ```
+
+### Helm or plain YAML
+
+| Kind of app | Format | Why |
+|---|---|---|
+| Your own apps, single-container services (actual, vaultwarden, arr suite, gramps, mariage, …) | **plain YAML + Kustomize** | What's in git is exactly what runs: readable Argo CD diffs, easy debugging. Kustomize covers the needs: base + patches (gramps web/celery), namespace, `images:` overrides (edited by the update tool), `configMapGenerator` for config files |
+| Complex third-party software with a maintained official chart (immich, authentik, Argo CD, cert-manager, External Secrets, OpenBao) | **official Helm chart + a small `values.yaml`** | The chart brings CRDs, RBAC, webhooks and upgrade logic you don't want to maintain; an upgrade is a chart-version bump in git |
+
+Rule: upstream maintains a chart and the software has many moving parts → Helm. A single container you configure yourself → plain YAML. Don't write your own Helm charts (not even one generic "app" chart): every app ends up needing a special case and the chart turns into a pile of `if`s. Argo CD handles both natively (an Application points at a Kustomize folder or at a chart + values).
 
 Argo CD watches the repository and syncs every folder (app-of-apps). Bootstrap only (`cluster/`, OpenBao, ESO, Argo CD itself) is applied by hand with `kubectl apply -k` / `helm install`, then Argo CD takes over its own management.
 
@@ -466,9 +509,7 @@ Alternatives considered: **k0s** (similar to k3s, less homelab ecosystem), **Mic
 Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are host ports (80, 443, 22, 53, 25…).
 
 **Phase 0 — prepare (on Docker)**
-1. Postgres stays on `/home/fgdou/postgres`; consider more frequent dumps.
-2. Pin `:latest` images.
-3. Take a full restic snapshot + postgres dump.
+1. Take a full restic snapshot + postgres dump.
 
 **Phase 1 — install k3s next to Docker (bootstrap)**
 1. Install k3s with `--cluster-init`, the kubelet memory reservations, and the bundled Traefik moved to other ports (e.g. hostPort 8000/8443) so Docker's Traefik keeps 80/443.
@@ -479,11 +520,11 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 6. Install **Argo CD** (+ Image Updater), point it at this repository (app-of-apps), and let it adopt everything above.
 7. In Docker Traefik's file provider (`/data/traefik/config.yaml`), add a router per migrated hostname forwarding to `https://127.0.0.1:8443` → apps can move one by one with no DNS change.
 
-**Phase 2 — migrate apps, one stack at a time** (`docker compose down` → commit the folder → Argo CD sync → test → next)
+**Phase 2 — migrate apps, one stack at a time** (note the running image version → `docker compose down` → commit the folder with that version pinned → Argo CD sync → test → next)
 1. Stateless / self-contained: speedtest, sr, mariage, todoapp (with Image Updater), actual, vaultwarden, trilium, lubelogger, mealie, warracker…
 2. Stacks with their own DB: immich (Helm chart), dawarich, ciq, gitea (+ SSH, DinD runner), gramps.
 3. Media: the arr suite, jellyfin (with iGPU), navidrome, slskd (port 50300), musiseerr.
-4. Monitoring (rewrite Prometheus scrape config, drop cadvisor).
+4. Monitoring, with all its exporters at once (rewrite the Prometheus scrape config as in §7, config to a ConfigMap, drop cadvisor, fix the Grafana cadvisor queries).
 5. Shared `databases` (postgres + redis) together with their consumers: authentik (Helm chart + LDAP outpost), nextcloud, guacamole, warracker. Pods can reach Docker services in the meantime through host-published ports if needed.
 6. Home automation (hostNetwork, USB) — test zigbee carefully.
 
