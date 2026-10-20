@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: homeassistant }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       # hostNetwork for discovery (mDNS, HomeKit 21063, Roborock 58866-58867); still resolves cluster names
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet

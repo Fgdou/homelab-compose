@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: wordpress }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: wordpress
           image: wordpress:latest@sha256:0324d403512533271f85831518d0d8618ae794f8d50e40103cbac473119188af

@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: jellyfin }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       securityContext:
         supplementalGroups: [105]       # host "render" group → /dev/dri/renderD128 (VAAPI)
       containers:

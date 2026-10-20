@@ -35,6 +35,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: prometheus }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       serviceAccountName: prometheus
       containers:
         - name: prometheus

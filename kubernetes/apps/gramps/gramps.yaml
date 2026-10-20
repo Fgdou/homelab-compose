@@ -12,6 +12,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: grampsweb }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: grampsweb
           image: ghcr.io/gramps-project/grampsweb:26.10.1@sha256:4348222c2ab2f5c53f15e7e170bd8b17db1c1691326e0e72b0d0d6df87724b94
@@ -80,6 +81,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: grampsweb-celery }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: celery
           image: ghcr.io/gramps-project/grampsweb:26.10.1@sha256:4348222c2ab2f5c53f15e7e170bd8b17db1c1691326e0e72b0d0d6df87724b94

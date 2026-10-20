@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: guacd }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       securityContext: { runAsUser: 0, runAsGroup: 100 }   # was user: root:users
       containers:
         - name: guacd
@@ -46,6 +47,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: guacamole }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       securityContext: { runAsUser: 0, runAsGroup: 100 }
       containers:
         - name: guacamole

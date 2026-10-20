@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: meshcentral }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: meshcentral
           image: meshcentral/meshcentral:1.2.5@sha256:45873f56b1221cf4c33a65c6a9a8c2ae8b503bd4f605a19f8b1527fbb80a7b6c

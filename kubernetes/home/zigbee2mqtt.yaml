@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: zigbee2mqtt }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       nodeSelector: { kubernetes.io/hostname: nas }   # USB dongle
       containers:
         - name: zigbee2mqtt

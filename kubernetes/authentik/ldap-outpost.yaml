@@ -13,6 +13,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: authentik-ldap }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: ldap
           image: ghcr.io/goauthentik/ldap:2026.8@sha256:22a310988276cb9cf1e683bfde232c203b34126ded7c02121b349969d644f440  # 2026.8.4

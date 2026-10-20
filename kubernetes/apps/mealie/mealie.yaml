@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: mealie }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: mealie
           image: ghcr.io/mealie-recipes/mealie:v3.8.0@sha256:8cb354ce7b9e73304c0f3dedf13b7fe8ffe2f25775c9bbe79b5c446ef0334fd6

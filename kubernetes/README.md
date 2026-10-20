@@ -154,7 +154,7 @@ Rollback: `kubectl delete -k <stack>` (PVs are `Retain`, data stays), `git mv` t
 
 ## Migration notes per stack
 
-> **Service links trap** (found with actual): every Service in a namespace injects `<SERVICE>_PORT`, `<SERVICE>_HOST`… env vars into its pods. If an app reads a variable with that name (`ACTUAL_PORT`, `MEALIE_PORT`…), it breaks. Pods here use DNS names, never these vars → set `enableServiceLinks: false` on every workload.
+> **Service links trap** (found with actual): every Service in a namespace injects `<SERVICE>_PORT`, `<SERVICE>_HOST`… env vars into its pods. If an app reads a variable with that name (`ACTUAL_PORT`, `MEALIE_PORT`…), it breaks. Pods here use DNS names, never these vars → `enableServiceLinks: false` is set on every workload (62 pod templates, 2026-10-20). Charts: immich already sets it to false; the **authentik chart hard-codes `true`** (no value to change it) → check at the authentik migration that the injected `AUTHENTIK_SERVER_PORT`-style vars are ignored (authentik only maps `AUTHENTIK_X__Y`).
 
 Things that the manifests cannot do by themselves, to do on migration day.
 

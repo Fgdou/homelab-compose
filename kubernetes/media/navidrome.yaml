@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: navidrome }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       securityContext: { runAsUser: 1000, runAsGroup: 1000 }
       containers:
         - name: navidrome

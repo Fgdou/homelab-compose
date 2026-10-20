@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: gitea-runner }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       # act_runner + docker-in-docker sidecar (decision): workflows keep using docker.
       # No volume for the runner state: it re-registers at each start, like today.
       containers:

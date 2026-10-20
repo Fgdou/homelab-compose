@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: radarr }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: radarr
           image: lscr.io/linuxserver/radarr:latest@sha256:7dfd049e79c00b16fbc29c3f5d96a9e7b9e73a23930b4c5b3c4541d60b366814  # 6.4.4.10685-ls319
@@ -63,6 +64,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: sonarr }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: sonarr
           image: ghcr.io/linuxserver/sonarr:latest@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06  # 4.0.20.3014-ls326
@@ -115,6 +117,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: prowlarr }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: prowlarr
           image: lscr.io/linuxserver/prowlarr:latest@sha256:f2b26429893d4c4cb71941b7ee50b1bdecd9d5f9f9e02d5410615e9f4f7c8d95  # 2.6.5.5623-ls162
@@ -164,6 +167,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: qbittorrent }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: qbittorrent
           image: lscr.io/linuxserver/qbittorrent:latest@sha256:b522f9f4b769f8f36d49d22d5eb6a92e9aa18904c6a1830b1439df511ec21983  # 5.2.4_v2.0.15-ls479
@@ -214,6 +218,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: flaresolverr }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: flaresolverr
           image: ghcr.io/flaresolverr/flaresolverr:latest@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767  # v3.5.2
@@ -249,6 +254,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: jellyseerr }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: jellyseerr
           image: fallenbagel/jellyseerr:latest@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764
@@ -298,6 +304,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: lidarr }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: lidarr
           image: ghcr.io/hotio/lidarr:latest@sha256:226b11ba5b5c3bb8e59002f89f6671ba88758bd0d0d5f69badadb3ad45af7749  # 3.1.0.4875
@@ -355,6 +362,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: musiseerr }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: musiseerr
           image: ghcr.io/fgdou/musiseerr:latest@sha256:c41686b4d2721b34d1a25b90d83e8d1e29257e1d5efd09c97e314bd7a9193134  # v0.1.0

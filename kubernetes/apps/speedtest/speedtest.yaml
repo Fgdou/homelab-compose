@@ -10,6 +10,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: speedtest }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: speedtest
           image: ghcr.io/librespeed/speedtest:5.4@sha256:0e0d9c8c2e5aa362164cf0bf25a48a606b5701f6bc7fa1695975b687aaec26a9  # 5.4.1

@@ -10,6 +10,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: mariage }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: mariage
           image: gitea.fgdou.ovh/fgdou/mariage      # tag + digest set in kustomization.yaml

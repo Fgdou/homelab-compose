@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: mailserver }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       terminationGracePeriodSeconds: 60          # was stop_grace_period: 1m
       dnsPolicy: None                            # was dns: 8.8.8.8
       dnsConfig: { nameservers: [8.8.8.8] }

@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: sr }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: sr
           image: ghcr.io/fgdou/sr_project:master@sha256:91a9a5da92f035b05f1dd1acab1bcc377fe839b8982c234a4a04b961a9fcc350

@@ -15,6 +15,7 @@ spec:
       backoffLimit: 1
       template:
         spec:
+          enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
           restartPolicy: Never
           nodeSelector: { kubernetes.io/hostname: nas }
           containers:

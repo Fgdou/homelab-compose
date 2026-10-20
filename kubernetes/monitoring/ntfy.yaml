@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: ntfy }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: ntfy
           image: binwiederhier/ntfy:v2.32.0@sha256:59250e1d8be2ee2186c4560322f625faef22ace380331f05b63f8842dbd62602

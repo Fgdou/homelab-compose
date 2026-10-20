@@ -11,6 +11,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: bind9 }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: bind9
           image: ubuntu/bind9:9.18-22.04_beta@sha256:d31acc46a5c43c12be091ce2b49deb3a17a906cc153d9ce821966875444b9150

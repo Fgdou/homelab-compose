@@ -9,6 +9,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: node-exporter }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       hostNetwork: true
       hostPID: true
       containers:

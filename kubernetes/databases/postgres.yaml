@@ -13,6 +13,7 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: postgres }
     spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       terminationGracePeriodSeconds: 60
       containers:
         - name: postgres
