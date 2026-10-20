@@ -18,6 +18,10 @@ services:
       - /data/authentik/custom-templates:/templates
     env_file:
       - .env
+    ports:
+      # Interim, during the k3s migration: forward-auth target for the k3s authentik Middleware
+      # (kubernetes/authentik/middleware.yaml). Remove when authentik moves to k3s.
+      - "10.0.0.2:9000:9000"
     networks:
       - nas
       - authentik

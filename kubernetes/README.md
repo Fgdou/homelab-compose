@@ -3,7 +3,7 @@
 Kubernetes manifests for the NAS (k3s, single node `nas`), replacing the Docker compose files in the repository root.
 The plan and every decision behind it are in [MIGRATION.md](MIGRATION.md). Secrets: [OPENBAO-KEYS.md](OPENBAO-KEYS.md).
 
-Status: **Phase 2 steps 1–4 done** (2026-10-20) — k3s `v1.36.5+k3s1` runs next to Docker, Traefik on 8000/8443/2222, namespaces + storage classes + local-path-provisioner applied, OpenBao installed, unsealed and loaded, External Secrets Operator + `ClusterSecretStore` working. `argocd/apps/` is empty.
+Status: **Phase 2 steps 1–4 done** (2026-10-20) — k3s `v1.36.5+k3s1` runs next to Docker, Traefik on 8000/8443/2222, namespaces + storage classes + local-path-provisioner applied, OpenBao installed, unsealed and loaded, External Secrets Operator + `ClusterSecretStore` working, cert-manager + both wildcard certificates issued (served on 8443), authentik Middleware applied (interim target: Docker authentik on `10.0.0.2:9000`), OpenBao UI at `https://bao.fgdou.ovh` (LAN only) with authentik OIDC login. `argocd/apps/` is empty.
 
 ## Layout
 
@@ -78,6 +78,14 @@ Order matters: OpenBao and External Secrets must not depend on secrets served by
    Then unseal (3 keys), `bao login -no-print -` (token on stdin), `bao secrets enable -version=2 -path=kv kv`, `bao auth enable kubernetes`, `bao write auth/kubernetes/config kubernetes_host=https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT`, policy `external-secrets` = `read` on `kv/data/*`, role `external-secrets` bound to `external-secrets/external-secrets` (ttl 1h). Then `bootstrap/openbao-import.sh --dry-run`, then without `--dry-run` (23 paths). Finally delete the root token from the pod: `kubectl -n openbao exec openbao-0 -- rm /home/openbao/.vault-token`.
    The pod stays `0/1 Ready` while sealed: its readiness probe is `bao status`, which exits 2 when sealed.
 
+### OpenBao login (OIDC with authentik)
+
+- UI: `https://bao.fgdou.ovh` (LAN only: `lan-only` ipAllowList on the Docker Traefik bridge router in `/data/traefik/config.yaml`) → method **OIDC**, role empty (default `authentik`) → authentik login.
+- authentik side: `authentik/blueprints/openbao.yaml` (provider `OpenBao`, client ID `openbao`, application restricted to the `admin` group). `ak apply_blueprint` only accepts files under `/blueprints`; it was applied with `Importer.from_string(...).apply()` in `ak shell`.
+- OpenBao side: `auth/oidc` (discovery `https://auth.fgdou.ovh/application/o/openbao/`, client secret copied from authentik, never committed), role `authentik` (only redirect URI `https://bao.fgdou.ovh/ui/vault/auth/oidc/oidc/callback`, `groups_claim=groups`, base policy `default`, ttl 8h / max 24h), policy `admin` (everything), external identity group `admin` (policy `admin`) with alias `admin` on the oidc mount → **every member of the authentik `admin` group is OpenBao admin**.
+- No localhost redirect URI, so no `bao login -method=oidc` from the CLI: copy a token from the UI (user menu → *Copy token*) and `bao login -` it.
+- Break-glass (authentik down): `kubectl -n openbao port-forward svc/openbao 8200`, then `bao operator generate-root` with 3 unseal keys.
+
 ### Unseal after a reboot or pod restart
 
 `bao operator unseal` does **not** read stdin (`-` is taken as the key). Run it 3 times, pasting a different key from Vaultwarden at the hidden prompt each time:
@@ -86,7 +94,9 @@ Order matters: OpenBao and External Secrets must not depend on secrets served by
 kubectl -n openbao exec -it openbao-0 -- bao operator unseal
 ```
 5. External Secrets (done 2026-10-20): `helm repo add external-secrets https://charts.external-secrets.io`, `helm install external-secrets external-secrets/external-secrets --version 2.13.0 -n external-secrets -f platform/external-secrets/values.yaml --wait`, then `kubectl apply --server-side -k cluster/secret-store` → `clustersecretstore/openbao` Ready, `cert-manager/cloudflare` SecretSynced.
-   Then `kubectl apply -k cluster/certs` — wait for both wildcard certificates to be `Ready`.
+   cert-manager (done 2026-10-20): `helm repo add jetstack https://charts.jetstack.io`, `helm install cert-manager jetstack/cert-manager --version v1.21.2 -n cert-manager -f platform/cert-manager/values.yaml --wait`, then `kubectl apply --server-side -k cluster/certs` → both wildcard `Certificate`s Ready in ~3 min (DNS01), Traefik serves them on 8443 by SNI.
+   authentik Middleware (done 2026-10-20): `kubectl apply --server-side -f authentik/middleware.yaml` (only this file). Interim target `http://10.0.0.2:9000` = Docker `authentik_server`, published by a `ports:` entry in `/data/compose/authentik.yml`.
+   Original note: Then `kubectl apply -k cluster/certs` — wait for both wildcard certificates to be `Ready`.
 6. Install Argo CD with Helm (`platform/argocd/values.yaml`), add the repository deploy key (`argocd repo add git@github.com:Fgdou/homelab-compose.git --ssh-private-key-path …`), `kubectl apply -f argocd/root.yaml`.
 7. `git mv` the `cluster*` and `platform-*` Applications from `argocd/available/` to `argocd/apps/`, commit, push: Argo CD adopts what was installed by hand.
 
@@ -112,7 +122,8 @@ Things that the manifests cannot do by themselves, to do on migration day.
 | `databases` | Migrate together with all its consumers (authentik, nextcloud, guacamole, warracker, postgres-exporter). |
 | `nextcloud` | In `/data/nextcloud/code/config/config.php`: `'dbhost' => 'postgres'` → `'postgres.databases'`, redis `'host' => 'redis'` → `'redis.databases'`. |
 | `media` | Jellyfin LDAP plugin (`/data/Jellyfin/data/plugins/configurations/LDAP-Auth.xml`): `<LdapServer>authentik_ldap</LdapServer>` → `authentik-ldap.authentik`. Enable VAAPI (`/dev/dri/renderD128`) in Jellyfin's playback settings. |
-| `authentik` | Stop the whole compose stack (server, worker, LDAP outpost). The LDAP outpost keeps its token. |
+| `authentik` | Stop the whole compose stack (server, worker, LDAP outpost). The LDAP outpost keeps its token. Switch `authentik/middleware.yaml` back to `http://authentik-server.authentik/...` (see its comment) in the same commit; then drop the interim `ports: 10.0.0.2:9000` from `authentik.yml`. |
+| every app behind authentik | A hostname that has no authentik Proxy Provider yet (e.g. Argo CD, adminer) gets a **404** from forward-auth: create the provider (Forward auth, single application) and add it to the embedded outpost first. |
 | `home` | Home Assistant and Music Assistant use `hostNetwork`: ports 8123, 8095, 8097, 21063, 58866-58867 are bound directly on the host. zigbee2mqtt keeps `mqtt://mosquitto:1883` (same namespace). |
 | `monitoring` | Migrate with all exporters at once; fix the Grafana dashboards that use cadvisor's `name` label. |
 | `mail`, `infra` (bind9) | Only at the Phase 4 cutover: ports 25/143/465/587/993 and 53 are still owned by Docker. |

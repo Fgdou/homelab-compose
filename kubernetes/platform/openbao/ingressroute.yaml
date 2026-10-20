@@ -1,4 +1,7 @@
-# UI behind authentik. If authentik is down: kubectl -n openbao port-forward svc/openbao 8200
+# UI login: OpenBao's own OIDC auth method with authentik (authentik/blueprints/openbao.yaml), so no forward-auth.
+# LAN-only: enforced by the ipAllowList of the Docker Traefik bridge router (/data/traefik/config.yaml) until
+# the Phase 4 cutover; then add an ipAllowList Middleware here.
+# If authentik is down: kubectl -n openbao port-forward svc/openbao 8200, and `bao operator generate-root`.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -9,5 +12,4 @@ spec:
   routes:
     - match: Host(`bao.fgdou.ovh`)
       kind: Rule
-      middlewares: [{ name: authentik, namespace: authentik }]
       services: [{ name: openbao, port: 8200 }]

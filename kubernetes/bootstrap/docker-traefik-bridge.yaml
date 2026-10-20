@@ -1,4 +1,5 @@
-# Example for Phase 2 step 7 — NOT applied automatically.
+# Example for Phase 2 step 7. The live file is /data/traefik/config.yaml (already has the k3s service,
+# serversTransport and a lan-only ipAllowList, first used for bao.fgdou.ovh): add one router per hostname.
 # Add a router like this to Docker Traefik's file provider (/data/traefik/config.yaml)
 # for each hostname whose stack is migrated, so traffic keeps entering through
 # Docker Traefik (80/443) and is forwarded to k3s Traefik (websecure on 8443)
@@ -16,3 +17,7 @@ http:
         passHostHeader: true
         servers:
           - url: https://10.0.0.2:8443     # NAS LAN IP, ServiceLB port of k3s Traefik
+        serversTransport: k3s
+  serversTransports:
+    k3s:
+      insecureSkipVerify: true          # reached by IP, the wildcard cert has no IP SAN; traffic stays on the NAS

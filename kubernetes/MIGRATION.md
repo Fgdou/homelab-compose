@@ -1,6 +1,6 @@
 # Docker Compose → Kubernetes migration
 
-Status: **Phase 2 steps 1–4 done** (2026-10-20): k3s `v1.36.5+k3s1` installed next to Docker, bundled Traefik on 8000/8443/2222, storage classes + namespaces created, OpenBao 2.7.1 initialised and loaded (23 paths), External Secrets Operator 2.13.0 + `ClusterSecretStore` Ready. Phase 1 manifests written and validated offline, see [README.md](README.md).
+Status: **Phase 2 steps 1–4 done** (2026-10-20): k3s `v1.36.5+k3s1` installed next to Docker, bundled Traefik on 8000/8443/2222, storage classes + namespaces created, OpenBao 2.7.1 initialised and loaded (23 paths), External Secrets Operator 2.13.0 + `ClusterSecretStore` Ready, cert-manager v1.21.2 + wildcard certificates issued, authentik Middleware (interim, → Docker authentik on 10.0.0.2:9000), OpenBao UI with authentik OIDC login (members of `admin` = OpenBao admins). Phase 1 manifests written and validated offline, see [README.md](README.md).
 Snapshot taken 2026-10-20 on the NAS (Ryzen 3 3200G, 4 threads, 32 GB RAM / 29 GiB usable).
 
 TL;DR
@@ -249,7 +249,7 @@ spec:
       #     namespace: authentik
 ```
 
-- `authentik@docker` forward-auth → one `Middleware` in the `authentik` namespace, `forwardAuth.address: http://authentik-server.authentik:9000/outpost.goauthentik.io/auth/traefik`, same `authResponseHeaders`. Apps using it today: firefox, lubelogger, navidrome, prometheus, radarr, sonarr, prowlarr, qbittorrent, lidarr, slskd, musiseerr, trilium, zigbee2mqtt, traefik dashboard. Add adminer (was exposed on host port 8080 without auth), the Argo CD UI (or use its own OIDC login with authentik) and the OpenBao UI.
+- `authentik@docker` forward-auth → one `Middleware` in the `authentik` namespace, `forwardAuth.address: http://authentik-server.authentik:9000/outpost.goauthentik.io/auth/traefik`, same `authResponseHeaders`. Apps using it today: firefox, lubelogger, navidrome, prometheus, radarr, sonarr, prowlarr, qbittorrent, lidarr, slskd, musiseerr, trilium, zigbee2mqtt, traefik dashboard. Add adminer (was exposed on host port 8080 without auth) and the Argo CD UI (or use its own OIDC login with authentik). The OpenBao UI uses OpenBao's own OIDC auth method with authentik instead (done 2026-10-20).
 - **Navidrome** two routers (path-based bypass of auth for `/rest` and `/share`) → two routes in the same IngressRoute, only one with the middleware.
 - **Gitea SSH** `HostSNI(*)` on `ssh` → `IngressRouteTCP`.
 - **Traefik dashboard** (`api@internal`) → IngressRoute to `api@internal` with the authentik middleware; drop `api.insecure`.
@@ -532,7 +532,7 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 2. Create storage classes (`data`, `films`, `data-dynamic`, `films-dynamic`) and namespaces. — ✅ done 2026-10-20 (local-path v0.0.37 requires `pathPattern` to end with `/`: `{{ .PVC.Namespace }}/{{ .PVC.Name }}/`)
 3. Install **OpenBao**, initialise it, store the unseal keys + root token in Vaultwarden, unseal, enable the Kubernetes auth method, and import the `.env` values (`kv/<namespace>/<app>`). — ✅ done 2026-10-20 (5 key shares / threshold 3; see README.md "Unseal after a reboot")
 4. Install **External Secrets Operator** + the `ClusterSecretStore`. — ✅ done 2026-10-20 (`cert-manager/cloudflare` ExternalSecret synced)
-5. Install **cert-manager** + Cloudflare `ClusterIssuer` + wildcard certificates, then the authentik forward-auth Middleware.
+5. Install **cert-manager** + Cloudflare `ClusterIssuer` + wildcard certificates, then the authentik forward-auth Middleware. — ✅ done 2026-10-20. Interim: Docker `authentik_server` publishes `10.0.0.2:9000` (pods can't reach Docker container IPs, and going through Docker Traefik would overwrite `X-Forwarded-Host`), and the Middleware points there until authentik migrates.
 6. Install **Argo CD** (+ Image Updater), point the root app-of-apps at `argocd/apps/`, and add the Applications of the bootstrap components only, so Argo CD adopts them. No app stack is enabled yet.
 7. In Docker Traefik's file provider (`/data/traefik/config.yaml`), add a router per migrated hostname forwarding to `https://127.0.0.1:8443` → apps can move one by one with no DNS change.
 
