@@ -3,7 +3,7 @@
 Kubernetes manifests for the NAS (k3s, single node `nas`), replacing the Docker compose files in the repository root.
 The plan and every decision behind it are in [MIGRATION.md](MIGRATION.md). Secrets: [OPENBAO-KEYS.md](OPENBAO-KEYS.md).
 
-Status: **Phase 2 steps 1–4 done** (2026-10-20) — k3s `v1.36.5+k3s1` runs next to Docker, Traefik on 8000/8443/2222, namespaces + storage classes + local-path-provisioner applied, OpenBao installed, unsealed and loaded, External Secrets Operator + `ClusterSecretStore` working, cert-manager + both wildcard certificates issued (served on 8443), authentik Middleware applied (interim target: Docker authentik on `10.0.0.2:9000`), OpenBao UI at `https://bao.fgdou.ovh` (LAN only) with authentik OIDC login. `argocd/apps/` is empty.
+Status: **Phase 2 steps 1–6 done** (2026-10-20) — k3s `v1.36.5+k3s1` next to Docker (Traefik on 8000/8443/2222), OpenBao, External Secrets, cert-manager, Argo CD + Image Updater installed; Argo CD follows the `kube` branch over HTTPS and manages the `cluster*` and `platform-*` Applications (`argocd/apps/`). No app stack enabled yet. UIs (LAN only, authentik OIDC): `https://bao.fgdou.ovh`, `https://argocd.fgdou.ovh`.
 
 ## Layout
 
@@ -97,8 +97,22 @@ kubectl -n openbao exec -it openbao-0 -- bao operator unseal
    cert-manager (done 2026-10-20): `helm repo add jetstack https://charts.jetstack.io`, `helm install cert-manager jetstack/cert-manager --version v1.21.2 -n cert-manager -f platform/cert-manager/values.yaml --wait`, then `kubectl apply --server-side -k cluster/certs` → both wildcard `Certificate`s Ready in ~3 min (DNS01), Traefik serves them on 8443 by SNI.
    authentik Middleware (done 2026-10-20): `kubectl apply --server-side -f authentik/middleware.yaml` (only this file). Interim target `http://10.0.0.2:9000` = Docker `authentik_server`, published by a `ports:` entry in `/data/compose/authentik.yml`.
    Original note: Then `kubectl apply -k cluster/certs` — wait for both wildcard certificates to be `Ready`.
-6. Install Argo CD with Helm (`platform/argocd/values.yaml`), add the repository deploy key (`argocd repo add git@github.com:Fgdou/homelab-compose.git --ssh-private-key-path …`), `kubectl apply -f argocd/root.yaml`.
-7. `git mv` the `cluster*` and `platform-*` Applications from `argocd/available/` to `argocd/apps/`, commit, push: Argo CD adopts what was installed by hand.
+6. Argo CD (done 2026-10-20): repo is public → `repoURL: https://github.com/Fgdou/homelab-compose.git`, no repository credentials; Applications follow `targetRevision: kube` until the branch is merged.
+   - authentik: `authentik/blueprints/argocd.yaml` (applied like the OpenBao one), client secret → OpenBao `kv/argocd/argocd-oidc` → ExternalSecret `argocd/argocd-oidc` (label `app.kubernetes.io/part-of: argocd`).
+   - `helm repo add argo https://argoproj.github.io/argo-helm`, `helm install argocd argo/argo-cd --version 10.10.5 -n argocd -f platform/argocd/values.yaml --wait`, `kubectl apply --server-side -k platform/argocd`.
+   - `helm install argocd-image-updater argo/argocd-image-updater --version 1.3.2 -n argocd -f platform/image-updater/values.yaml --wait`, `kubectl apply --server-side -k platform/image-updater`.
+   - Docker Traefik bridge router `k3s-argocd` (LAN only) in `/data/traefik/config.yaml`.
+   - `kubectl apply --server-side -f argocd/root.yaml`.
+7. `git mv` the `cluster*` and `platform-*` Applications to `argocd/apps/`, commit, push (done 2026-10-20, commit `11c032d`). Before syncing, `argocd app diff <app> --core` showed only the added `argocd.argoproj.io/tracking-id` annotations; then `argocd app sync <app> --core` one by one (no pod restarted).
+   - `argocd` CLI v3.5.5 is in `/usr/local/bin`. `--core` mode talks to the cluster with your kubeconfig and needs the current namespace to be `argocd` (`kubectl config set-context --current --namespace=argocd`, or a copy of the kubeconfig).
+
+### Left over from the bootstrap
+
+- Once the OIDC login to Argo CD works: set `admin.enabled: false` in `platform/argocd/values.yaml` and `kubectl -n argocd delete secret argocd-initial-admin-secret`.
+- Helm release metadata (`sh.helm.release.v1.*` Secrets in openbao, external-secrets, cert-manager, argocd) is now stale: Argo CD owns the resources. Never `helm upgrade/uninstall` these releases; delete the release Secrets (only metadata) to avoid confusion.
+- `applicationSet.enabled: false` is ignored by chart 10.10.5 (the controller runs): find the right key.
+- Turn on `automated: { prune: false, selfHeal: true }` in the bootstrap Applications once trusted.
+- Image Updater has no git write access yet (needed when `projects` is enabled).
 
 ## Enabling a stack (Phase 3)
 

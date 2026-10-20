@@ -1,6 +1,6 @@
 # Docker Compose → Kubernetes migration
 
-Status: **Phase 2 steps 1–4 done** (2026-10-20): k3s `v1.36.5+k3s1` installed next to Docker, bundled Traefik on 8000/8443/2222, storage classes + namespaces created, OpenBao 2.7.1 initialised and loaded (23 paths), External Secrets Operator 2.13.0 + `ClusterSecretStore` Ready, cert-manager v1.21.2 + wildcard certificates issued, authentik Middleware (interim, → Docker authentik on 10.0.0.2:9000), OpenBao UI with authentik OIDC login (members of `admin` = OpenBao admins). Phase 1 manifests written and validated offline, see [README.md](README.md).
+Status: **Phase 2 steps 1–6 done** (2026-10-20): k3s, OpenBao, External Secrets, cert-manager and Argo CD (+ Image Updater) run next to Docker; Argo CD (following the `kube` branch) manages the bootstrap components. Next: step 7 is already in place for bao/argocd (Docker Traefik bridge), then Phase 3. See [README.md](README.md).
 Snapshot taken 2026-10-20 on the NAS (Ryzen 3 3200G, 4 threads, 32 GB RAM / 29 GiB usable).
 
 TL;DR
@@ -533,7 +533,7 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 3. Install **OpenBao**, initialise it, store the unseal keys + root token in Vaultwarden, unseal, enable the Kubernetes auth method, and import the `.env` values (`kv/<namespace>/<app>`). — ✅ done 2026-10-20 (5 key shares / threshold 3; see README.md "Unseal after a reboot")
 4. Install **External Secrets Operator** + the `ClusterSecretStore`. — ✅ done 2026-10-20 (`cert-manager/cloudflare` ExternalSecret synced)
 5. Install **cert-manager** + Cloudflare `ClusterIssuer` + wildcard certificates, then the authentik forward-auth Middleware. — ✅ done 2026-10-20. Interim: Docker `authentik_server` publishes `10.0.0.2:9000` (pods can't reach Docker container IPs, and going through Docker Traefik would overwrite `X-Forwarded-Host`), and the Middleware points there until authentik migrates.
-6. Install **Argo CD** (+ Image Updater), point the root app-of-apps at `argocd/apps/`, and add the Applications of the bootstrap components only, so Argo CD adopts them. No app stack is enabled yet.
+6. Install **Argo CD** (+ Image Updater), point the root app-of-apps at `argocd/apps/`, and add the Applications of the bootstrap components only, so Argo CD adopts them. No app stack is enabled yet. — ✅ done 2026-10-20 (repo over HTTPS, branch `kube`, Argo CD login = authentik OIDC, group `admin` = `role:admin`)
 7. In Docker Traefik's file provider (`/data/traefik/config.yaml`), add a router per migrated hostname forwarding to `https://127.0.0.1:8443` → apps can move one by one with no DNS change.
 
 **Phase 3 — migrate apps, one stack at a time**
