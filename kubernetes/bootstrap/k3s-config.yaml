@@ -1,5 +1,6 @@
 # Copy to /etc/rancher/k3s/config.yaml before installing k3s (Phase 2 step 1):
-#   curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.36.5+k3s1 sh -
+#   curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION=v1.36.5+k3s1 sh -
+# Copy cluster/base/traefik-config.yaml to /var/lib/rancher/k3s/server/manifests/ first (see README.md).
 cluster-init: true              # embedded etcd, ready for HA (MIGRATION.md §10)
 write-kubeconfig-mode: "0600"
 node-name: nas

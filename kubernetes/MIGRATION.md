@@ -1,6 +1,6 @@
 # Docker Compose → Kubernetes migration
 
-Status: **Phase 1 done** (manifests written and validated offline, see [README.md](README.md)) — nothing deployed yet.
+Status: **Phase 2 step 1 done** (2026-10-20): k3s `v1.36.5+k3s1` installed next to Docker, bundled Traefik on 8000/8443/2222. Phase 1 manifests written and validated offline, see [README.md](README.md).
 Snapshot taken 2026-10-20 on the NAS (Ryzen 3 3200G, 4 threads, 32 GB RAM / 29 GiB usable).
 
 TL;DR
@@ -528,7 +528,7 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 4. Write the OpenBao key list (`kv/<namespace>/<app>`) from the ExternalSecrets, to know exactly which `.env` values to import.
 
 **Phase 2 — install k3s next to Docker (bootstrap)**
-1. Install k3s with `--cluster-init`, the kubelet memory reservations, and the bundled Traefik moved to other ports (e.g. hostPort 8000/8443) so Docker's Traefik keeps 80/443.
+1. Install k3s with `--cluster-init`, the kubelet memory reservations, and the bundled Traefik moved to other ports (e.g. hostPort 8000/8443) so Docker's Traefik keeps 80/443. — ✅ done 2026-10-20 (Traefik `HelmChartConfig` dropped in `/var/lib/rancher/k3s/server/manifests/` before the first start)
 2. Create storage classes (`data`, `films`, `data-dynamic`, `films-dynamic`) and namespaces.
 3. Install **OpenBao**, initialise it, store the unseal keys + root token in Vaultwarden, unseal, enable the Kubernetes auth method, and import the `.env` values (`kv/<namespace>/<app>`).
 4. Install **External Secrets Operator** + the `ClusterSecretStore`.

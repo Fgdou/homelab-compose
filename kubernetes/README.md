@@ -3,7 +3,7 @@
 Kubernetes manifests for the NAS (k3s, single node `nas`), replacing the Docker compose files in the repository root.
 The plan and every decision behind it are in [MIGRATION.md](MIGRATION.md). Secrets: [OPENBAO-KEYS.md](OPENBAO-KEYS.md).
 
-Status: **Phase 1 done** — everything is written and validated offline. Nothing is deployed; `argocd/apps/` is empty.
+Status: **Phase 2 step 1 done** (2026-10-20) — k3s `v1.36.5+k3s1` runs next to Docker, Traefik on 8000/8443/2222. Nothing else is deployed; `argocd/apps/` is empty.
 
 ## Layout
 
@@ -54,7 +54,17 @@ Last run (2026-10-20): 22 Kustomize folders and 8 charts render; 470 resources v
 
 Order matters: OpenBao and External Secrets must not depend on secrets served by OpenBao.
 
-1. `sudo mkdir -p /etc/rancher/k3s /data/openbao /data/k8s /films/k8s && sudo cp bootstrap/k3s-config.yaml /etc/rancher/k3s/config.yaml`, then install k3s `v1.36.5+k3s1` (command in the file).
+1. Install k3s `v1.36.5+k3s1` (done 2026-10-20):
+   ```sh
+   sudo mkdir -p /etc/rancher/k3s /var/lib/rancher/k3s/server/manifests /data/openbao /data/k8s /films/k8s
+   sudo install -m 0644 bootstrap/k3s-config.yaml /etc/rancher/k3s/config.yaml
+   # Traefik override BEFORE the first start, otherwise ServiceLB grabs 80/443 from Docker Traefik
+   sudo install -m 0600 cluster/base/traefik-config.yaml /var/lib/rancher/k3s/server/manifests/traefik-config.yaml
+   curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION=v1.36.5+k3s1 sh -
+   sudo cat /etc/rancher/k3s/k3s.yaml > ~/.kube/config && chmod 600 ~/.kube/config
+   export KUBECONFIG=~/.kube/config   # k3s' kubectl otherwise reads the root-only /etc/rancher/k3s/k3s.yaml
+   ```
+   k3s re-applies `/var/lib/rancher/k3s/server/manifests/traefik-config.yaml` on every start: keep it identical to `cluster/base/traefik-config.yaml` (Phase 4 port change included).
 2. `kubectl apply -k cluster/base` and `kubectl apply -k platform/local-path`.
 3. Install the platform charts with Helm, same versions and values as `argocd/available/platform-*.yaml` (OpenBao, External Secrets, cert-manager), plus `kubectl apply -k platform/openbao` for its PV.
 4. OpenBao: `bao operator init` (keep unseal keys + root token in Vaultwarden), `bao operator unseal`, `bao login`, `bao secrets enable -version=2 kv`, enable the Kubernetes auth method with a role `external-secrets` bound to the `external-secrets/external-secrets` ServiceAccount and a read policy on `kv/data/*`. Then `bootstrap/openbao-import.sh` (try `--dry-run` first).
