@@ -3,7 +3,7 @@
 Kubernetes manifests for the NAS (k3s, single node `nas`), replacing the Docker compose files in the repository root.
 The plan and every decision behind it are in [MIGRATION.md](MIGRATION.md). Secrets: [OPENBAO-KEYS.md](OPENBAO-KEYS.md).
 
-Status: **Phase 2 steps 1–6 done** (2026-10-20) — k3s `v1.36.5+k3s1` next to Docker (Traefik on 8000/8443/2222), OpenBao, External Secrets, cert-manager, Argo CD + Image Updater installed; Argo CD follows the `kube` branch over HTTPS and manages the `cluster*` and `platform-*` Applications (`argocd/apps/`). No app stack enabled yet. UIs (LAN only, authentik OIDC): `https://bao.fgdou.ovh`, `https://argocd.fgdou.ovh`.
+Status: **Phase 2 done** (2026-10-20) — k3s `v1.36.5+k3s1` next to Docker (Traefik on 8000/8443/2222), OpenBao, External Secrets, cert-manager, Argo CD + Image Updater installed; Argo CD follows the `kube` branch over HTTPS and manages the `cluster*` and `platform-*` Applications (`argocd/apps/`); the Docker Traefik bridge forwards `bao` and `argocd`. No app stack enabled yet (**next: Phase 3**). UIs (LAN only, authentik OIDC): `https://bao.fgdou.ovh`, `https://argocd.fgdou.ovh`.
 
 ## Layout
 
@@ -106,6 +106,22 @@ kubectl -n openbao exec -it openbao-0 -- bao operator unseal
 7. `git mv` the `cluster*` and `platform-*` Applications to `argocd/apps/`, commit, push (done 2026-10-20, commit `11c032d`). Before syncing, `argocd app diff <app> --core` showed only the added `argocd.argoproj.io/tracking-id` annotations; then `argocd app sync <app> --core` one by one (no pod restarted).
    - `argocd` CLI v3.5.5 is in `/usr/local/bin`. `--core` mode talks to the cluster with your kubeconfig and needs the current namespace to be `argocd` (`kubectl config set-context --current --namespace=argocd`, or a copy of the kubeconfig).
 
+8. Docker Traefik bridge (done 2026-10-20), see below.
+
+### Docker Traefik bridge (until the Phase 4 cutover)
+
+Docker Traefik keeps 80/443 and forwards the hostnames of migrated stacks to k3s Traefik:
+
+```
+browser → Docker Traefik :443 (router in /data/traefik/config.yaml) → k3s Traefik 10.0.0.2:8443 (IngressRoute) → pod
+```
+
+- Live file: `/data/traefik/config.yaml` (file provider, watched: no restart). It holds the `k3s` service (`https://10.0.0.2:8443`, `passHostHeader`, serversTransport `k3s` with `insecureSkipVerify` — reached by IP, traffic stays on the NAS), the `lan-only` ipAllowList (`10.0.0.0/16`) and one router per hostname. Template: `bootstrap/docker-traefik-bridge.yaml`.
+- Add a hostname: copy a router block (`rule: Host(...)`, `entryPoints: [websecure]`, `service: k3s`, `tls: {}`, plus `middlewares: [lan-only]` only for admin UIs). Edit in place (`sudo tee`, not `install`/`mv`: replacing the file makes Traefik briefly log "no such file").
+- Real client IP: Docker Traefik's container reaches k3s Traefik masqueraded to `10.42.0.1` (cni0 gateway). k3s Traefik's `websecure` trusts `X-Forwarded-For` from `10.42.0.1/32` only (`cluster/base/traefik-config.yaml`), so pods get the real client in `X-Real-Ip` / `X-Forwarded-For`. Side effect: a process on the NAS itself calling `:8443` directly could inject `X-Forwarded-For` (remote clients can't: Docker Traefik overwrites it).
+- Verified with a whoami test app: real client IP, `X-Forwarded-Proto: https`, WebSocket upgrade 101, port 80 → 443 redirect by Docker Traefik.
+- Bridged today: `bao.fgdou.ovh`, `argocd.fgdou.ovh` (both `lan-only`).
+
 ### Left over from the bootstrap
 
 - Once the OIDC login to Argo CD works: set `admin.enabled: false` in `platform/argocd/values.yaml` and `kubectl -n argocd delete secret argocd-initial-admin-secret`.
@@ -121,7 +137,7 @@ kubectl -n openbao exec -it openbao-0 -- bao operator unseal
 3. `docker compose -f <stack>.yml down`.
 4. `git mv argocd/available/<stack>.yaml argocd/apps/`, commit, push.
 5. In Argo CD: sync manually, test.
-6. Add the Docker Traefik bridge router (`bootstrap/docker-traefik-bridge.yaml`) for each hostname of the stack.
+6. Add a Docker Traefik bridge router for each hostname of the stack in `/data/traefik/config.yaml` (see "Docker Traefik bridge"), and remove the stack's Traefik labels from its compose file.
 7. Once it works, uncomment `automated` in the Application.
 
 Rollback: `kubectl delete -k <stack>` (PVs are `Retain`, data stays), `git mv` the Application back to `available/`, `docker compose up -d`.
@@ -148,6 +164,9 @@ Things that the manifests cannot do by themselves, to do on migration day.
 | `dawarich` | `SECRET_KEY_BASE` comes from the running container (see OPENBAO-KEYS.md). |
 
 ## Phase 4 (cutover) changes in this repo
+
+- `cluster/base/traefik-config.yaml`: drop `forwardedHeaders.trustedIPs` (bridge gone), copy the file to `/var/lib/rancher/k3s/server/manifests/`; add k3s `lan-only` Middlewares for bao and argocd.
+- Switch `targetRevision: kube` → `main` (and the Image Updater branch) after merging.
 
 - `cluster/base/traefik-config.yaml`: `exposedPort` web 80, websecure 443, ssh 22.
 - Enable `mail` and `infra`.

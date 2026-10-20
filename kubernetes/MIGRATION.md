@@ -1,6 +1,6 @@
 # Docker Compose → Kubernetes migration
 
-Status: **Phase 2 steps 1–6 done** (2026-10-20): k3s, OpenBao, External Secrets, cert-manager and Argo CD (+ Image Updater) run next to Docker; Argo CD (following the `kube` branch) manages the bootstrap components. Next: step 7 is already in place for bao/argocd (Docker Traefik bridge), then Phase 3. See [README.md](README.md).
+Status: **Phase 2 done** (2026-10-20): k3s runs next to Docker with OpenBao, External Secrets, cert-manager and Argo CD (+ Image Updater), managed by Argo CD from the `kube` branch; the Docker Traefik bridge is in place (bao, argocd). **Next: Phase 3.** Details and commands: [README.md](README.md).
 Snapshot taken 2026-10-20 on the NAS (Ryzen 3 3200G, 4 threads, 32 GB RAM / 29 GiB usable).
 
 TL;DR
@@ -518,8 +518,8 @@ Alternatives considered: **k0s** (similar to k3s, less homelab ecosystem), **Mic
 
 Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are host ports (80, 443, 22, 53, 25…).
 
-**Phase 0 — prepare (on Docker)**
-1. Take a full restic snapshot + postgres dump.
+**Phase 0 — prepare (on Docker)** — ⚠️ not confirmed
+1. Take a full restic snapshot + postgres dump. (restic ran on 2026-10-20 ~19:30–20:30, but no snapshot/dump was verified: check before Phase 3.)
 
 **Phase 1 — write all the manifests (no cluster, Docker untouched)** — ✅ done 2026-10-20, see [README.md](README.md)
 1. Write every folder of `kubernetes/`: `cluster/`, the infra (OpenBao, ESO, cert-manager, Argo CD + Image Updater values), and every stack (Kustomize or Helm values, PVs on the existing paths, ExternalSecrets, IngressRoutes). Leave `argocd/apps/` empty: nothing is enabled.
@@ -527,18 +527,18 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 3. Validate offline: `kustomize build` / `helm template` on every folder, then `kubeconform` with the CRD schemas (Traefik, cert-manager, ESO). Optionally smoke-test a stack on a throwaway k3d cluster.
 4. Write the OpenBao key list (`kv/<namespace>/<app>`) from the ExternalSecrets, to know exactly which `.env` values to import.
 
-**Phase 2 — install k3s next to Docker (bootstrap)**
+**Phase 2 — install k3s next to Docker (bootstrap)** — ✅ done 2026-10-20
 1. Install k3s with `--cluster-init`, the kubelet memory reservations, and the bundled Traefik moved to other ports (e.g. hostPort 8000/8443) so Docker's Traefik keeps 80/443. — ✅ done 2026-10-20 (Traefik `HelmChartConfig` dropped in `/var/lib/rancher/k3s/server/manifests/` before the first start)
 2. Create storage classes (`data`, `films`, `data-dynamic`, `films-dynamic`) and namespaces. — ✅ done 2026-10-20 (local-path v0.0.37 requires `pathPattern` to end with `/`: `{{ .PVC.Namespace }}/{{ .PVC.Name }}/`)
 3. Install **OpenBao**, initialise it, store the unseal keys + root token in Vaultwarden, unseal, enable the Kubernetes auth method, and import the `.env` values (`kv/<namespace>/<app>`). — ✅ done 2026-10-20 (5 key shares / threshold 3; see README.md "Unseal after a reboot")
 4. Install **External Secrets Operator** + the `ClusterSecretStore`. — ✅ done 2026-10-20 (`cert-manager/cloudflare` ExternalSecret synced)
 5. Install **cert-manager** + Cloudflare `ClusterIssuer` + wildcard certificates, then the authentik forward-auth Middleware. — ✅ done 2026-10-20. Interim: Docker `authentik_server` publishes `10.0.0.2:9000` (pods can't reach Docker container IPs, and going through Docker Traefik would overwrite `X-Forwarded-Host`), and the Middleware points there until authentik migrates.
 6. Install **Argo CD** (+ Image Updater), point the root app-of-apps at `argocd/apps/`, and add the Applications of the bootstrap components only, so Argo CD adopts them. No app stack is enabled yet. — ✅ done 2026-10-20 (repo over HTTPS, branch `kube`, Argo CD login = authentik OIDC, group `admin` = `role:admin`)
-7. In Docker Traefik's file provider (`/data/traefik/config.yaml`), add a router per migrated hostname forwarding to `https://127.0.0.1:8443` → apps can move one by one with no DNS change.
+7. In Docker Traefik's file provider (`/data/traefik/config.yaml`), add a router per migrated hostname forwarding to k3s Traefik → apps can move one by one with no DNS change. — ✅ done 2026-10-20: service `k3s` → `https://10.0.0.2:8443` (not `127.0.0.1`, which is Docker Traefik's own container) with `insecureSkipVerify`, `lan-only` ipAllowList, routers for `bao` and `argocd`. k3s Traefik trusts `X-Forwarded-For` from `10.42.0.1/32` (host-local traffic is masqueraded to the cni0 gateway), so apps see the real client IP. Verified with a whoami test: real IP, `https` proto, WebSocket upgrade (101), port 80 redirect.
 
 **Phase 3 — migrate apps, one stack at a time**
 
-Per stack: check the running image version still matches the pin (fix it if not) → `docker compose down` → commit its Application into `argocd/apps/` → manual sync → test → turn on automated sync → next.
+Per stack: check the running image version still matches the pin (fix it if not) → `docker compose down` → commit its Application into `argocd/apps/` and push to `kube` → manual sync → add its hostnames to the Docker Traefik bridge → test → turn on automated sync → next.
 
 1. Stateless / self-contained: speedtest, sr, mariage, todoapp (with Image Updater), actual, vaultwarden, trilium, lubelogger, mealie…
 2. Stacks with their own DB: immich (Helm chart), dawarich, ciq, gitea (+ SSH, DinD runner), gramps.
@@ -548,8 +548,13 @@ Per stack: check the running image version still matches the pin (fix it if not)
 6. Home automation (hostNetwork, USB) — test zigbee carefully.
 
 **Phase 4 — cutover**
-1. Move Traefik: stop Docker Traefik, reconfigure k3s Traefik on 80/443/22.
+1. Move Traefik: stop Docker Traefik, reconfigure k3s Traefik on 80/443/22. Also undo the interim pieces of Phase 2:
+   - `cluster/base/traefik-config.yaml`: ports 80/443/22, remove `forwardedHeaders.trustedIPs: 10.42.0.1/32` (no bridge any more) — and copy it to `/var/lib/rancher/k3s/server/manifests/`.
+   - Check that a **remote** LAN client's IP reaches the pods through ServiceLB (`externalTrafficPolicy: Local`; only tested from the NAS itself so far).
+   - Move the `lan-only` ipAllowList (bao, argocd) from Docker Traefik into k3s Middlewares.
+   - `/data/traefik/config.yaml` is no longer used.
 2. Mailserver (ports 25/143/465/587/993, cert from cert-manager), bind9 (53), minecraft, ddclient, restic (CronJob).
 3. Remove watchtower; `docker ps` must be empty → disable Docker (saves ~150 MB). Keep the compose files in git as a fallback for a while.
+4. Merge `kube` into `main` and switch every Application (`argocd/root.yaml`, `argocd/*/*.yaml`) and the Image Updater write-back branch from `kube` to `main`.
 
 Rollback at any step: remove the stack's Application from `argocd/apps/` (or `kubectl delete -k …`), then `docker compose up -d` on the same `/data` folders (that's why static PVs on the existing paths matter).
