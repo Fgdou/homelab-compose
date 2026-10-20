@@ -121,13 +121,14 @@ browser → Docker Traefik :443 (router in /data/traefik/config.yaml) → k3s Tr
 - Add a hostname: copy a router block (`rule: Host(...)`, `entryPoints: [websecure]`, `service: k3s`, `tls: {}`, plus `middlewares: [lan-only]` only for admin UIs). Edit in place (`sudo tee`, not `install`/`mv`: replacing the file makes Traefik briefly log "no such file").
 - Real client IP: Docker Traefik's container reaches k3s Traefik masqueraded to `10.42.0.1` (cni0 gateway). k3s Traefik's `websecure` trusts `X-Forwarded-For` from `10.42.0.1/32` only (`cluster/base/traefik-config.yaml`), so pods get the real client in `X-Real-Ip` / `X-Forwarded-For`. Side effect: a process on the NAS itself calling `:8443` directly could inject `X-Forwarded-For` (remote clients can't: Docker Traefik overwrites it).
 - Verified with a whoami test app: real client IP, `X-Forwarded-Proto: https`, WebSocket upgrade 101, port 80 → 443 redirect by Docker Traefik.
-- Bridged today: `bao.fgdou.ovh`, `argocd.fgdou.ovh` (both `lan-only`), `speedtest.fgdou.ovh` (public).
+- Bridged today: `bao.fgdou.ovh`, `argocd.fgdou.ovh` (both `lan-only`), `speedtest.fgdou.ovh` (public), `firefox.fgdou.ovh` (public router, authentik forward-auth in k3s).
 
 ### Migrated stacks (Phase 3)
 
 | Date | App | Application | Docker removed | Notes |
 |---|---|---|---|---|
 | 2026-10-20 | speedtest | `apps-speedtest` | `docker compose -f speedtest.yml rm -sf speedtest` | 17 s switch; real client IP OK |
+| 2026-10-20 | firefox | `apps-firefox` | `docker compose -f firefox.yml rm -sf firefox` | 62 s switch (image pull); forward-auth → Docker authentik OK; profile not kept (by choice) — old anonymous Docker volume `e589f6f8…` still on disk, delete with `docker volume rm` when you want |
 
 ### Left over from the bootstrap
 
