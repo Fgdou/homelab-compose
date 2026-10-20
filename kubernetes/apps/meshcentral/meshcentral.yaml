@@ -29,7 +29,7 @@ spec:
             - { name: TZ, value: Europe/Paris }
           envFrom:
             - secretRef: { name: meshcentral }
-          ports: [{ name: https, containerPort: 443 }]
+          ports: [{ name: http, containerPort: 443 }]   # plain HTTP on 443: TLSOffload, TLS ends at Traefik
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:
@@ -47,7 +47,7 @@ metadata:
 spec:
   selector: { app.kubernetes.io/name: meshcentral }
   ports:
-    - { name: https, port: 443 }
+    - { name: http, port: 443, targetPort: 443 }   # named http so Traefik doesn't assume TLS
 ---
 # MeshCentral serves HTTPS itself (self-signed): Traefik skips verification (insecureSkipVerify)
 apiVersion: traefik.io/v1alpha1
@@ -60,4 +60,4 @@ spec:
   routes:
     - match: Host(`meshcentral.fgdou.ovh`)
       kind: Rule
-      services: [{ name: meshcentral, port: 443, scheme: https }]
+      services: [{ name: meshcentral, port: 443, scheme: http }]   # was https: wrong, MeshCentral serves plain HTTP (TLSOffload)

@@ -558,4 +558,9 @@ Per stack: check the running image version still matches the pin (fix it if not)
 3. Remove watchtower; `docker ps` must be empty → disable Docker (saves ~150 MB). Keep the compose files in git as a fallback for a while.
 4. Merge `kube` into `main` and switch every Application (`argocd/root.yaml`, `argocd/*/*.yaml`) and the Image Updater write-back branch from `kube` to `main`.
 
+5. **meshcentral**: right after Traefik moves to 80/443, restart it (`kubectl -n apps rollout restart deploy/meshcentral`). Its `certUrl` (`meshcentral.fgdou.ovh:443`) is read at startup to tell agents which TLS certificate to expect; the public certificate changes from Docker's (acme.json) to cert-manager's at the cutover. Then check agents reconnect.
+
+**Phase 5 — after the migration**
+1. Add a `readinessProbe` (and `startupProbe` for slow starters such as openwebui) to every app that has a health endpoint, so Traefik only routes to ready pods and Argo CD health reflects the app (found 2026-10-20: openwebui answered 502 for ~60 s after each start). Then review `livenessProbe`s.
+
 Rollback at any step: remove the stack's Application from `argocd/apps/` (or `kubectl delete -k …`), then `docker compose up -d` on the same `/data` folders (that's why static PVs on the existing paths matter).
