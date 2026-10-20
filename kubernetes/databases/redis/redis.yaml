@@ -1,4 +1,4 @@
-# Shared redis (dawarich, gramps, immich, nextcloud). No persistence, like today.
+# Shared redis, no persistence, like today. db index per app: gramps 0-1, immich 2, dawarich 3-6.
 apiVersion: apps/v1
 kind: Deployment
 metadata:

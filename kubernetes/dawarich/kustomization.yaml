@@ -13,6 +13,11 @@ configMapGenerator:
       - TIME_ZONE=Europe/Paris
       - RAILS_ENV=production
       - REDIS_URL=redis://redis.databases:6379
+      # shared redis: own db indexes (defaults 0-3 collide with gramps/immich)
+      - RAILS_CACHE_DB=3
+      - RAILS_JOB_QUEUE_DB=4
+      - RAILS_WS_DB=5
+      - RACK_ATTACK_REDIS_DB=6
       - DATABASE_HOST=dawarich-db
       - DATABASE_PORT=5432
       - DATABASE_USERNAME=postgres
