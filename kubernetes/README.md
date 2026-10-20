@@ -125,10 +125,10 @@ browser → Docker Traefik :443 (router in /data/traefik/config.yaml) → k3s Tr
 ### Left over from the bootstrap
 
 - ~~Disable the Argo CD local admin~~ — done 2026-10-20 (OIDC login verified): `admin.enabled: false`, `argocd-initial-admin-secret` deleted.
-  Break-glass if authentik is down: the CLI still works with `argocd ... --core` (kubeconfig). For the UI: `kubectl -n argocd patch cm argocd-cm -p '{"data":{"admin.enabled":"true"}}'`, set a password with `argocd account bcrypt --password <pw>` → `kubectl -n argocd patch secret argocd-secret -p '{"stringData":{"admin.password":"<bcrypt>","admin.passwordMtime":"'$(date +%FT%TZ)'"}}'`, log in, then sync `platform-argocd` to revert.
+  Break-glass if authentik is down: the CLI still works with `argocd ... --core` (kubeconfig). For the UI: first `argocd app set platform-argocd --core --sync-policy none` (otherwise selfHeal reverts the patch), then `kubectl -n argocd patch cm argocd-cm -p '{"data":{"admin.enabled":"true"}}'`, set a password with `argocd account bcrypt --password <pw>` → `kubectl -n argocd patch secret argocd-secret -p '{"stringData":{"admin.password":"<bcrypt>","admin.passwordMtime":"'$(date +%FT%TZ)'"}}'`, log in, then `argocd app set platform-argocd --core --sync-policy automated --self-heal` to revert.
 - Helm release metadata (`sh.helm.release.v1.*` Secrets in openbao, external-secrets, cert-manager, argocd) is now stale: Argo CD owns the resources. Never `helm upgrade/uninstall` these releases; delete the release Secrets (only metadata) to avoid confusion.
 - `applicationSet.enabled: false` is ignored by chart 10.10.5 (the controller runs): find the right key.
-- Turn on `automated: { prune: false, selfHeal: true }` in the bootstrap Applications once trusted.
+- ~~Automated sync for the bootstrap Applications~~ — done 2026-10-20: all 9 (`cluster*`, `platform-*`) have `automated: { prune: false, selfHeal: true }`. A push to `kube` is live within ~3 min; manual `kubectl` edits to their objects are reverted within seconds (selfHeal); nothing is ever deleted by a removal in git (`prune: false`). **Before any manual change** (break-glass, debugging): `argocd app set <app> --core --sync-policy none`, and re-enable with `argocd app set <app> --core --sync-policy automated --self-heal` — or simply push the change to git instead.
 - Image Updater has no git write access yet (needed when `projects` is enabled).
 
 ## Enabling a stack (Phase 3)

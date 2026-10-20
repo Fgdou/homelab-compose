@@ -11,6 +11,5 @@ spec:
     targetRevision: kube
     path: kubernetes/cluster/base
   destination: { server: https://kubernetes.default.svc, namespace: kube-system }
-  # Manual sync first; once the stack is verified, uncomment (MIGRATION.md §8):
-  # syncPolicy:
-  #   automated: { prune: false, selfHeal: true }
+  syncPolicy:
+    automated: { prune: false, selfHeal: true }   # since 2026-10-20 (adoption verified)

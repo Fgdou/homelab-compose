@@ -21,5 +21,4 @@ spec:
   destination: { server: https://kubernetes.default.svc, namespace: argocd }
   syncPolicy:
     syncOptions: [ServerSideApply=true]
-    # Manual sync first; once verified, add:
-    # automated: { prune: false, selfHeal: true }
+    automated: { prune: false, selfHeal: true }   # since 2026-10-20 (adoption verified)
