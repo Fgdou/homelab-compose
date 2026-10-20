@@ -520,6 +520,7 @@ Docker and k3s can coexist (k3s uses its own containerd). The only conflicts are
 
 **Phase 0 — prepare (on Docker)** — ✅ done 2026-10-20
 1. Take a full restic snapshot + postgres dump.
+   - This is the only backup of the migration: **no manual per-app backups** (tarballs, copies) during Phase 3/4 — the user's decision, 2026-10-20. Rollback restores from this snapshot or simply restarts Docker on the untouched `/data` folders.
 
 **Phase 1 — write all the manifests (no cluster, Docker untouched)** — ✅ done 2026-10-20, see [README.md](README.md)
 1. Write every folder of `kubernetes/`: `cluster/`, the infra (OpenBao, ESO, cert-manager, Argo CD + Image Updater values), and every stack (Kustomize or Helm values, PVs on the existing paths, ExternalSecrets, IngressRoutes). Leave `argocd/apps/` empty: nothing is enabled.

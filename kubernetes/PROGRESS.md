@@ -18,7 +18,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | 3.1 | openwebui | `apps-openwebui` | `ai.yml` | ✅ | 2026-10-20 |
 | 3.1 | meshcentral | `apps-meshcentral` | `meshcentral.yml` | ✅ | 2026-10-20 |
 | 3.1 | gramps (web + celery) | `apps-gramps` | `gramps.yml` | ✅ | 2026-10-20 |
-| 3.1 | vaultwarden | `apps-vaultwarden` | `vaultwarden.yml` | ⏳ | |
+| 3.1 | vaultwarden | `apps-vaultwarden` | `vaultwarden.yml` | ✅ | 2026-10-20 |
 | 3.1 | sr, mariage, todoapp | `projects` | `projects.yml` | ⏳ | |
 | 3.2 | immich | `immich` | `immich.yml` | ⏳ | |
 | 3.2 | dawarich | `dawarich` | `dawarich.yaml` | ⏳ | |
@@ -61,7 +61,7 @@ alias argocd-core='KUBECONFIG=/tmp/kc-argocd argocd'
    - Files owned by the uid the pod runs as (`sudo ls -ln /data/<app>`, `docker exec <container> id`).
 2. **Enable**: `git mv argocd/available/apps-<app>.yaml argocd/apps/`, commit `Phase 3.x: enable apps-<app>`, push to `kube`. Manual sync only (no `syncPolicy` yet).
 3. **Secrets first**: `argocd-core app sync apps-<app> --core --resource external-secrets.io:ExternalSecret:<ns>/<app>`, then compare the synced Secret with the running container's env (`kubectl get secret -o go-template` with `base64decode` vs `docker inspect --format '{{range .Config.Env}}…'`).
-4. **Switch**: `docker compose -f <file> rm -sf <services>` → `argocd-core app sync apps-<app> --core` → `kubectl -n <ns> rollout status deploy/<…>`.
+4. **Switch**: `docker compose -f <file> rm -sf <services>` → (no manual backup: MIGRATION.md §11 Phase 0; for SQLite apps a `pragma integrity_check` + row counts while stopped is enough) → `argocd-core app sync apps-<app> --core` → `kubectl -n <ns> rollout status deploy/<…>`.
 5. **Bridge**: add a `k3s-<app>` router to `/data/traefik/config.yaml` (`Host(...)`, `entryPoints: [websecure]`, `service: k3s`, `tls: {}`; `middlewares: [lan-only]` only for admin UIs). Edit in place with `sudo tee`.
 6. **Test**: public URL answers, login (OIDC redirect to `auth.fgdou.ovh`), data is the same as before, logs clean, background workers connected.
 7. **Confirm**: the user checks the app → only then continue.
