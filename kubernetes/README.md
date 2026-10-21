@@ -83,7 +83,7 @@ Order matters: OpenBao and External Secrets must not depend on secrets served by
 
 ### OpenBao login (OIDC with authentik)
 
-- UI: `https://bao.fgdou.ovh` (LAN only: `lan-only` ipAllowList on the Docker Traefik bridge router in `/data/traefik/config.yaml`) → method **OIDC**, role empty (default `authentik`) → authentik login.
+- UI: `https://bao.fgdou.ovh` (public since 2026-10-21, was LAN only) → method **OIDC**, role empty (default `authentik`) → authentik login.
 - authentik side: `authentik/blueprints/openbao.yaml` (provider `OpenBao`, client ID `openbao`, application restricted to the `admin` group). `ak apply_blueprint` only accepts files under `/blueprints`; it was applied with `Importer.from_string(...).apply()` in `ak shell`.
 - OpenBao side: `auth/oidc` (discovery `https://auth.fgdou.ovh/application/o/openbao/`, client secret copied from authentik, never committed), role `authentik` (only redirect URI `https://bao.fgdou.ovh/ui/vault/auth/oidc/oidc/callback`, `groups_claim=groups`, base policy `default`, ttl 8h / max 24h), policy `admin` (everything), external identity group `admin` (policy `admin`) with alias `admin` on the oidc mount → **every member of the authentik `admin` group is OpenBao admin**.
 - No localhost redirect URI, so no `bao login -method=oidc` from the CLI: copy a token from the UI (user menu → *Copy token*) and `bao login -` it.

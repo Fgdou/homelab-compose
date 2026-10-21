@@ -1,5 +1,5 @@
 # Admin UIs reachable from the LAN only (was the lan-only ipAllowList of Docker Traefik).
-# Used cross-namespace (providers.kubernetesCRD.allowCrossNamespace) by openbao, argocd, adminer.
+# Unused since 2026-10-21 (openbao, argocd, adminer opened to the internet); kept to re-apply cross-namespace.
 # Relies on the real client IP reaching Traefik (ServiceLB, externalTrafficPolicy: Local).
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

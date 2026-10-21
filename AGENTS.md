@@ -21,7 +21,7 @@ cp ~/.kube/config /tmp/kc-argocd && KUBECONFIG=/tmp/kc-argocd kubectl config set
 KUBECONFIG=/tmp/kc-argocd argocd app list --core
 ```
 
-`sudo` works without a password. UIs (LAN only, authentik OIDC): `https://argocd.fgdou.ovh`, `https://bao.fgdou.ovh`.
+`sudo` works without a password. UIs (public, authentik OIDC): `https://argocd.fgdou.ovh`, `https://bao.fgdou.ovh`.
 
 ## How changes are made: GitOps
 

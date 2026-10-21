@@ -1,5 +1,4 @@
 # UI login: OpenBao's own OIDC auth method with authentik (authentik/blueprints/openbao.yaml), so no forward-auth.
-# LAN-only: lan-only Middleware (cluster/base/lan-only.yaml).
 # If authentik is down: kubectl -n openbao port-forward svc/openbao 8200, and `bao operator generate-root`.
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -11,5 +10,4 @@ spec:
   routes:
     - match: Host(`bao.fgdou.ovh`)
       kind: Rule
-      middlewares: [{ name: lan-only, namespace: kube-system }]
       services: [{ name: openbao, port: 8200 }]
