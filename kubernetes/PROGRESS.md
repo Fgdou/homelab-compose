@@ -28,7 +28,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | 3.3 | jellyfin | `jellyfin` | `jellyfin.yml` | ✅ | 2026-10-21 |
 | 3.3 | navidrome | `navidrome` | `navidrome.yml` | ✅ | 2026-10-21 |
 | 3.4 | monitoring | `monitoring` | `monitoring.yml` | ✅ | 2026-10-21 |
-| 3.5 | postgres, adminer, pg-backups | `databases` | `postgres.yml` | ⏳ | |
+| 3.5 | postgres, adminer, pg-backups | `databases` | `postgres.yml` (+ `postgres-bridge.yml` until the last Docker consumer moves) | ✅ | 2026-10-21 |
 | 3.5 | authentik (+ LDAP outpost) | `authentik` | `authentik.yml` | ⏳ | |
 | 3.5 | nextcloud | `nextcloud` | `nextcloud.yml` | ⏳ | |
 | 3.5 | guacamole | `apps-guacamole` | `guacamole.yml` | ⏳ | |
