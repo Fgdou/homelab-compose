@@ -30,7 +30,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | 3.4 | monitoring | `monitoring` | `monitoring.yml` | ✅ | 2026-10-21 |
 | 3.5 | postgres, adminer, pg-backups | `databases` | `postgres.yml` (+ `postgres-bridge.yml` until the last Docker consumer moves) | ✅ | 2026-10-21 |
 | 3.5 | authentik (+ LDAP outpost) | `authentik` | `authentik.yml` | ✅ | 2026-10-21 |
-| 3.5 | nextcloud | `nextcloud` | `nextcloud.yml` | ⏳ | |
+| 3.5 | nextcloud | `nextcloud` | `nextcloud.yml` | ✅ | 2026-10-21 |
 | 3.5 | guacamole | `apps-guacamole` | `guacamole.yml` | ⏳ | |
 | 3.5 | warracker | `apps-warracker` | `warracker.yml` | ⏳ | |
 | 3.6 | home (homeassistant, zigbee2mqtt, mosquitto, musicassistant) | `home` | `homeassistant.yml` | ⏳ | |
