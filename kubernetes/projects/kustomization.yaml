@@ -12,7 +12,7 @@ resources:
 images:
   - name: gitea.fgdou.ovh/fgdou/mariage
     newTag: latest
-    digest: sha256:63358c803b7a5b4774ee62653f8c935545f195a58b814069dc1a8dd6d3a400e5
+    digest: sha256:93e29936c4307d2ef2cdcd9079815e1b7a02283cf456852b536de81ca8444105
   - name: ghcr.io/fgdou/todoapp
     newTag: latest
     digest: sha256:25b6bc4f6df40318a0dda66be74e86407e36ed6b59efe7ac67d365b7e133d4ac
