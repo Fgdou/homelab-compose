@@ -17,7 +17,7 @@ sessions a day), and Paper starts in ~17 s (`Done (16.537s)`), so a cold start i
 ## Decisions (asked 2026-10-21)
 
 - Wake-up: **mc-router** in front, the server scales `replicas` 0 ↔ 1.
-- Idle delay: **2 min** (was 10 min, same as the old `AUTOPAUSE_TIMEOUT_*`, until 2026-10-21).
+- Idle delay: **5 min** (10 min at first, same as the old `AUTOPAUSE_TIMEOUT_*`, then 2 min; 5 min since 2026-10-21).
 - BlueMap (`minecraft.fgdou.ovh`): **stays online**, served by a separate nginx (changed 2026-10-21, see "BlueMap without the server").
 - Scope: idle only. In-game CPU tuning (simulation distance, chunk pre-generation, spark) is left for later.
 
@@ -40,8 +40,7 @@ player ──► 10.0.0.2:25566 (LoadBalancer mc-router) ──► mc-router ─
 - **Service `minecraft`**: becomes `ClusterIP` (port 25565) with only the annotation `mc-router.itzg.me/defaultServer: "true"`
   (every hostname and plain IP is routed). Don't add `externalServerName`: mc-router 1.49 then ignores `defaultServer`
   and connections by IP are reset (seen 2026-10-21).
-  `mc-router.itzg.me/autoScaleWaitTimeout: "2m"` (was 30s until 2026-10-21). The client still gives up after ~30 s; a longer wait
-  lets mc-router reach the started server, so the scale-down timer is armed even if the player never reconnects.
+  `mc-router.itzg.me/autoScaleWaitTimeout: "30s"` (the client gives up after 30 s anyway; 2m was tried on 2026-10-21 and reverted).
 - **Deployment `minecraft` → StatefulSet `minecraft`**: mc-router only scales StatefulSets. `metadata.name` and
   `spec.serviceName` must both be `minecraft`, or scaling never triggers. No `volumeClaimTemplates`: it keeps
   mounting the existing PVC `minecraft` (PV `games-minecraft`, unchanged).
@@ -152,7 +151,7 @@ What to know:
 3. `kubectl -n games delete deploy minecraft`, then re-enable Argo (`--sync-policy automated --self-heal`).
 4. Check:
    - `kubectl -n games get sts,pods,svc`: `mc-router` LB on 10.0.0.2:25566, `minecraft` pod Ready.
-   - Join → leave → after 2 min `kubectl -n games get sts minecraft` shows `0/0`, and Argo stays Synced (no fight over replicas).
+   - Join → leave → after 5 min `kubectl -n games get sts minecraft` shows `0/0`, and Argo stays Synced (no fight over replicas).
    - Server list shows the asleep MOTD; join wakes it; log shows a clean `Saving chunks for level` on each scale-down.
    - `kubectl -n games top pod`: only mc-router and bluemap-web left while asleep.
    - `https://minecraft.fgdou.ovh` while asleep: map loads, 3D tiles render (browser dev tools: `.prbm` with `Content-Encoding: gzip`,

@@ -50,7 +50,7 @@ spec:
             - -kube-namespace=games
             - -auto-scale-up
             - -auto-scale-down
-            - -auto-scale-down-after=2m
+            - -auto-scale-down-after=5m
             - "-auto-scale-asleep-motd=Asleep: join to wake me up"
             - "-auto-scale-loading-motd=Starting, reconnect in ~30 s"
           ports:
