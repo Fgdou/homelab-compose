@@ -39,7 +39,7 @@ services:
     image: rebelcore/jellyfin-exporter:latest
     container_name: jellyfin_exporter
     command:
-      - '--jellyfin.address=http://jellyfin:8096'
+      - '--jellyfin.address=https://films.fgdou.ovh'  # interim: jellyfin is on k3s, monitoring not yet
       - '--jellyfin.token=${JELLYFIN_EXPORTER_API_KEY}'
     restart: unless-stopped
     networks:

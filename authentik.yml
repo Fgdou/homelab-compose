@@ -68,6 +68,10 @@ services:
       AUTHENTIK_HOST: https://auth.fgdou.ovh
       AUTHENTIK_INSECURE: "false"
       AUTHENTIK_TOKEN: ${AUTHENTIK_LDAP_TOKEN}
+    ports:
+      # Interim, during the k3s migration: LDAPS for jellyfin on k3s (LDAP-Auth.xml LdapServer=10.0.0.2).
+      # Remove when authentik moves to k3s (jellyfin then uses authentik-ldap.authentik).
+      - "10.0.0.2:6636:6636"
     networks:
       - nas
       - authentik
