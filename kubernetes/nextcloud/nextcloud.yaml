@@ -41,6 +41,22 @@ spec:
             requests: { cpu: 50m, memory: 256Mi }
           volumeMounts:
             - { name: code, mountPath: /var/www/html }
+        # Background jobs (mode "cron"): replaces the host crontab entry
+        # `docker compose -f nextcloud.yml exec -u www-data nextcloud php cron.php`.
+        # /cron.sh is the image's busybox crond running cron.php as www-data every 5 min.
+        - name: cron
+          image: nextcloud:33.0.5@sha256:fe5166b04f217c9e3a263bfe76eef5e13de0dd3919966827de1b47bae2308b01
+          command: [/cron.sh]
+          env:
+            - { name: TRUSTED_PROXIES, value: "10.0.0.0/8 172.16.0.0/8" }
+            - { name: OVERWRITEHOST, value: nextcloud.fgdou.ovh }
+            - { name: OVERWRITEPROTOCOL, value: https }
+            - { name: REDIS_HOST, value: redis.databases }
+            - { name: PHP_MEMORY_LIMIT, value: 1024M }
+          resources:
+            requests: { cpu: 10m, memory: 64Mi }
+          volumeMounts:
+            - { name: code, mountPath: /var/www/html }
       volumes:
         - { name: code, persistentVolumeClaim: { claimName: code } }
 ---
