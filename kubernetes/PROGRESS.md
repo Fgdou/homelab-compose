@@ -39,7 +39,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 
 | Stack | Application | Docker compose file | Status |
 |---|---|---|---|
-| traefik → k3s Traefik on 80/443/22 | `cluster` | `traefik.yaml` | ⏳ |
+| traefik → k3s Traefik on 80/443/22 | `cluster` | `traefik.yaml` | ✅ 2026-10-21 |
 | mailserver | `mail` | `mailserver.yml` | ⏳ |
 | bind9, ddclient, restic | `infra` | `bind9.yaml`, `ddclient.yaml`, `restic.yml` | ⏳ |
 | minecraft | `games` | `minecraft.yml` | ⏳ |
