@@ -5,3 +5,4 @@ resources:
   - storage-classes.yaml
   - traefik-config.yaml
   - traefik-metrics.yaml
+  - lan-only.yaml

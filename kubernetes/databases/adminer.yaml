@@ -42,5 +42,5 @@ spec:
   routes:
     - match: Host(`adminer.fgdou.ovh`)
       kind: Rule
-      middlewares: [{ name: authentik, namespace: authentik }]
+      middlewares: [{ name: lan-only, namespace: kube-system }, { name: authentik, namespace: authentik }]
       services: [{ name: adminer, port: 8080 }]

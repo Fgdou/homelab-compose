@@ -1,6 +1,5 @@
 # Configures the Traefik bundled with k3s (chart traefik 40.1.x, Traefik 3.7).
-# MIGRATION PORTS: web/websecure/ssh are exposed on 8000/8443/2222 while Docker
-# Traefik still owns 80/443/22. At the Phase 4 cutover, set exposedPort to 80/443/22.
+# Owns 80/443/22 on the NAS since the Phase 4 cutover (2026-10-21; before: 8000/8443/2222 behind Docker Traefik).
 apiVersion: helm.cattle.io/v1
 kind: HelmChartConfig
 metadata:
@@ -10,7 +9,7 @@ spec:
   valuesContent: |-
     ports:
       web:
-        exposedPort: 8000           # Phase 4: 80
+        exposedPort: 80
         http:
           redirections:
             entryPoint:
@@ -18,12 +17,7 @@ spec:
               scheme: https
               permanent: true
       websecure:
-        exposedPort: 8443           # Phase 4: 443
-        forwardedHeaders:
-          # Docker Traefik bridge (Phase 2 step 7): traffic from the NAS itself (Docker Traefik's container)
-          # reaches k3s Traefik masqueraded to the cni0 gateway 10.42.0.1. Trusting only that address keeps the
-          # real client IP that Docker Traefik puts in X-Forwarded-For. Re-check at Phase 4 (remote LAN client).
-          trustedIPs: ["10.42.0.1/32"]
+        exposedPort: 443
         http:
           encodedCharacters:
             allowEncodedHash: true
@@ -35,7 +29,7 @@ spec:
             idleTimeout: 600s
       ssh:
         port: 2222
-        exposedPort: 2222           # Phase 4: 22 (host sshd stays on another port)
+        exposedPort: 22             # host sshd is on another port
         expose:
           default: true
         protocol: TCP

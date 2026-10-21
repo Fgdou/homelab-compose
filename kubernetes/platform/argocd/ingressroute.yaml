@@ -1,5 +1,5 @@
 # Login: Argo CD's own OIDC with authentik (authentik/blueprints/argocd.yaml), so no forward-auth.
-# LAN-only: ipAllowList of the Docker Traefik bridge router until the Phase 4 cutover.
+# LAN-only: lan-only Middleware (cluster/base/lan-only.yaml).
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -10,4 +10,5 @@ spec:
   routes:
     - match: Host(`argocd.fgdou.ovh`)
       kind: Rule
+      middlewares: [{ name: lan-only, namespace: kube-system }]
       services: [{ name: argocd-server, port: 80 }]
