@@ -42,7 +42,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | traefik → k3s Traefik on 80/443/22 | `cluster` | `traefik.yaml` | ✅ 2026-10-21 |
 | mailserver | `mail` | `mailserver.yml` | ✅ 2026-10-21 |
 | bind9, ddclient, restic | `infra` | `bind9.yaml`, `ddclient.yaml`, `restic.yml` | ✅ 2026-10-21 |
-| minecraft | `games` | `minecraft.yml` | ⏳ |
+| minecraft | `games` | `minecraft.yml` | ✅ 2026-10-21 |
 | meshcentral restart (new cert) | `apps-meshcentral` | — | ⏳ |
 | watchtower removed, Docker disabled | — | `watchtower.yml` | ⏳ |
 
