@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Fgdou/homelab-compose.git
-    targetRevision: kube
+    targetRevision: main
     path: kubernetes/argocd/apps
   destination: { server: https://kubernetes.default.svc, namespace: argocd }
   syncPolicy:

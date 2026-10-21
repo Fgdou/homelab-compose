@@ -13,7 +13,7 @@ spec:
         releaseName: cert-manager
         valueFiles: [$values/kubernetes/platform/cert-manager/values.yaml]
     - repoURL: https://github.com/Fgdou/homelab-compose.git
-      targetRevision: kube
+      targetRevision: main
       ref: values
   destination: { server: https://kubernetes.default.svc, namespace: cert-manager }
   syncPolicy:

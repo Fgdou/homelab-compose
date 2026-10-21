@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Fgdou/homelab-compose.git
-    targetRevision: kube
+    targetRevision: main
     path: kubernetes/games
   destination: { server: https://kubernetes.default.svc, namespace: games }
   # Manual sync first; once the stack is verified, uncomment (MIGRATION.md §8):

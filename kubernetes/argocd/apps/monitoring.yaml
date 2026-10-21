@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Fgdou/homelab-compose.git
-    targetRevision: kube
+    targetRevision: main
     path: kubernetes/monitoring
   destination: { server: https://kubernetes.default.svc, namespace: monitoring }
   # Manual sync first; once the stack is verified, uncomment (MIGRATION.md §8):

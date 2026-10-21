@@ -13,10 +13,10 @@ spec:
         releaseName: immich
         valueFiles: [$values/kubernetes/immich/values.yaml]
     - repoURL: https://github.com/Fgdou/homelab-compose.git
-      targetRevision: kube
+      targetRevision: main
       ref: values
     - repoURL: https://github.com/Fgdou/homelab-compose.git
-      targetRevision: kube
+      targetRevision: main
       path: kubernetes/immich
   destination: { server: https://kubernetes.default.svc, namespace: immich }
   syncPolicy:

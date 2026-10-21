@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Fgdou/homelab-compose.git
-    targetRevision: kube
+    targetRevision: main
     path: kubernetes/databases/redis
   destination: { server: https://kubernetes.default.svc, namespace: databases }
   # Manual sync first; once verified, uncomment (MIGRATION.md §8):

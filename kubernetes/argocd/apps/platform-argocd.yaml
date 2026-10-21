@@ -14,10 +14,10 @@ spec:
         releaseName: argocd
         valueFiles: [$values/kubernetes/platform/argocd/values.yaml]
     - repoURL: https://github.com/Fgdou/homelab-compose.git
-      targetRevision: kube
+      targetRevision: main
       ref: values
     - repoURL: https://github.com/Fgdou/homelab-compose.git
-      targetRevision: kube
+      targetRevision: main
       path: kubernetes/platform/argocd
   destination: { server: https://kubernetes.default.svc, namespace: argocd }
   syncPolicy:
