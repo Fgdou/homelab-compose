@@ -43,7 +43,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | mailserver | `mail` | `mailserver.yml` | ✅ 2026-10-21 |
 | bind9, ddclient, restic | `infra` | `bind9.yaml`, `ddclient.yaml`, `restic.yml` | ✅ 2026-10-21 |
 | minecraft | `games` | `minecraft.yml` | ✅ 2026-10-21 |
-| meshcentral restart (new cert) | `apps-meshcentral` | — | ⏳ |
+| meshcentral restart (new cert) | `apps-meshcentral` | — | ✅ 2026-10-21 |
 | watchtower removed, Docker disabled | — | `watchtower.yml` | ⏳ |
 
 ## Per-app template (Phase 3)
