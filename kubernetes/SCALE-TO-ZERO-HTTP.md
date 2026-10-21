@@ -5,7 +5,7 @@ Written 2026-10-21. Status: **applied 2026-10-21**. Same idea as Minecraft (`gam
 ## Decisions (asked 2026-10-21)
 
 - Apps: **grampsweb (+ grampsweb-celery), openwebui, firefox**. Picked from RAM-USAGE.md: large working set, a few requests a day.
-  Not chosen: guacamole, the small apps (lubelogger, trilium, warracker, actual, adminer, speedtest), jellyseerr/musiseerr,
+  **guacamole (+ guacd)** added 2026-10-21. Not chosen: the small apps (lubelogger, trilium, warracker, actual, adminer, speedtest), jellyseerr/musiseerr,
   meshcentral (its agents hold a connection open). flaresolverr is called by prowlarr directly, not through Traefik: Sablier can't wake it.
 - Idle delay: **30 min** without a request (`sessionDuration`).
 - Wake-up: **waiting page** (`dynamic` strategy, theme `ghost`, reloads every 5 s until the app is Ready). The `blocking` strategy
@@ -14,7 +14,7 @@ Written 2026-10-21. Status: **applied 2026-10-21**. Same idea as Minecraft (`gam
   go to `sablierUrl`), mounted into Traefik as a local plugin from ConfigMap `kube-system/traefik-plugin-sablier`. Traefik never
   downloads it, so a reboot without DNS still works.
 
-Saving: ~1.8 GiB while all three sleep (grampsweb ~700 MiB, openwebui ~600 MiB, firefox ~535 MiB) for ~20 MiB of Sablier.
+Saving: ~2 GiB while all sleep (grampsweb ~700 MiB, openwebui ~600 MiB, firefox ~535 MiB, guacamole ~250 MiB) for ~20 MiB of Sablier.
 
 ## How it works
 
@@ -30,7 +30,8 @@ browser ──► Traefik ──► Middleware <app>-sablier (plugin) ──► 
   workload labelled `sablier.enable: "true"`; `sablier.group` ties it to a Middleware. A group's Deployments start and stop together
   (grampsweb + celery). An instance is Ready when `readyReplicas == replicas`, so the readinessProbe gates the waiting page.
 - **Middleware** per app, next to its IngressRoute (`apps/<app>/<app>.yaml`). firefox: after `authentik` (an anonymous hit doesn't wake it),
-  plus `keepAliveInterval: 5m` so an open VNC websocket keeps the session alive. openwebui and gramps have no keep-alive: a tab left
+  plus `keepAliveInterval: 5m` so an open VNC websocket keeps the session alive. guacamole: same keep-alive (remote session websocket),
+  but no forward-auth (it logs in with its own OIDC), so any hit on its hostname wakes it. openwebui and gramps have no keep-alive: a tab left
   open doesn't hold them up.
 - **Argo CD**: the Deployments have no `replicas` in git and the Applications ignore `/spec/replicas`
   (`RespectIgnoreDifferences=true`), otherwise self-heal would undo every scale.
@@ -59,10 +60,10 @@ browser ──► Traefik ──► Middleware <app>-sablier (plugin) ──► 
 
 ## Check
 
-- `kubectl -n apps get deploy grampsweb grampsweb-celery openwebui firefox`: `0/0` when asleep.
+- `kubectl -n apps get deploy grampsweb grampsweb-celery openwebui firefox guacamole guacd`: `0/0` when asleep.
 - Open the app: waiting page, then the app (~10-30 s). `kubectl -n infra logs deploy/sablier` shows the start and, 30 min after
   the last request, the stop.
-- `kubectl -n argocd get applications apps-gramps apps-openwebui apps-firefox`: Synced while scaled to 0.
+- `kubectl -n argocd get applications apps-gramps apps-openwebui apps-firefox apps-guacamole`: Synced while scaled to 0.
 
 Rollback: remove the Middleware from the IngressRoutes, `kubectl -n apps scale deploy <app> --replicas=1`, then delete Sablier and the
 labels (`prune: false`: Middlewares and Sablier objects are deleted by hand).

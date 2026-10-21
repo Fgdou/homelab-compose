@@ -2,8 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: guacd
+  labels: { sablier.enable: "true", sablier.group: guacamole }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
-  replicas: 1
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: guacd }
@@ -42,8 +42,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: guacamole
+  labels: { sablier.enable: "true", sablier.group: guacamole }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
-  replicas: 1
   selector:
     matchLabels: { app.kubernetes.io/name: guacamole }
   template:
@@ -98,4 +98,20 @@ spec:
   routes:
     - match: Host(`guacamole.fgdou.ovh`)
       kind: Rule
+      middlewares: [{ name: guacamole-sablier }]
       services: [{ name: guacamole, port: 8080 }]
+---
+# Wakes guacamole + guacd on the first request (waiting page), Sablier stops them after 30 min without requests
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: guacamole-sablier
+  namespace: apps
+spec:
+  plugin:
+    sablier:
+      sablierUrl: http://sablier.infra.svc.cluster.local:10000
+      group: guacamole
+      sessionDuration: 30m
+      keepAliveInterval: 5m           # the remote session websocket counts as activity while a tab is open
+      dynamic: { displayName: Guacamole, refreshFrequency: 5s }
