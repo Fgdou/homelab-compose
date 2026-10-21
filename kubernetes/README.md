@@ -185,7 +185,7 @@ Things that the manifests cannot do by themselves, to do on migration day.
 | `authentik` | Stop the whole compose stack (server, worker, LDAP outpost). The LDAP outpost keeps its token. Switch `authentik/middleware.yaml` back to `http://authentik-server.authentik/...` (see its comment) in the same commit; then drop the interim `ports: 10.0.0.2:9000` from `authentik.yml`. Same for the LDAP outpost: drop `10.0.0.2:6636` and set Jellyfin's `<LdapServer>` to `authentik-ldap.authentik`. |
 | every app behind authentik | A hostname that has no authentik Proxy Provider yet (e.g. Argo CD, adminer) gets a **404** from forward-auth: create the provider (Forward auth, single application) and add it to the embedded outpost first. |
 | `home` | Home Assistant and Music Assistant use `hostNetwork`: ports 8123, 8095, 8097, 21063, 58866-58867 are bound directly on the host. zigbee2mqtt keeps `mqtt://mosquitto:1883` (same namespace). |
-| `monitoring` | `jellyfin_exporter` points at `https://films.fgdou.ovh` (interim, since media moved) → `http://jellyfin.jellyfin:8096`. Migrate with all exporters at once; fix the Grafana dashboards that use cadvisor's `name` label. |
+| `monitoring` | Done 2026-10-21. No dashboard or alert used cadvisor or dockerd metrics → both dropped. Until 3.5, the `authentik` target is DOWN and `postgres-exporter` cannot connect (`postgres.databases`): PostgreSQL dashboard empty (accepted). Docker Traefik metrics scraped through `10.0.0.2:8082` (interim, certificate expiry alert). |
 | `mail`, `infra` (bind9) | Only at the Phase 4 cutover: ports 25/143/465/587/993 and 53 are still owned by Docker. |
 | `infra` (restic) | Stop the Docker restic before enabling: both would back up on Sunday. |
 | `gitea` | SSH listens on 2222 until the Phase 4 cutover (Traefik `ssh` entrypoint). |
@@ -196,6 +196,7 @@ Things that the manifests cannot do by themselves, to do on migration day.
 ## Phase 4 (cutover) changes in this repo
 
 - `cluster/base/traefik-config.yaml`: drop `forwardedHeaders.trustedIPs` (bridge gone), copy the file to `/var/lib/rancher/k3s/server/manifests/`; add k3s `lan-only` Middlewares for bao and argocd.
+- `monitoring/prometheus.yml`: drop the interim `10.0.0.2:8082` Traefik target; `/data/compose/traefik.yaml` goes away with Docker Traefik.
 - Switch `targetRevision: kube` → `main` (and the Image Updater branch) after merging.
 
 - `cluster/base/traefik-config.yaml`: `exposedPort` web 80, websecure 443, ssh 22.

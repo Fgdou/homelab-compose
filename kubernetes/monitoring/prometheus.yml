@@ -20,7 +20,11 @@ scrape_configs:
 
   - job_name: traefik
     static_configs:
-      - targets: ['traefik-metrics.kube-system:8082']
+      - targets:
+        - traefik-metrics.kube-system:8082
+        # INTERIM until the Phase 4 cutover: Docker Traefik still serves the public certs
+        # (certificate expiry alert). Published on 10.0.0.2:8082 in /data/compose/traefik.yaml.
+        - 10.0.0.2:8082
 
   # replaces the cadvisor container: the kubelet's embedded cAdvisor, through the API server.
   # Labels differ from standalone cadvisor: namespace/pod/container instead of name.

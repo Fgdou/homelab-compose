@@ -83,7 +83,7 @@ spec:
         - name: jellyfin-exporter
           image: rebelcore/jellyfin-exporter:latest@sha256:b90a980524e93a153294459f718bea6f3bf33b29b23b78f577c6c61286c9e26f
           args:
-            - --jellyfin.address=http://jellyfin.media:8096
+            - --jellyfin.address=http://jellyfin.jellyfin:8096
             - --jellyfin.token=$(JELLYFIN_EXPORTER_API_KEY)
           envFrom:
             - secretRef: { name: jellyfin-exporter }
