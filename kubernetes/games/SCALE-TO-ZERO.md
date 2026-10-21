@@ -17,7 +17,7 @@ sessions a day), and Paper starts in ~17 s (`Done (16.537s)`), so a cold start i
 ## Decisions (asked 2026-10-21)
 
 - Wake-up: **mc-router** in front, the server scales `replicas` 0 ↔ 1.
-- Idle delay: **10 min** (same as today's `AUTOPAUSE_TIMEOUT_*`).
+- Idle delay: **2 min** (was 10 min, same as the old `AUTOPAUSE_TIMEOUT_*`, until 2026-10-21).
 - BlueMap (`minecraft.fgdou.ovh`): **stays online**, served by a separate nginx (changed 2026-10-21, see "BlueMap without the server").
 - Scope: idle only. In-game CPU tuning (simulation distance, chunk pre-generation, spark) is left for later.
 
@@ -30,7 +30,7 @@ player ──► 10.0.0.2:25566 (LoadBalancer mc-router) ──► mc-router ─
 ```
 
 - **mc-router** (`itzg/mc-router`, Deployment in `games`), args:
-  `-in-kube-cluster -kube-namespace games -auto-scale-up -auto-scale-down -auto-scale-down-after 10m`
+  `-in-kube-cluster -kube-namespace games -auto-scale-up -auto-scale-down -auto-scale-down-after 2m`
   plus `-auto-scale-asleep-motd "Asleep: join to wake me up"` and `-auto-scale-loading-motd "Starting, reconnect in ~30 s"`.
   Image pinned `tag@sha256`, `IfNotPresent`, `enableServiceLinks: false`, a TCP readinessProbe, small requests
   (e.g. `cpu: 10m`, `memory: 32Mi`, limit `64Mi`).
@@ -151,7 +151,7 @@ What to know:
 3. `kubectl -n games delete deploy minecraft`, then re-enable Argo (`--sync-policy automated --self-heal`).
 4. Check:
    - `kubectl -n games get sts,pods,svc`: `mc-router` LB on 10.0.0.2:25566, `minecraft` pod Ready.
-   - Join → leave → after 10 min `kubectl -n games get sts minecraft` shows `0/0`, and Argo stays Synced (no fight over replicas).
+   - Join → leave → after 2 min `kubectl -n games get sts minecraft` shows `0/0`, and Argo stays Synced (no fight over replicas).
    - Server list shows the asleep MOTD; join wakes it; log shows a clean `Saving chunks for level` on each scale-down.
    - `kubectl -n games top pod`: only mc-router and bluemap-web left while asleep.
    - `https://minecraft.fgdou.ovh` while asleep: map loads, 3D tiles render (browser dev tools: `.prbm` with `Content-Encoding: gzip`,
