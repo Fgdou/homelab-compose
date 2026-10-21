@@ -16,6 +16,7 @@ spec:
       containers:
         - name: slskd
           image: slskd/slskd:latest@sha256:ecd4026d4f8fb504e2cc55323efa2c1f5b56d20d3686b018249cc36b48ea17a6  # 0.26.0.0+e42a525d
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: SLSKD_REMOTE_CONFIGURATION, value: "true" }
             - { name: SLSKD_NO_AUTH, value: "true" }
@@ -97,6 +98,7 @@ spec:
       containers:
         - name: soularr
           image: mrusse08/soularr:latest@sha256:89b6809a169f6c78032c9a66abf5130e4877c46c0b95391818a38ab66cd71548  # main
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: TZ, value: Europe/Paris }
             - { name: SCRIPT_INTERVAL, value: "36000" }

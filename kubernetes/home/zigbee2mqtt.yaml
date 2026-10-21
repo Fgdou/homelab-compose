@@ -34,7 +34,7 @@ spec:
       volumes:
         - { name: data, persistentVolumeClaim: { claimName: homeassistant } }
         - { name: udev, hostPath: { path: /run/udev } }
-        - { name: dongle, hostPath: { path: /dev/ttyACM0, type: CharDevice } }
+        - { name: dongle, hostPath: { path: /dev/serial/by-id/usb-dresden_elektronik_ingenieurtechnik_GmbH_ConBee_II_DE2440702-if00, type: CharDevice } }  # stable name, even if it re-enumerates as ttyACMn
 ---
 apiVersion: v1
 kind: Service

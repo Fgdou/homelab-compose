@@ -15,6 +15,7 @@ spec:
       containers:
         - name: wordpress
           image: wordpress:latest@sha256:0324d403512533271f85831518d0d8618ae794f8d50e40103cbac473119188af
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: WORDPRESS_DB_HOST, value: mysql }
             - { name: WORDPRESS_DB_USER, value: user }

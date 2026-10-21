@@ -15,6 +15,7 @@ spec:
       containers:
         - name: minecraft
           image: itzg/minecraft-server:latest@sha256:bb1cf73b342bdf6fa03b9d689b699bd1f8c6989f81ea07d520985eb2f18e6f30  # Paper 26.3 (VERSION env)
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           stdin: true
           tty: true
           env:

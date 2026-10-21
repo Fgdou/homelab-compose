@@ -16,6 +16,7 @@ spec:
       containers:
         - name: adminer
           image: adminer:latest@sha256:49a7d30e71de97fb18933ffe7d46cc2b343c49fd7a63a7791c8be2548eb65115
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: ADMINER_DEFAULT_SERVER, value: postgres }
           ports: [{ name: http, containerPort: 8080 }]

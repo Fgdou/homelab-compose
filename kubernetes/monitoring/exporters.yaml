@@ -90,6 +90,7 @@ spec:
       containers:
         - name: jellyfin-exporter
           image: rebelcore/jellyfin-exporter:latest@sha256:b90a980524e93a153294459f718bea6f3bf33b29b23b78f577c6c61286c9e26f
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           args:
             - --jellyfin.address=http://jellyfin.jellyfin:8096
             - --jellyfin.token=$(JELLYFIN_EXPORTER_API_KEY)
@@ -128,6 +129,7 @@ spec:
       containers:
         - name: postgres-exporter
           image: quay.io/prometheuscommunity/postgres-exporter:latest@sha256:ac5ec343104fae0e2d84a27bb8d69b38430a11910c5382cad85d478d2bab713e
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: DATA_SOURCE_URI, value: "postgres.databases:5432/postgres?sslmode=disable" }
             - { name: DATA_SOURCE_USER, value: admin }

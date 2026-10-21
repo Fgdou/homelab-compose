@@ -14,6 +14,7 @@ spec:
       containers:
         - name: todoapp
           image: ghcr.io/fgdou/todoapp               # tag + digest set in kustomization.yaml
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: OIDC_ENABLED, value: "true" }
             - { name: OIDC_CLIENT_ID, value: Tz5dISJ5KtrZJl956VjPNPdk4KhShvSRxD72PJ07 }

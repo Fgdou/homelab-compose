@@ -1,4 +1,6 @@
 # Chart argo/argocd-image-updater 1.3.2. Update rules: image-updater.yaml
+image:
+  pullPolicy: IfNotPresent      # chart default is Always: the pod would need DNS + quay.io at boot
 config:
   git.user: argocd-image-updater
   git.email: argocd-image-updater@fgdou.ovh

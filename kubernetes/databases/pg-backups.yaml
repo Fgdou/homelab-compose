@@ -20,6 +20,7 @@ spec:
           containers:
             - name: pg-backups
               image: prodrigestivill/postgres-backup-local:latest@sha256:f70742ebe42b2277689b028d1fd15aa80f77cffa01da163cc9f85a6ff1866e7f
+              imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
               command: [/backup.sh]
               env:
                 - { name: POSTGRES_HOST, value: postgres }

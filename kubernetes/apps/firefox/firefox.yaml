@@ -14,6 +14,7 @@ spec:
       containers:
         - name: firefox
           image: lscr.io/linuxserver/firefox:latest@sha256:19dc07ce33ca47db941d00fa31671be89ceca5b958de5e9647f87184621cb41c  # 1158.0build2-1xtradeb1.2404.1-ls130
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           ports: [{ name: http, containerPort: 3000 }]
           readinessProbe:
             httpGet: { path: /, port: 3000 }
