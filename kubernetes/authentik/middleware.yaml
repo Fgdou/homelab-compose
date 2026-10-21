@@ -6,10 +6,7 @@ metadata:
   namespace: authentik
 spec:
   forwardAuth:
-    # INTERIM: authentik still runs on Docker, published on 10.0.0.2:9000 (/data/compose/authentik.yml).
-    # When authentik moves to k3s: switch back to http://authentik-server.authentik/outpost.goauthentik.io/auth/traefik
-    # and remove the ports: entry from authentik.yml.
-    address: http://10.0.0.2:9000/outpost.goauthentik.io/auth/traefik
+    address: http://authentik-server.authentik/outpost.goauthentik.io/auth/traefik
     trustForwardHeader: true
     authResponseHeaders:
       - X-authentik-username

@@ -18,10 +18,6 @@ services:
       - /data/authentik/custom-templates:/templates
     env_file:
       - .env
-    ports:
-      # Interim, during the k3s migration: forward-auth target for the k3s authentik Middleware
-      # (kubernetes/authentik/middleware.yaml). Remove when authentik moves to k3s.
-      - "10.0.0.2:9000:9000"
     networks:
       - nas
       - authentik
@@ -68,10 +64,6 @@ services:
       AUTHENTIK_HOST: https://auth.fgdou.ovh
       AUTHENTIK_INSECURE: "false"
       AUTHENTIK_TOKEN: ${AUTHENTIK_LDAP_TOKEN}
-    ports:
-      # Interim, during the k3s migration: LDAPS for jellyfin on k3s (LDAP-Auth.xml LdapServer=10.0.0.2).
-      # Remove when authentik moves to k3s (jellyfin then uses authentik-ldap.authentik).
-      - "10.0.0.2:6636:6636"
     networks:
       - nas
       - authentik

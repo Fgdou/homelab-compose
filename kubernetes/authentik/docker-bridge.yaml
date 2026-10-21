@@ -1,0 +1,16 @@
+# INTERIM until the Phase 4 cutover: Docker Traefik's file middleware "authentik@file"
+# (/data/traefik/config.yaml) does forward-auth against 10.0.0.2:9000 for the routers still on Docker
+# (traefik dashboard, zigbee2mqtt). Remove together with Docker Traefik.
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-server-docker
+  namespace: authentik
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: authentik
+    app.kubernetes.io/instance: authentik
+    app.kubernetes.io/component: server
+  ports:
+    - { name: http, port: 9000, targetPort: 9000 }

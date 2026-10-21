@@ -54,7 +54,7 @@ services:
       - 'traefik.http.routers.api.rule=Host(`traefik.fgdou.ovh`)'
       - 'traefik.http.routers.api.entryPoints=websecure'
       - 'traefik.http.routers.api.service=api@internal'
-      - 'traefik.http.routers.api.middlewares=authentik@docker'
+      - 'traefik.http.routers.api.middlewares=authentik@file'
 networks:
   nas:
     external: true
