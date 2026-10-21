@@ -207,6 +207,7 @@ Things that the manifests cannot do by themselves, to do on migration day.
 | `projects` | mariage / todoapp: Image Updater needs git write access (deploy key with write) to commit new digests. |
 | `immich` | Chart is built for v2.6.3, images overridden to v3.3.3: check the server starts and finds the library at `/usr/src/app/upload`. |
 | `dawarich` | `SECRET_KEY_BASE` comes from the running container (see OPENBAO-KEYS.md). |
+| `games` (minecraft) | Scale to zero since 2026-10-21 (`games/SCALE-TO-ZERO.md`): mc-router (LB 25566) scales StatefulSet `minecraft` 0 ↔ 1 after 10 min idle; Argo ignores its `/spec/replicas`. Autopause/knockd removed. BlueMap served from disk by `bluemap-web` (nginx), `live/` proxied to the plugin while the server runs. mc-router `defaultServer` only (with `externalServerName` too, plain-IP joins are reset). |
 
 ## Phase 4 (cutover) changes in this repo
 

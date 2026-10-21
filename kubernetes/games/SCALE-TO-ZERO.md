@@ -1,6 +1,6 @@
-# Minecraft: scale to zero when nobody plays (plan, not applied)
+# Minecraft: scale to zero when nobody plays
 
-Written 2026-10-21. Status: **proposal**, nothing changed on the cluster or in the manifests yet.
+Written 2026-10-21. Status: **applied 2026-10-21** (`games/minecraft.yaml`, `mc-router.yaml`, `bluemap.yaml`).
 
 ## Why
 
@@ -37,9 +37,9 @@ player ──► 10.0.0.2:25566 (LoadBalancer mc-router) ──► mc-router ─
 - **RBAC** (Role + RoleBinding + ServiceAccount, namespace `games`): `services` watch/list; `statefulsets` watch/list/patch;
   `statefulsets/scale` get. Re-check the README of the pinned version when implementing.
 - **Service `mc-router`**: `type: LoadBalancer`, port 25566 → 25565. It takes over the port of today's `minecraft` LB.
-- **Service `minecraft`**: becomes `ClusterIP` (port 25565) with annotations
-  `mc-router.itzg.me/externalServerName: mc.fgdou.ovh` (any name works) and `mc-router.itzg.me/defaultServer: "true"`
-  (players who connect by IP or another hostname are still routed).
+- **Service `minecraft`**: becomes `ClusterIP` (port 25565) with only the annotation `mc-router.itzg.me/defaultServer: "true"`
+  (every hostname and plain IP is routed). Don't add `externalServerName`: mc-router 1.49 then ignores `defaultServer`
+  and connections by IP are reset (seen 2026-10-21).
   Optionally `mc-router.itzg.me/autoScaleWaitTimeout: "30s"` (the client gives up after 30 s anyway).
 - **Deployment `minecraft` → StatefulSet `minecraft`**: mc-router only scales StatefulSets. `metadata.name` and
   `spec.serviceName` must both be `minecraft`, or scaling never triggers. No `volumeClaimTemplates`: it keeps
