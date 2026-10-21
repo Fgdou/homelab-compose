@@ -305,7 +305,7 @@ With `hostNetwork`, set `dnsPolicy: ClusterFirstWithHostNet` so the pod still re
 | zigbee2mqtt | `/dev/ttyACM0` | hostPath `type: CharDevice` + `privileged: true` (or a device plugin), pinned to the NAS node |
 | homeassistant | `privileged`, `/run/dbus`, mDNS/HomeKit | `hostNetwork`, privileged, hostPath `/run/dbus` |
 | musicassistant | `SYS_ADMIN`, `DAC_READ_SEARCH`, `apparmor:unconfined` | `securityContext.capabilities.add`, `appArmorProfile: Unconfined`, `hostNetwork` |
-| jellyfin | no GPU today (software transcoding) | **mount `/dev/dri/renderD128`** (Vega iGPU) as hostPath `CharDevice`, add the host's `render` group GID to `supplementalGroups`, enable VAAPI in Jellyfin → big CPU savings on this 4-thread CPU. Pinned to the NAS node |
+| jellyfin | no GPU today (software transcoding) | **mount `/dev/dri/renderD128`** (Vega iGPU) as hostPath `CharDevice`, add the host's `render` group GID to `supplementalGroups`, enable VAAPI in Jellyfin → big CPU savings on this 4-thread CPU. Pinned to the NAS node. **Does not work as is** → optional, Phase 5 step 2 |
 | dawarich | `shm_size: 1G`, cpu 0.5 / mem 4G limit, `stdin_open`/`tty` | emptyDir Memory, `resources.limits`, `stdin: true`/`tty: true` |
 | minecraft | `MAX_MEMORY=4G`, autopause, tty | memory limit ≥ 5Gi (JVM overhead) else OOMKill; `stdin/tty: true` |
 | mailserver | `hostname: mail.fgdou.ovh`, `dns: 8.8.8.8`, uses Traefik's acme.json | `hostname`+`subdomain` or `setHostnameAsFQDN`, `dnsConfig`, cert Secret from cert-manager; `terminationGracePeriodSeconds: 60` |
@@ -566,5 +566,6 @@ Per stack: check the running image version still matches the pin (fix it if not)
 
 **Phase 5 — after the migration**
 1. Add a `readinessProbe` (and `startupProbe` for slow starters such as openwebui) to every app that has a health endpoint, so Traefik only routes to ready pods and Argo CD health reflects the app (found 2026-10-20: openwebui answered 502 for ~60 s after each start). Then review `livenessProbe`s.
+2. *(Optional)* Jellyfin hardware transcoding on the Vega iGPU. The hostPath mount of `/dev/dri/renderD128` in `jellyfin/jellyfin.yaml` does **not** work (found 2026-10-21): the device cgroup denies `open` (`Operation not permitted`, even as root), and linuxserver's `init-device-perms` skips it (`find -type c` misses a single-file mount, so `abc` never joins gid 105). Fix with AMD's GPU device plugin (`amd.com/gpu` resource) rather than `privileged` (Jellyfin is public), then set `HardwareAccelerationType=vaapi` in Jellyfin. Until then it stays on software transcoding (`none`), as on Docker.
 
 Rollback at any step: remove the stack's Application from `argocd/apps/` (or `kubectl delete -k …`), then `docker compose up -d` on the same `/data` folders (that's why static PVs on the existing paths matter).
