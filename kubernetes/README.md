@@ -91,10 +91,12 @@ Order matters: OpenBao and External Secrets must not depend on secrets served by
 
 ### Unseal after a reboot or pod restart
 
-`bao operator unseal` does **not** read stdin (`-` is taken as the key). Run it 3 times, pasting a different key from Vaultwarden at the hidden prompt each time:
+Since 2026-10-21 OpenBao unseals itself (`seal "static"` in `platform/openbao/values.yaml`). The 32-byte key is the Secret `openbao/openbao-unseal-key`, created by hand (copy in Vaultwarden, never in git), mounted at `/openbao/unseal/key`. The 5 former Shamir keys are now **recovery keys** (generate-root, re-key). Losing the unseal key = losing the data: restore it with `kubectl -n openbao create secret generic openbao-unseal-key --from-file=key=<file>`.
+
+Migration from Shamir (done 2026-10-21): config pushed, `kubectl -n openbao delete pod openbao-0` (StatefulSet is `OnDelete`), then 3 times — `bao operator unseal` does **not** read stdin (`-` is taken as the key), paste a different key at the hidden prompt each time:
 
 ```sh
-kubectl -n openbao exec -it openbao-0 -- bao operator unseal
+kubectl -n openbao exec -it openbao-0 -- bao operator unseal -migrate
 ```
 5. External Secrets (done 2026-10-20): `helm repo add external-secrets https://charts.external-secrets.io`, `helm install external-secrets external-secrets/external-secrets --version 2.13.0 -n external-secrets -f platform/external-secrets/values.yaml --wait`, then `kubectl apply --server-side -k cluster/secret-store` → `clustersecretstore/openbao` Ready, `cert-manager/cloudflare` SecretSynced.
    cert-manager (done 2026-10-20): `helm repo add jetstack https://charts.jetstack.io`, `helm install cert-manager jetstack/cert-manager --version v1.21.2 -n cert-manager -f platform/cert-manager/values.yaml --wait`, then `kubectl apply --server-side -k cluster/certs` → both wildcard `Certificate`s Ready in ~3 min (DNS01), Traefik serves them on 8443 by SNI.
