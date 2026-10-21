@@ -31,7 +31,8 @@ spec:
             - { name: POSTGRES_DB, value: nextcloud }
             - { name: POSTGRES_USER, value: nextcloud }
             - { name: POSTGRES_HOST, value: postgres.databases }
-            - { name: REDIS_HOST, value: redis.databases }
+            # No REDIS_HOST: the image's config/redis.config.php would replace the whole
+            # `redis` array of config.php (host redis.databases, dbindex 7) and drop dbindex.
             - { name: PHP_MEMORY_LIMIT, value: 1024M }
             - { name: PHP_UPLOAD_LIMIT, value: 1024M }
           envFrom:
@@ -51,7 +52,6 @@ spec:
             - { name: TRUSTED_PROXIES, value: "10.0.0.0/8 172.16.0.0/8" }
             - { name: OVERWRITEHOST, value: nextcloud.fgdou.ovh }
             - { name: OVERWRITEPROTOCOL, value: https }
-            - { name: REDIS_HOST, value: redis.databases }
             - { name: PHP_MEMORY_LIMIT, value: 1024M }
           resources:
             requests: { cpu: 10m, memory: 64Mi }

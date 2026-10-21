@@ -1,4 +1,4 @@
-# Shared redis, no persistence, like today. db index per app: gramps 0-1, immich 2, dawarich 3-6, nextcloud 0 (default, shared with gramps: to move).
+# Shared redis, no persistence, like today. db index per app: gramps 0-1, immich 2, dawarich 3-6, nextcloud 7 (`dbindex` in its config.php).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
