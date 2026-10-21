@@ -27,7 +27,9 @@ spec:
             - { name: cache, mountPath: /var/cache/bind }
       volumes:
         - { name: config, persistentVolumeClaim: { claimName: bind9 } }
-        - { name: cache, emptyDir: {} }               # was the named volume "cache"
+        # was the named volume "cache"; the RFC 5011 root-key state is rebuilt on every start from the
+        # trust-anchors in /data/bind9/named.conf (the image's built-in key predates KSK-2024)
+        - { name: cache, emptyDir: {} }
 ---
 # Was a fixed IP on the nas network (172.18.0.254): clients now use the host IP. Conflicts with Docker until Phase 4.
 apiVersion: v1
