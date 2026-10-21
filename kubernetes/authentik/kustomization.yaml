@@ -7,4 +7,3 @@ resources:
   - ldap-outpost.yaml
   - middleware.yaml
   - ingressroute.yaml
-  - docker-bridge.yaml

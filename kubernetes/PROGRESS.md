@@ -45,6 +45,7 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | minecraft | `games` | `minecraft.yml` | ✅ 2026-10-21 |
 | meshcentral restart (new cert) | `apps-meshcentral` | — | ✅ 2026-10-21 |
 | watchtower + Docker redis removed (Docker left enabled) | — | `watchtower.yml`, `redis.yml` | ✅ 2026-10-21 |
+| authentik docker-bridge removed (`authentik-server-docker` LB on `10.0.0.2:9000`) | `authentik` | — | ✅ 2026-10-21 |
 
 ## Per-app template (Phase 3)
 
