@@ -8,6 +8,33 @@ server:
     raft:
       enabled: true
       setNodeId: true
+      # Chart default + static auto-unseal (2026-10-21). The key is the Secret openbao-unseal-key,
+      # created by hand (not in git, copy in Vaultwarden); it lives in etcd on the NVMe, outside
+      # the restic backup of /data. The old Shamir keys are now recovery keys.
+      config: |
+        ui = true
+
+        listener "tcp" {
+          tls_disable = 1
+          address = "[::]:8200"
+          cluster_address = "[::]:8201"
+        }
+
+        storage "raft" {
+          path = "/openbao/data"
+        }
+
+        seal "static" {
+          current_key_id = "nas-20261021"
+          current_key    = "file:///openbao/unseal/key"
+        }
+
+        service_registration "kubernetes" {}
+  volumes:
+    - name: unseal-key
+      secret: { secretName: openbao-unseal-key, defaultMode: 0440 }   # group 1000 = fsGroup, the pod runs as uid 100
+  volumeMounts:
+    - { name: unseal-key, mountPath: /openbao/unseal, readOnly: true }
   dataStorage:
     enabled: true
     size: 1Gi
