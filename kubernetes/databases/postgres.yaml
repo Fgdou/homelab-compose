@@ -40,6 +40,8 @@ metadata:
   name: postgres
   namespace: databases
 spec:
+  # Fixed: Docker consumers reach postgres through the socat bridge in postgres.yml (until 3.5 is done)
+  clusterIP: 10.43.54.32
   selector: { app.kubernetes.io/name: postgres }
   ports:
     - { name: postgres, port: 5432 }
