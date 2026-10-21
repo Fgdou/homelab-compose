@@ -169,7 +169,7 @@ browser → Docker Traefik :443 (router in /data/traefik/config.yaml) → k3s Tr
 - Helm release metadata (`sh.helm.release.v1.*` Secrets in openbao, external-secrets, cert-manager, argocd) is now stale: Argo CD owns the resources. Never `helm upgrade/uninstall` these releases; delete the release Secrets (only metadata) to avoid confusion.
 - `applicationSet.enabled: false` is ignored by chart 10.10.5 (the controller runs): find the right key.
 - ~~Automated sync for the bootstrap Applications~~ — done 2026-10-20: all 9 (`cluster*`, `platform-*`) have `automated: { prune: false, selfHeal: true }`; every app stack too since 2026-10-21. A push to `main` is live within ~3 min; manual `kubectl` edits to their objects are reverted within seconds (selfHeal); nothing is ever deleted by a removal in git (`prune: false`). **Before any manual change** (break-glass, debugging): `argocd app set <app> --core --sync-policy none`, and re-enable with `argocd app set <app> --core --sync-policy automated --self-heal` — or simply push the change to git instead.
-- Image Updater has no git write access yet (needed when `projects` is enabled).
+- Image Updater has no git write access yet (needed when `projects` is enabled). **Consequence seen 2026-10-21**: Gitea dropped the old `mariage:latest` digest pinned in git, so the next new pod (Phase 5.1 rollout) hit `ImagePullBackOff` (`:latest` pulls `Always`); digest bumped by hand. Until write access exists, bump `projects/kustomization.yaml` by hand after each mariage/todoapp push.
 
 ## Enabling a stack (Phase 3)
 
