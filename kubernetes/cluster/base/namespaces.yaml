@@ -43,6 +43,16 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
+  name: jellyfin
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: navidrome
+---
+apiVersion: v1
+kind: Namespace
+metadata:
   name: home
 ---
 apiVersion: v1

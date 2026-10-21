@@ -1,0 +1,55 @@
+# /films/Films is also mounted by the arr apps (media-films PV): one PV per namespace, same folder.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-config
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/Jellyfin }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: config
+  namespace: jellyfin
+spec:
+  storageClassName: data
+  volumeName: jellyfin-config
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jellyfin-films
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/Films }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: films
+  namespace: jellyfin
+spec:
+  storageClassName: films
+  volumeName: jellyfin-films
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }

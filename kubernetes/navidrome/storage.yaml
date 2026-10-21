@@ -1,0 +1,55 @@
+# /films/music is also mounted by lidarr and slskd (media-music PV): one PV per namespace, same folder.
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: navidrome-data
+spec:
+  storageClassName: data
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /data/navidrome }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data
+  namespace: navidrome
+spec:
+  storageClassName: data
+  volumeName: navidrome-data
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: navidrome-music
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/music }
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: music
+  namespace: navidrome
+spec:
+  storageClassName: films
+  volumeName: navidrome-music
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }

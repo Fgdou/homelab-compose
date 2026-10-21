@@ -364,7 +364,9 @@ Goal: be able to restore a service from backup with the image version that wrote
 | `databases` | postgres, adminer, pg-backups, redis |
 | `authentik` | server, worker (Helm chart), LDAP outpost, forward-auth Middleware |
 | `monitoring` | prometheus, grafana, ntfy, node-exporter, blackbox, json/jellyfin/postgres/s3 exporters |
-| `media` | jellyfin, navidrome, radarr, sonarr, lidarr, prowlarr, flaresolverr, qbittorrent, jellyseerr, slskd, soularr, musiseerr |
+| `jellyfin` | jellyfin (own namespace and Application, split from `media` on 2026-10-21) |
+| `navidrome` | navidrome (same) |
+| `media` | radarr, sonarr, lidarr, prowlarr, flaresolverr, qbittorrent, jellyseerr, slskd, soularr, musiseerr |
 | `home` | homeassistant, zigbee2mqtt, mosquitto, musicassistant |
 | `immich`, `dawarich`, `gitea`, `mail`, `nextcloud` | one per big stack |
 | `apps` | actual, openwebui, vaultwarden, trilium, mealie, lubelogger, speedtest, firefox, meshcentral, warracker, gramps, guacamole |

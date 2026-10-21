@@ -4,7 +4,5 @@ namespace: media
 resources:
   - storage.yaml
   - secrets.yaml
-  - jellyfin.yaml
-  - navidrome.yaml
   - arr.yaml
   - soulseek.yaml
