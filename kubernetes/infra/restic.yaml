@@ -1,5 +1,6 @@
-# Replaces lobaro/restic-backup-docker (internal cron). Same repository, same host name and path,
-# so snapshots continue the same series. Weekly, Sunday 02:00 UTC, keep the last 3.
+# Replaces lobaro/restic-backup-docker (internal cron). Same repository, same host name and path
+# (lobaro backs up /data, with the host's /data mounted at /data/Backup), so snapshots continue
+# the same series. Weekly, Sunday 02:00 UTC, keep the last 3.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -25,7 +26,7 @@ spec:
               args:
                 - |
                   set -e
-                  restic backup /data/Backup --host nasrestic
+                  restic backup /data --host nasrestic
                   restic forget --host nasrestic --keep-last 3 --prune
               env:
                 - { name: RESTIC_REPOSITORY, value: "s3:https://s3.gra.io.cloud.ovh.net/fgdou-nas-backup" }
