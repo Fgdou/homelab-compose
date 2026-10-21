@@ -40,6 +40,17 @@ spec:
         allowCrossNamespace: true   # authentik Middleware used from every namespace
     additionalArguments:
       - --serversTransport.insecureSkipVerify=true   # MeshCentral serves HTTPS
+    experimental:
+      localPlugins:
+        sablier:                                     # scale-to-zero middleware (infra/sablier.yaml), source in the ConfigMap
+          moduleName: github.com/sablierapp/sablier-traefik-plugin
+          mountPath: /plugins-local/src/github.com/sablierapp/sablier-traefik-plugin
+          type: localPath
+          volumeName: sablier-plugin
+    deployment:
+      additionalVolumes:
+        - name: sablier-plugin
+          configMap: { name: traefik-plugin-sablier }
     service:
       spec:
         externalTrafficPolicy: Local                 # keep real client IPs

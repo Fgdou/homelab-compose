@@ -2,8 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openwebui
+  labels: { sablier.enable: "true", sablier.group: openwebui }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
-  replicas: 1
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: openwebui }
@@ -59,4 +59,19 @@ spec:
   routes:
     - match: Host(`ai.fgdou.ovh`)
       kind: Rule
+      middlewares: [{ name: openwebui-sablier }]
       services: [{ name: openwebui, port: 8080 }]
+---
+# Wakes openwebui on the first request (waiting page), Sablier stops it after 30 min without requests
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: openwebui-sablier
+  namespace: apps
+spec:
+  plugin:
+    sablier:
+      sablierUrl: http://sablier.infra.svc.cluster.local:10000
+      group: openwebui
+      sessionDuration: 30m
+      dynamic: { displayName: Open WebUI, refreshFrequency: 5s }

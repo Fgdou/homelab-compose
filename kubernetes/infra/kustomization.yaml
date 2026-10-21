@@ -7,3 +7,4 @@ resources:
   - bind9.yaml
   - ddclient.yaml
   - restic.yaml
+  - sablier.yaml

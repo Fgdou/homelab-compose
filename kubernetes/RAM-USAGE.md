@@ -52,7 +52,7 @@ two small config changes. Savings are estimates from today's numbers.
 | Run gunicorn with 2 workers instead of the default 8 (`GUNICORN_NUM_WORKERS=2`): each worker holds ~190 MiB for a family-tree app with one or two users | `apps/grampsweb` | ~1.1 GiB | env var |
 | Built-in Collabora (CODE) in the nextcloud pod keeps 4 pre-forked `kit_spare` processes; lower `num_prespawn_children` to 1, or drop the app if Office editing is unused | `nextcloud` | ~0.3–0.6 GiB | occ / app setting |
 | Cut grampsweb-celery concurrency to 1–2 workers | `apps/grampsweb` | ~0.2–0.3 GiB | env var |
-| Scale idle tools to 0 and start them on demand: firefox (536 MiB), guacamole (243 MiB), meshcentral (175 MiB), flaresolverr (200 MiB) | `apps`, `media` | up to ~1.1 GiB | `replicas: 0` |
+| ✅ 2026-10-21 Scale idle apps to 0 and start them on demand: grampsweb, openwebui, firefox (Sablier, `SCALE-TO-ZERO-HTTP.md`). guacamole, meshcentral, flaresolverr were not chosen | `apps` | ~1.8 GiB while asleep | Sablier |
 | Prometheus: drop the `apiserver_*` and `etcd_*` histogram buckets from the `kubelet` job (k3s exposes them on the same endpoint; they are the largest series of the 91k) with `metric_relabel_configs` | `monitoring/prometheus.yml` | ~0.1–0.2 GiB | relabel rule |
 | Check why grafana uses 675 MiB (usually 100–200 MiB): plugins, image renderer, or a heavy dashboard left open | `monitoring/grafana.yaml` | ~0.4 GiB | investigate |
 | dawarich sidekiq runs `BACKGROUND_PROCESSING_CONCURRENCY=10`; 3–5 is enough for one user | `dawarich/app.yaml` | ~0.1 GiB | env var |

@@ -1,0 +1,68 @@
+# Sablier: scales Deployments labelled sablier.enable=true 0 <-> 1 on demand, driven by the Traefik plugin
+# (cluster/base/sablier-plugin) through a per-app Middleware. Apps and decisions: SCALE-TO-ZERO-HTTP.md
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sablier
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sablier
+rules:
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets]
+    verbs: [get, list, watch]
+  - apiGroups: [apps]
+    resources: [deployments/scale, statefulsets/scale]
+    verbs: [get, patch, update]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sablier
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: sablier }
+subjects:
+  - { kind: ServiceAccount, name: sablier, namespace: infra }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sablier
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: sablier }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: sablier }
+    spec:
+      serviceAccountName: sablier
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
+      containers:
+        - name: sablier
+          image: sablierapp/sablier:1.18.0@sha256:c00c8a01c8c809dd258a8b362ad8ba9a9227753fc9857ae7506fd427175e038c
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
+          args:
+            - start
+            - --provider.name=kubernetes
+            - --sessions.default-duration=30m
+            - --sessions.expiration-interval=1m
+            - --strategy.dynamic.default-theme=ghost
+          ports: [{ name: http, containerPort: 10000 }]
+          readinessProbe:
+            httpGet: { path: /health, port: 10000 }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sablier
+  namespace: infra
+spec:
+  selector: { app.kubernetes.io/name: sablier }
+  ports:
+    - { name: http, port: 10000, targetPort: 10000 }

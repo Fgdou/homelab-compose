@@ -3,8 +3,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grampsweb
+  labels: { sablier.enable: "true", sablier.group: grampsweb }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
-  replicas: 1
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: grampsweb }
@@ -71,14 +71,29 @@ spec:
   routes:
     - match: Host(`gramps.fgdou.ovh`)
       kind: Rule
+      middlewares: [{ name: grampsweb-sablier }]
       services: [{ name: grampsweb, port: 5000 }]
+---
+# Wakes grampsweb on the first request (waiting page), Sablier stops it after 30 min without requests
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: grampsweb-sablier
+  namespace: apps
+spec:
+  plugin:
+    sablier:
+      sablierUrl: http://sablier.infra.svc.cluster.local:10000
+      group: grampsweb
+      sessionDuration: 30m
+      dynamic: { displayName: Gramps, refreshFrequency: 5s }
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grampsweb-celery
+  labels: { sablier.enable: "true", sablier.group: grampsweb }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
-  replicas: 1
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: grampsweb-celery }

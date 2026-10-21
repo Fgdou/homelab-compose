@@ -10,5 +10,8 @@ spec:
     targetRevision: main
     path: kubernetes/apps/firefox
   destination: { server: https://kubernetes.default.svc, namespace: apps }
+  ignoreDifferences:                              # Sablier scales 0 <-> 1 (SCALE-TO-ZERO-HTTP.md)
+    - { group: apps, kind: Deployment, name: firefox, namespace: apps, jsonPointers: [/spec/replicas] }
   syncPolicy:
     automated: { prune: false, selfHeal: true }   # since 2026-10-21 (app verified)
+    syncOptions: [RespectIgnoreDifferences=true]

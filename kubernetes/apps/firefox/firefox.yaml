@@ -2,8 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: firefox
+  labels: { sablier.enable: "true", sablier.group: firefox }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
-  replicas: 1
   selector:
     matchLabels: { app.kubernetes.io/name: firefox }
   template:
@@ -48,5 +48,20 @@ spec:
   routes:
     - match: Host(`firefox.fgdou.ovh`)
       kind: Rule
-      middlewares: [{ name: authentik, namespace: authentik }]
+      middlewares: [{ name: authentik, namespace: authentik }, { name: firefox-sablier }]   # auth first: no wake-up for anonymous hits
       services: [{ name: firefox, port: 3000 }]
+---
+# Wakes firefox on the first request (waiting page), Sablier stops it after 30 min without requests
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: firefox-sablier
+  namespace: apps
+spec:
+  plugin:
+    sablier:
+      sablierUrl: http://sablier.infra.svc.cluster.local:10000
+      group: firefox
+      sessionDuration: 30m
+      keepAliveInterval: 5m           # the VNC websocket counts as activity while a tab is open
+      dynamic: { displayName: Firefox, refreshFrequency: 5s }
