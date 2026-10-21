@@ -57,6 +57,11 @@ scrape_configs:
         regex: (.+)
         target_label: __metrics_path__
         replacement: /api/v1/nodes/${1}/proxy/metrics
+    # k3s serves apiserver/etcd metrics on the kubelet endpoint too: their histograms are the largest series
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: (apiserver|etcd)_.*_bucket
+        action: drop
 
   - job_name: s3
     metrics_path: /probe

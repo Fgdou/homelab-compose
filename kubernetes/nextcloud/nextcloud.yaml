@@ -21,6 +21,12 @@ spec:
           command: [/bin/sh, -c]
           args:
             - |
+              # Built-in Collabora (richdocumentscode) has no config hook: make proxy.php start coolwsd
+              # with 1 pre-spawned kit instead of 4 (~340 MiB each). Re-applied after app updates.
+              f=/var/www/html/custom_apps/richdocumentscode/proxy.php;
+              if [ -f $f ] && ! grep -q num_prespawn_children $f; then
+                sed -i 's|^\( *\)\$options\[\] = "--pidfile=|\1$options[] = "--o:num_prespawn_children=1";\n&|' $f;
+              fi;
               until curl -fsS https://auth.fgdou.ovh/-/health/ready/; do
                 echo "Waiting for oauth2..."; sleep 5;
               done;

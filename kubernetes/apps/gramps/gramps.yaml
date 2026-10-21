@@ -29,6 +29,7 @@ spec:
             - { name: GRAMPSWEB_OIDC_GROUP_ADMIN, value: admin }
             - { name: GRAMPSWEB_OIDC_SCOPES, value: openid email profile }
             - { name: GRAMPSWEB_TRUSTED_PROXIES, value: "*" }
+            - { name: GUNICORN_NUM_WORKERS, value: "2" }   # image default 8 (~190 MiB each), RAM-USAGE.md
           envFrom:
             - secretRef: { name: gramps }
           ports: [{ name: http, containerPort: 5000 }]
@@ -89,7 +90,7 @@ spec:
       containers:
         - name: celery
           image: ghcr.io/gramps-project/grampsweb:26.10.1@sha256:4348222c2ab2f5c53f15e7e170bd8b17db1c1691326e0e72b0d0d6df87724b94
-          command: [celery, -A, gramps_webapi.celery, worker, --loglevel=INFO]
+          command: [celery, -A, gramps_webapi.celery, worker, --loglevel=INFO, --concurrency=2]   # default = CPU count
           env:
             - { name: GRAMPSWEB_TREE, value: Fabien GOARDOU }
             - { name: GRAMPSWEB_CELERY_CONFIG__broker_url, value: "redis://redis.databases:6379/0" }

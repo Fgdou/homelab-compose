@@ -87,7 +87,7 @@ spec:
           tty: true
           env:
             - { name: APPLICATION_HOSTS, value: "localhost,::1,127.0.0.1,dawarich-app,dawarich.fgdou.ovh,auth.fgdou.ovh" }
-            - { name: BACKGROUND_PROCESSING_CONCURRENCY, value: "10" }
+            - { name: BACKGROUND_PROCESSING_CONCURRENCY, value: "4" }   # was 10, one user (RAM-USAGE.md)
             - { name: PROMETHEUS_EXPORTER_HOST, value: dawarich-app }
           envFrom:
             - configMapRef: { name: dawarich-env }
