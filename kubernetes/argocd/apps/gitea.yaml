@@ -10,6 +10,5 @@ spec:
     targetRevision: main
     path: kubernetes/gitea
   destination: { server: https://kubernetes.default.svc, namespace: gitea }
-  # Manual sync first; once the stack is verified, uncomment (MIGRATION.md §8):
-  # syncPolicy:
-  #   automated: { prune: false, selfHeal: true }
+  syncPolicy:
+    automated: { prune: false, selfHeal: true }   # since 2026-10-21 (stack verified)

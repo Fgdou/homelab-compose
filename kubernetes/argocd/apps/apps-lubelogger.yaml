@@ -10,6 +10,5 @@ spec:
     targetRevision: main
     path: kubernetes/apps/lubelogger
   destination: { server: https://kubernetes.default.svc, namespace: apps }
-  # Manual sync first; once the app is verified, uncomment (MIGRATION.md §8):
-  # syncPolicy:
-  #   automated: { prune: false, selfHeal: true }
+  syncPolicy:
+    automated: { prune: false, selfHeal: true }   # since 2026-10-21 (app verified)

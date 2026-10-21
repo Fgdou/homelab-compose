@@ -10,6 +10,5 @@ spec:
     targetRevision: main
     path: kubernetes/databases/redis
   destination: { server: https://kubernetes.default.svc, namespace: databases }
-  # Manual sync first; once verified, uncomment (MIGRATION.md §8):
-  # syncPolicy:
-  #   automated: { prune: false, selfHeal: true }
+  syncPolicy:
+    automated: { prune: false, selfHeal: true }   # since 2026-10-21 (verified)
