@@ -20,6 +20,10 @@ spec:
             - { name: ND_REVERSEPROXYWHITELIST, value: 0.0.0.0/0 }
             - { name: ND_REVERSEPROXYUSERHEADER, value: X-authentik-username }
           ports: [{ name: http, containerPort: 4533 }]
+          readinessProbe:
+            httpGet: { path: /ping, port: 4533 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:

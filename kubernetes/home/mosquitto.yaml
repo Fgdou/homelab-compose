@@ -16,6 +16,9 @@ spec:
         - name: mosquitto
           image: eclipse-mosquitto:2.0.22@sha256:077fe4ff4c49df1e860c98335c77dda08360629e0e2a718147027e4db3eace9d
           ports: [{ name: mqtt, containerPort: 1883 }]
+          readinessProbe:
+            tcpSocket: { port: 1883 }
+            periodSeconds: 10
           resources:
             requests: { cpu: 10m, memory: 16Mi }
           volumeMounts:

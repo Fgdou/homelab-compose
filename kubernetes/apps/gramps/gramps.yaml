@@ -32,6 +32,10 @@ spec:
           envFrom:
             - secretRef: { name: gramps }
           ports: [{ name: http, containerPort: 5000 }]
+          readinessProbe:
+            httpGet: { path: /ready, port: 5000 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 1Gi }
           volumeMounts:

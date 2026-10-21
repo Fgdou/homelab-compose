@@ -49,6 +49,13 @@ Status: ✅ migrated · 🔄 on k3s, waiting for confirmation · ⏳ to do
 | `kube` merged into `main`, Applications + Image Updater follow `main` | all | — | ✅ 2026-10-21 |
 | automated sync (`prune: false, selfHeal: true`) on every app Application | all | — | ✅ 2026-10-21 |
 
+## Phase 5 — after the migration
+
+| Step | What | Status |
+|---|---|---|
+| 5.1 | `readinessProbe` on every serving container (MIGRATION.md §11 Phase 5) | ✅ 2026-10-21 |
+| 5.2 | Jellyfin VAAPI via AMD GPU device plugin (optional) | ⏳ |
+
 ## Per-app template (Phase 3)
 
 Copy for each app; `<app>` = stack name, `<file>` = its compose file, `<services>` = its compose services.

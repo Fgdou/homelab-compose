@@ -24,6 +24,9 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom: { secretKeyRef: { name: immich, key: POSTGRES_PASSWORD } }
           ports: [{ name: postgres, containerPort: 5432 }]
+          readinessProbe:
+            exec: { command: [sh, -c, 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"'] }
+            periodSeconds: 10
           resources:
             requests: { cpu: 50m, memory: 256Mi }
           volumeMounts:

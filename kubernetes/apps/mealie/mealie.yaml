@@ -38,6 +38,10 @@ spec:
           envFrom:
             - secretRef: { name: mealie }
           ports: [{ name: http, containerPort: 9000 }]
+          readinessProbe:
+            httpGet: { path: /api/app/about, port: 9000 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 256Mi }
             limits: { memory: 1000M }                 # same as compose

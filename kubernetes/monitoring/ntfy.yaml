@@ -20,6 +20,10 @@ spec:
             - { name: NTFY_BASE_URL, value: https://ntfy.fgdou.ovh }
             - { name: NTFY_BEHIND_PROXY, value: "true" }
           ports: [{ name: http, containerPort: 80 }]
+          readinessProbe:
+            httpGet: { path: /v1/health, port: 80 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 32Mi }
           volumeMounts:

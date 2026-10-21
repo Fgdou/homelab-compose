@@ -17,6 +17,10 @@ spec:
         - name: blackbox
           image: quay.io/prometheus/blackbox-exporter:v0.28.0@sha256:e753ff9f3fc458d02cca5eddab5a77e1c175eee484a8925ac7d524f04366c2fc
           ports: [{ name: http, containerPort: 9115 }]
+          readinessProbe:
+            httpGet: { path: /-/healthy, port: 9115 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 16Mi }
 ---
@@ -48,6 +52,10 @@ spec:
           image: prometheuscommunity/json-exporter:v0.8.0@sha256:3aad20d41a0b31dfaaf7ab1a091440e92a82a61ef68b76750eac0ad50a983652
           args: [--config.file=/config/config.yml]
           ports: [{ name: http, containerPort: 7979 }]
+          readinessProbe:
+            httpGet: { path: /, port: 7979 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 16Mi }
           volumeMounts:
@@ -88,6 +96,9 @@ spec:
           envFrom:
             - secretRef: { name: jellyfin-exporter }
           ports: [{ name: http, containerPort: 9594 }]
+          readinessProbe:
+            tcpSocket: { port: 9594 }
+            periodSeconds: 10
           resources:
             requests: { cpu: 10m, memory: 16Mi }
 ---
@@ -123,6 +134,10 @@ spec:
           envFrom:
             - secretRef: { name: postgres-exporter }
           ports: [{ name: http, containerPort: 9187 }]
+          readinessProbe:
+            httpGet: { path: /, port: 9187 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 32Mi }
 ---
@@ -158,6 +173,10 @@ spec:
           envFrom:
             - secretRef: { name: s3 }
           ports: [{ name: http, containerPort: 9340 }]
+          readinessProbe:
+            httpGet: { path: /, port: 9340 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 16Mi }
 ---

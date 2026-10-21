@@ -3,7 +3,7 @@
 Kubernetes manifests for the NAS (k3s, single node `nas`), replacing the Docker compose files in the repository root.
 The plan and every decision behind it are in [MIGRATION.md](MIGRATION.md). Secrets: [OPENBAO-KEYS.md](OPENBAO-KEYS.md).
 
-Status: **Phase 4 done** (2026-10-21) — k3s `v1.36.5+k3s1` runs every stack (Traefik on 80/443/22, mail, bind9, games); Docker stays enabled but empty, as the fallback. Argo CD follows the `main` branch over HTTPS (`kube` merged 2026-10-21); OpenBao, External Secrets, cert-manager, Image Updater. Next: Phase 5 (MIGRATION.md §11). UIs (LAN only, authentik OIDC): `https://bao.fgdou.ovh`, `https://argocd.fgdou.ovh`.
+Status: **Phase 4 done** (2026-10-21) — k3s `v1.36.5+k3s1` runs every stack (Traefik on 80/443/22, mail, bind9, games); Docker stays enabled but empty, as the fallback. Argo CD follows the `main` branch over HTTPS (`kube` merged 2026-10-21); OpenBao, External Secrets, cert-manager, Image Updater. Phase 5 step 1 (readiness probes) done 2026-10-21; step 2 (Jellyfin VAAPI) optional (MIGRATION.md §11). UIs (LAN only, authentik OIDC): `https://bao.fgdou.ovh`, `https://argocd.fgdou.ovh`.
 
 ## Layout
 

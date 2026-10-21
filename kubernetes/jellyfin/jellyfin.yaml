@@ -20,6 +20,10 @@ spec:
           env:
             - { name: TZ, value: Europe/Paris }
           ports: [{ name: http, containerPort: 8096 }]
+          readinessProbe:
+            httpGet: { path: /health, port: 8096 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 200m, memory: 512Mi }
           volumeMounts:

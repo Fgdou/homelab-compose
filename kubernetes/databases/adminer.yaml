@@ -19,6 +19,10 @@ spec:
           env:
             - { name: ADMINER_DEFAULT_SERVER, value: postgres }
           ports: [{ name: http, containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /, port: 8080 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 32Mi }
 ---

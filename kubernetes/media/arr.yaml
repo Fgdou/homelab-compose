@@ -18,6 +18,10 @@ spec:
           env:
             - { name: TZ, value: Europe/Paris }
           ports: [{ name: http, containerPort: 7878 }]
+          readinessProbe:
+            httpGet: { path: /ping, port: 7878 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:
@@ -71,6 +75,10 @@ spec:
           env:
             - { name: TZ, value: Europe/Paris }
           ports: [{ name: http, containerPort: 8989 }]
+          readinessProbe:
+            httpGet: { path: /ping, port: 8989 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:
@@ -124,6 +132,10 @@ spec:
           env:
             - { name: TZ, value: Europe/Paris }
           ports: [{ name: http, containerPort: 9696 }]
+          readinessProbe:
+            httpGet: { path: /ping, port: 9696 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:
@@ -174,6 +186,10 @@ spec:
           env:
             - { name: TZ, value: Europe/Paris }
           ports: [{ name: http, containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /, port: 8080 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:
@@ -228,6 +244,10 @@ spec:
             - { name: CAPTCHA_SOLVER, value: none }
             - { name: TZ, value: Europe/Paris }
           ports: [{ name: http, containerPort: 8191 }]
+          readinessProbe:
+            httpGet: { path: /health, port: 8191 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 128Mi }
 ---
@@ -262,6 +282,10 @@ spec:
             - { name: LOG_LEVEL, value: info }
             - { name: TZ, value: Europe/Paris }
           ports: [{ name: http, containerPort: 5055 }]
+          readinessProbe:
+            httpGet: { path: /api/v1/status, port: 5055 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 192Mi }
           volumeMounts:
@@ -315,6 +339,10 @@ spec:
             - { name: TZ, value: Europe/Paris }
             - { name: WEBUI_PORTS, value: 8686/tcp }
           ports: [{ name: http, containerPort: 8686 }]
+          readinessProbe:
+            httpGet: { path: /ping, port: 8686 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 192Mi }
           volumeMounts:
@@ -371,6 +399,10 @@ spec:
           envFrom:
             - secretRef: { name: musiseerr }
           ports: [{ name: http, containerPort: 3000 }]
+          readinessProbe:
+            httpGet: { path: /health, port: 3000 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 64Mi }
 ---

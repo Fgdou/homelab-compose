@@ -30,6 +30,10 @@ spec:
           envFrom:
             - secretRef: { name: meshcentral }
           ports: [{ name: http, containerPort: 443 }]   # plain HTTP on 443: TLSOffload, TLS ends at Traefik
+          readinessProbe:
+            httpGet: { path: /health.ashx, port: 443 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:

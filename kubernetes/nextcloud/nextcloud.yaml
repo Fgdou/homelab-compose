@@ -40,6 +40,10 @@ spec:
           envFrom:
             - secretRef: { name: nextcloud }
           ports: [{ name: http, containerPort: 80 }]
+          readinessProbe:
+            httpGet: { path: /status.php, port: 80 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 50m, memory: 256Mi }
           volumeMounts:

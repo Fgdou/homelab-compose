@@ -15,6 +15,10 @@ spec:
         - name: firefox
           image: lscr.io/linuxserver/firefox:latest@sha256:19dc07ce33ca47db941d00fa31671be89ceca5b958de5e9647f87184621cb41c  # 1158.0build2-1xtradeb1.2404.1-ls130
           ports: [{ name: http, containerPort: 3000 }]
+          readinessProbe:
+            httpGet: { path: /, port: 3000 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 600Mi }
             limits: { memory: 3Gi }                   # includes the 1Gi /dev/shm below

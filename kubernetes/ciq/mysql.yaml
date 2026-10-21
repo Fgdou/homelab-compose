@@ -24,6 +24,9 @@ spec:
             - name: MYSQL_PASSWORD
               valueFrom: { secretKeyRef: { name: wordpress, key: MYSQL_PASSWORD } }
           ports: [{ name: mysql, containerPort: 3306 }]
+          readinessProbe:
+            exec: { command: [mysqladmin, ping] }
+            periodSeconds: 10
           resources:
             requests: { cpu: 20m, memory: 600Mi }
           volumeMounts:

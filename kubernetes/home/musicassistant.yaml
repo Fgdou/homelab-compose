@@ -26,6 +26,10 @@ spec:
           ports:
             - { name: http, containerPort: 8095 }
             - { name: stream, containerPort: 8097 }
+          readinessProbe:
+            httpGet: { path: /, port: 8095 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 50m, memory: 256Mi }
           volumeMounts:

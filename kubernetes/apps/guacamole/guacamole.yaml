@@ -17,6 +17,9 @@ spec:
         - name: guacd
           image: guacamole/guacd:1.6.0@sha256:8974eaa9ba32f713daf311e7cc8cd7e4cdfba1edea39eed75524e78ef4b08f4f
           ports: [{ name: guacd, containerPort: 4822 }]
+          readinessProbe:
+            tcpSocket: { port: 4822 }
+            periodSeconds: 10
           resources:
             requests: { cpu: 10m, memory: 32Mi }
           volumeMounts:
@@ -68,6 +71,10 @@ spec:
           envFrom:
             - secretRef: { name: guacamole }
           ports: [{ name: http, containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /guacamole/, port: 8080 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 256Mi }
 ---

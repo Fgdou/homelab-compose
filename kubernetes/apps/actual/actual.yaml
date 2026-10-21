@@ -20,6 +20,10 @@ spec:
             exec: { command: [node, src/scripts/health-check.js] }
             periodSeconds: 60
             timeoutSeconds: 10
+          readinessProbe:
+            httpGet: { path: /health, port: 5006 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 128Mi }
           volumeMounts:

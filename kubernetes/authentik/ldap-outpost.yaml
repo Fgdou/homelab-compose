@@ -25,6 +25,10 @@ spec:
           ports:
             - { name: ldap, containerPort: 3389 }
             - { name: ldaps, containerPort: 6636 }
+          readinessProbe:
+            httpGet: { path: /outpost.goauthentik.io/ping, port: 9300 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 40Mi }
 ---

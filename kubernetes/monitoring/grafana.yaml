@@ -35,6 +35,10 @@ spec:
           envFrom:
             - secretRef: { name: grafana }
           ports: [{ name: http, containerPort: 3000 }]
+          readinessProbe:
+            httpGet: { path: /api/health, port: 3000 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:

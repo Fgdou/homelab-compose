@@ -22,6 +22,10 @@ spec:
             - name: WORDPRESS_DB_PASSWORD
               valueFrom: { secretKeyRef: { name: wordpress, key: WORDPRESS_DB_PASSWORD } }
           ports: [{ name: http, containerPort: 80 }]
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:

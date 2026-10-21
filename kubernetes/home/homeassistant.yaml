@@ -25,6 +25,10 @@ spec:
             runAsUser: 0                 # was user: root:users
             runAsGroup: 100
           ports: [{ name: http, containerPort: 8123 }]
+          readinessProbe:
+            httpGet: { path: /manifest.json, port: 8123 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 100m, memory: 1Gi }
           volumeMounts:

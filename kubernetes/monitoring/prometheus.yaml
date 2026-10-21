@@ -46,6 +46,10 @@ spec:
             - --storage.tsdb.retention.time=60d
             - --web.enable-lifecycle
           ports: [{ name: http, containerPort: 9090 }]
+          readinessProbe:
+            httpGet: { path: /-/ready, port: 9090 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 100m, memory: 400Mi }
           volumeMounts:

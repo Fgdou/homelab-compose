@@ -33,6 +33,9 @@ spec:
           ports:
             - { name: minecraft, containerPort: 25565 }
             - { name: bluemap, containerPort: 8123 }
+          readinessProbe:
+            exec: { command: [mc-health] }
+            periodSeconds: 10
           resources:
             requests: { cpu: 200m, memory: 2Gi }
             limits: { memory: 5Gi }                   # MAX_MEMORY 4G + JVM overhead

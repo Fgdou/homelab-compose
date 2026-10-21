@@ -20,6 +20,10 @@ spec:
             - --path.rootfs=/rootfs
             - --path.sysfs=/host/sys
           ports: [{ name: metrics, containerPort: 9100 }]
+          readinessProbe:
+            httpGet: { path: /, port: 9100 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 32Mi }
           volumeMounts:

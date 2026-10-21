@@ -20,6 +20,9 @@ spec:
           ports:
             - { name: dns-udp, containerPort: 53, protocol: UDP }
             - { name: dns-tcp, containerPort: 53, protocol: TCP }
+          readinessProbe:
+            tcpSocket: { port: 53 }
+            periodSeconds: 10
           resources:
             requests: { cpu: 10m, memory: 32Mi }
           volumeMounts:

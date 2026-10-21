@@ -17,6 +17,9 @@ spec:
         - name: redis
           image: redis:8.6-alpine@sha256:2afba59292f25f5d1af200496db41bea2c6c816b059f57ae74703a50a03a27d0
           ports: [{ name: redis, containerPort: 6379 }]
+          readinessProbe:
+            exec: { command: [redis-cli, ping] }
+            periodSeconds: 10
           resources:
             requests: { cpu: 20m, memory: 64Mi }
 ---

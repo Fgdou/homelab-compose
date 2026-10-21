@@ -29,6 +29,10 @@ spec:
           ports:
             - { name: http, containerPort: 5030 }
             - { name: soulseek, containerPort: 50300 }
+          readinessProbe:
+            httpGet: { path: /health, port: 5030 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 192Mi }
           volumeMounts:

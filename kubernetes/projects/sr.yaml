@@ -16,6 +16,10 @@ spec:
         - name: sr
           image: ghcr.io/fgdou/sr_project:master@sha256:91a9a5da92f035b05f1dd1acab1bcc377fe839b8982c234a4a04b961a9fcc350
           ports: [{ name: http, containerPort: 80 }]
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 32Mi }
           volumeMounts:

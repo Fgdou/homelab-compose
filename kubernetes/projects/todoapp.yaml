@@ -22,6 +22,10 @@ spec:
           envFrom:
             - secretRef: { name: todoapp }
           ports: [{ name: http, containerPort: 80 }]
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 10m, memory: 64Mi }
           volumeMounts:

@@ -21,6 +21,10 @@ spec:
           securityContext:
             privileged: true             # access to /dev/ttyACM0
           ports: [{ name: http, containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /, port: 8080 }
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
           volumeMounts:
