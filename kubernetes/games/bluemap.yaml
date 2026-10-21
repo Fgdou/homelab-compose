@@ -1,0 +1,56 @@
+# BlueMap web app + tiles from disk, online while the server sleeps. The plugin keeps rendering into
+# /data/minecraft/bluemap/web while the server runs; live/ is proxied to it (Service bluemap-live).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bluemap-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: bluemap-web }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: bluemap-web }
+    spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
+      containers:
+        - name: nginx
+          image: nginx:1.30-alpine@sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
+          ports:
+            - { name: http, containerPort: 8080 }
+          readinessProbe:
+            httpGet: { path: /, port: 8080 }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 5m, memory: 16Mi }
+            limits: { memory: 64Mi }
+          volumeMounts:
+            - { name: config, mountPath: /etc/nginx/conf.d }
+            - { name: data, mountPath: /bluemap, subPath: bluemap/web, readOnly: true }
+      volumes:
+        - { name: config, configMap: { name: bluemap-web } }
+        # same PVC as the server: a local RWO PV can be mounted by several pods on the same node
+        - { name: data, persistentVolumeClaim: { claimName: minecraft, readOnly: true } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bluemap
+  namespace: games
+spec:
+  selector: { app.kubernetes.io/name: bluemap-web }
+  ports:
+    - { name: http, port: 8080, targetPort: 8080 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bluemap
+  namespace: games
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`minecraft.fgdou.ovh`)
+      kind: Rule
+      services: [{ name: bluemap, port: 8080 }]

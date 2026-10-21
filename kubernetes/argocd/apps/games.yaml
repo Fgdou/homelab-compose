@@ -10,5 +10,8 @@ spec:
     targetRevision: main
     path: kubernetes/games
   destination: { server: https://kubernetes.default.svc, namespace: games }
+  ignoreDifferences:                              # mc-router scales minecraft 0 <-> 1 (games/SCALE-TO-ZERO.md)
+    - { group: apps, kind: StatefulSet, name: minecraft, namespace: games, jsonPointers: [/spec/replicas] }
   syncPolicy:
     automated: { prune: false, selfHeal: true }   # since 2026-10-21 (stack verified)
+    syncOptions: [RespectIgnoreDifferences=true]

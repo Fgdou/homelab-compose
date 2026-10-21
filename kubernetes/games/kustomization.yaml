@@ -4,3 +4,8 @@ namespace: games
 resources:
   - storage.yaml
   - minecraft.yaml
+  - mc-router.yaml
+  - bluemap.yaml
+configMapGenerator:
+  - name: bluemap-web
+    files: [default.conf=bluemap-web.conf]

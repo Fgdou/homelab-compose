@@ -1,10 +1,12 @@
+# Scaled 0 <-> 1 by mc-router (mc-router.yaml), see SCALE-TO-ZERO.md.
+# StatefulSet because mc-router only scales those; name and serviceName must both be "minecraft".
+# No spec.replicas: mc-router owns it (games.yaml also ignores /spec/replicas).
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: minecraft
 spec:
-  replicas: 1
-  strategy: { type: Recreate }
+  serviceName: minecraft
   selector:
     matchLabels: { app.kubernetes.io/name: minecraft }
   template:
@@ -12,6 +14,7 @@ spec:
       labels: { app.kubernetes.io/name: minecraft }
     spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
+      terminationGracePeriodSeconds: 90   # mc-server-runner --stop-duration 60s; the default 30 s killed slow saves
       containers:
         - name: minecraft
           image: itzg/minecraft-server:latest@sha256:bb1cf73b342bdf6fa03b9d689b699bd1f8c6989f81ea07d520985eb2f18e6f30  # Paper 26.3 (VERSION env)
@@ -23,18 +26,12 @@ spec:
             - { name: VERSION, value: "26.3" }
             - { name: TYPE, value: PAPER }
             - { name: MAX_MEMORY, value: 4G }
-            - { name: ENABLE_AUTOPAUSE, value: "true" }
-            - { name: JVM_DD_OPTS, value: "disable.watchdog:true" }
-            - { name: MAX_TICK_TIME, value: "-1" }
-            - { name: AUTOPAUSE_TIMEOUT_EST, value: "10" }
-            - { name: AUTOPAUSE_TIMEOUT_INIT, value: "10" }
-            - { name: AUTOPAUSE_TIMEOUT_KN, value: "10" }
-            - { name: STOP_SERVER_ANNOUNCE_DELAY, value: "10" }
+            - { name: STOP_SERVER_ANNOUNCE_DELAY, value: "0" }   # nobody is online at scale-down
             - { name: ENABLE_WHITELIST, value: "true" }
           ports:
             - { name: minecraft, containerPort: 25565 }
             - { name: bluemap, containerPort: 8123 }
-          readinessProbe:
+          readinessProbe:                             # tells mc-router the backend is ready
             exec: { command: [mc-health] }
             periodSeconds: 10
           resources:
@@ -50,30 +47,23 @@ kind: Service
 metadata:
   name: minecraft
   namespace: games
+  annotations:
+    mc-router.itzg.me/externalServerName: mc.fgdou.ovh
+    mc-router.itzg.me/defaultServer: "true"           # any hostname / plain IP is routed here
+    mc-router.itzg.me/autoScaleWaitTimeout: "30s"     # the client gives up after 30 s anyway
 spec:
-  type: LoadBalancer                              # was ports: 25566:25565
+  type: ClusterIP                                 # players come through mc-router (LB 25566)
   selector: { app.kubernetes.io/name: minecraft }
   ports:
-    - { name: minecraft, port: 25566, targetPort: 25565 }
+    - { name: minecraft, port: 25565, targetPort: 25565 }
 ---
+# BlueMap plugin webserver, only used by bluemap-web for live/ (player positions) while the server runs
 apiVersion: v1
 kind: Service
 metadata:
-  name: bluemap
+  name: bluemap-live
   namespace: games
 spec:
   selector: { app.kubernetes.io/name: minecraft }
   ports:
     - { name: http, port: 8123, targetPort: 8123 }
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: bluemap
-  namespace: games
-spec:
-  entryPoints: [websecure]
-  routes:
-    - match: Host(`minecraft.fgdou.ovh`)
-      kind: Rule
-      services: [{ name: bluemap, port: 8123 }]

@@ -1,0 +1,74 @@
+# Minecraft entry point: routes to Service minecraft and scales StatefulSet minecraft 0 <-> 1 (SCALE-TO-ZERO.md)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mc-router
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mc-router
+rules:
+  - apiGroups: [""]
+    resources: [services]
+    verbs: [watch, list]
+  - apiGroups: [apps]
+    resources: [statefulsets]
+    verbs: [watch, list, patch]
+  - apiGroups: [apps]
+    resources: [statefulsets/scale]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mc-router
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: mc-router }
+subjects:
+  - { kind: ServiceAccount, name: mc-router, namespace: games }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mc-router
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: mc-router }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: mc-router }
+    spec:
+      serviceAccountName: mc-router
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
+      containers:
+        - name: mc-router
+          image: itzg/mc-router:1.49.0@sha256:76697861c41e7d64880accf0d25e953a3c2d871e6f5f0922d7c830ffcb2b75ab
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
+          args:
+            - -in-kube-cluster
+            - -kube-namespace=games
+            - -auto-scale-up
+            - -auto-scale-down
+            - -auto-scale-down-after=10m
+            - "-auto-scale-asleep-motd=Asleep: join to wake me up"
+            - "-auto-scale-loading-motd=Starting, reconnect in ~30 s"
+          ports:
+            - { name: minecraft, containerPort: 25565 }
+          readinessProbe:
+            tcpSocket: { port: 25565 }
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mc-router
+  namespace: games
+spec:
+  type: LoadBalancer                              # took over 25566 from Service minecraft
+  selector: { app.kubernetes.io/name: mc-router }
+  ports:
+    - { name: minecraft, port: 25566, targetPort: 25565 }
