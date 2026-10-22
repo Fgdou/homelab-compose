@@ -13,7 +13,8 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: speedtest
-          image: ghcr.io/librespeed/speedtest:5.4@sha256:0e0d9c8c2e5aa362164cf0bf25a48a606b5701f6bc7fa1695975b687aaec26a9  # 5.4.1
+          image: ghcr.io/librespeed/speedtest:6.3.1@sha256:bc34bf69b6c102b23ab81b6e77beb7cce321fb0d3be33ec6e80edef3e9dd8bab
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: MODE, value: standalone }
             - { name: TITLE, value: Fgdou Speedtest }

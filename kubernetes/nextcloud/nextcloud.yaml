@@ -14,7 +14,8 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: nextcloud
-          image: nextcloud:33.0.5@sha256:fe5166b04f217c9e3a263bfe76eef5e13de0dd3919966827de1b47bae2308b01
+          image: nextcloud:34.0.5@sha256:9dbdc711cef21e1767a6e45a97e318e654d9e2ab2c1f1c570bb9cafc94529a18
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           # Same as compose: wait for authentik (OIDC) before starting apache.
           # Goes through the image's entrypoint so a new image version rsyncs the code
           # into /var/www/html and runs `occ upgrade` (data/, config/, custom_apps/ kept).
@@ -58,7 +59,8 @@ spec:
         # `docker compose -f nextcloud.yml exec -u www-data nextcloud php cron.php`.
         # /cron.sh is the image's busybox crond running cron.php as www-data every 5 min.
         - name: cron
-          image: nextcloud:33.0.5@sha256:fe5166b04f217c9e3a263bfe76eef5e13de0dd3919966827de1b47bae2308b01
+          image: nextcloud:34.0.5@sha256:9dbdc711cef21e1767a6e45a97e318e654d9e2ab2c1f1c570bb9cafc94529a18
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           command: [/cron.sh]
           env:
             - { name: TRUSTED_PROXIES, value: "10.0.0.0/8 172.16.0.0/8" }

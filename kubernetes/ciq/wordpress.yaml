@@ -14,7 +14,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: wordpress
-          image: wordpress:latest@sha256:0324d403512533271f85831518d0d8618ae794f8d50e40103cbac473119188af
+          image: wordpress:7.1.3@sha256:d42f63cb89ad0eab272c4b393164e63830d0df270009907919f7dcce52b1a20b
           imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: WORDPRESS_DB_HOST, value: mysql }
