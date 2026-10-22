@@ -40,7 +40,9 @@ player ──► 10.0.0.2:25566 (LoadBalancer mc-router) ──► mc-router ─
 - **Service `minecraft`**: becomes `ClusterIP` (port 25565) with only the annotation `mc-router.itzg.me/defaultServer: "true"`
   (every hostname and plain IP is routed). Don't add `externalServerName`: mc-router 1.49 then ignores `defaultServer`
   and connections by IP are reset (seen 2026-10-21).
-  `mc-router.itzg.me/autoScaleWaitTimeout: "30s"` (the client gives up after 30 s anyway; 2m was tried on 2026-10-21 and reverted).
+  `mc-router.itzg.me/autoScaleWaitTimeout: "2m"` (30s until 2026-10-22). The client still gives up after ~30 s; a longer wait
+  lets mc-router reach the started server, so the scale-down timer is armed even if the client never reconnects. With 30s, a
+  bot login (empty username) on 2026-10-22 woke the server, the wait timed out, and it never scaled down.
 - **Deployment `minecraft` → StatefulSet `minecraft`**: mc-router only scales StatefulSets. `metadata.name` and
   `spec.serviceName` must both be `minecraft`, or scaling never triggers. No `volumeClaimTemplates`: it keeps
   mounting the existing PVC `minecraft` (PV `games-minecraft`, unchanged).

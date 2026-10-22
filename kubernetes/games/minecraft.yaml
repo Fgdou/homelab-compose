@@ -50,7 +50,7 @@ metadata:
   annotations:
     # default route only: mc-router 1.49 ignores defaultServer when externalServerName is set
     mc-router.itzg.me/defaultServer: "true"           # any hostname / plain IP is routed here
-    mc-router.itzg.me/autoScaleWaitTimeout: "30s"     # the client gives up after 30 s anyway
+    mc-router.itzg.me/autoScaleWaitTimeout: "2m"      # longer than a cold start, so the scale-down timer is armed even if the client gave up
 spec:
   type: ClusterIP                                 # players come through mc-router (LB 25566)
   selector: { app.kubernetes.io/name: minecraft }
