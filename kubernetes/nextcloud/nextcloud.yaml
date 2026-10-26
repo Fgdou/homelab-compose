@@ -28,6 +28,8 @@ spec:
               if [ -f $f ] && ! grep -q num_prespawn_children $f; then
                 sed -i 's|^\( *\)\$options\[\] = "--pidfile=|\1$options[] = "--o:num_prespawn_children=1";\n&|' $f;
               fi;
+              # PHP CVE-2026-109619 / CVE-2026-115560 (Oct 2026): mitigation until a PHP fix ships.
+              echo 'session.upload_progress.enabled = 0' > /usr/local/etc/php/conf.d/zz-cve-upload-progress.ini;
               until curl -fsS https://auth.fgdou.ovh/-/health/ready/; do
                 echo "Waiting for oauth2..."; sleep 5;
               done;

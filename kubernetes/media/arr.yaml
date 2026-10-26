@@ -282,8 +282,8 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: jellyseerr
-          image: fallenbagel/jellyseerr:latest@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764
-          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
+          image: fallenbagel/jellyseerr:v3.5.1   # TODO digest (Node 22.23.4, CVE-2026-111497)
+          imagePullPolicy: IfNotPresent   # cached after first pull: no registry/DNS needed at boot
           env:
             - { name: LOG_LEVEL, value: info }
             - { name: TZ, value: Europe/Paris }

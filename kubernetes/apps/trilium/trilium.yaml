@@ -14,7 +14,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: trilium
-          image: triliumnext/trilium:v0.102.2@sha256:f1a2fd88e7032d60f863231ce94348e906bcd6a5fa043801badd5896c20c064d
+          image: triliumnext/trilium:v0.106.1   # TODO digest (Node 24.22.1, CVE-2026-111497)
           env:
             - { name: TRILIUM_DATA_DIR, value: /home/node/trilium-data }
             - { name: TRILIUM_NETWORK_TRUSTEDREVERSEPROXY, value: 10.42.0.0/16 }   # was 172.18.0.0/16
