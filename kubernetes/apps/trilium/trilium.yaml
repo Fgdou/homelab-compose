@@ -50,7 +50,11 @@ metadata:
 spec:
   entryPoints: [websecure]
   routes:
-    - match: Host(`trilium.fgdou.ovh`)
+    - match: Host(`trilium.fgdou.ovh`) && !(PathPrefix(`/share`) || PathPrefix(`/assets/`) || Path(`/favicon.ico`))
       kind: Rule
       middlewares: [{ name: authentik, namespace: authentik }]
+      services: [{ name: trilium, port: 8080 }]
+    # public sharing: /share serves only notes under the share root (+ /share/api), /assets is the static bundle
+    - match: Host(`trilium.fgdou.ovh`) && (PathPrefix(`/share`) || PathPrefix(`/assets/`) || Path(`/favicon.ico`))
+      kind: Rule
       services: [{ name: trilium, port: 8080 }]
