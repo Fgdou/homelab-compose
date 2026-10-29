@@ -35,6 +35,7 @@ metadata:
   name: sablier
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: sablier }
   template:

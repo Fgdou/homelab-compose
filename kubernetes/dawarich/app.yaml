@@ -4,6 +4,7 @@ metadata:
   name: dawarich-app
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: dawarich-app }
@@ -70,6 +71,7 @@ metadata:
   name: dawarich-sidekiq
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: dawarich-sidekiq }

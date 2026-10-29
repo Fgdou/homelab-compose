@@ -4,6 +4,7 @@ metadata:
   name: radarr
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: radarr }
@@ -62,6 +63,7 @@ metadata:
   name: sonarr
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: sonarr }
@@ -120,6 +122,7 @@ metadata:
   name: prowlarr
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: prowlarr }
@@ -175,6 +178,7 @@ metadata:
   name: qbittorrent
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: qbittorrent }
@@ -232,6 +236,7 @@ metadata:
   name: flaresolverr
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: flaresolverr }
   template:
@@ -272,6 +277,7 @@ metadata:
   name: jellyseerr
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: jellyseerr }
@@ -329,6 +335,7 @@ metadata:
   name: lidarr
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: lidarr }
@@ -393,6 +400,7 @@ metadata:
   name: musiseerr
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: musiseerr }
   template:

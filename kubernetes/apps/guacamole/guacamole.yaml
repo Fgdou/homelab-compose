@@ -4,6 +4,7 @@ metadata:
   name: guacd
   labels: { sablier.enable: "true", sablier.group: guacamole }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: guacd }
@@ -44,6 +45,7 @@ metadata:
   name: guacamole
   labels: { sablier.enable: "true", sablier.group: guacamole }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: guacamole }
   template:

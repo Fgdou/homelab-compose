@@ -4,6 +4,7 @@ metadata:
   name: blackbox
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: blackbox }
   template:
@@ -40,6 +41,7 @@ metadata:
   name: json-exporter
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: json-exporter }
   template:
@@ -80,6 +82,7 @@ metadata:
   name: jellyfin-exporter
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: jellyfin-exporter }
   template:
@@ -119,6 +122,7 @@ metadata:
   name: postgres-exporter
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: postgres-exporter }
   template:
@@ -159,6 +163,7 @@ metadata:
   name: s3-exporter
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   selector:
     matchLabels: { app.kubernetes.io/name: s3-exporter }
   template:

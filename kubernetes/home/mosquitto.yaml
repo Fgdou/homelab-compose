@@ -4,6 +4,7 @@ metadata:
   name: mosquitto
 spec:
   replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: mosquitto }

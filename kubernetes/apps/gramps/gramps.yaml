@@ -5,6 +5,7 @@ metadata:
   name: grampsweb
   labels: { sablier.enable: "true", sablier.group: grampsweb }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: grampsweb }
@@ -94,6 +95,7 @@ metadata:
   name: grampsweb-celery
   labels: { sablier.enable: "true", sablier.group: grampsweb }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
 spec:
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
   strategy: { type: Recreate }
   selector:
     matchLabels: { app.kubernetes.io/name: grampsweb-celery }
