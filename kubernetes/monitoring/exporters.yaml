@@ -89,7 +89,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: jellyfin-exporter
-          image: rebelcore/jellyfin-exporter:latest@sha256:b90a980524e93a153294459f718bea6f3bf33b29b23b78f577c6c61286c9e26f
+          image: rebelcore/jellyfin-exporter:v1.6.0@sha256:d1985ef9ad50b8924e74ee1dd12accd64936a65150375a8e190c2293b6e2678c
           imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           args:
             - --jellyfin.address=http://jellyfin.jellyfin:8096

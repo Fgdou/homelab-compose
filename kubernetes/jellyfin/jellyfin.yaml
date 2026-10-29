@@ -16,7 +16,8 @@ spec:
         supplementalGroups: [105]       # host "render" group → /dev/dri/renderD128 (VAAPI)
       containers:
         - name: jellyfin
-          image: ghcr.io/linuxserver/jellyfin:10.11.6@sha256:aae645d1ff11c42b1d2d3b80694e34e0e1ea4a51879900843c8ab6e8b127a32a  # 10.11.6ubu2404-ls23
+          image: ghcr.io/linuxserver/jellyfin:12.4@sha256:3894d9eae88418d3cf9ac6349392d2c4dad818365a59565d19edc38098897044  # 12.4ubu2604-ls57
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: TZ, value: Europe/Paris }
           ports: [{ name: http, containerPort: 8096 }]
