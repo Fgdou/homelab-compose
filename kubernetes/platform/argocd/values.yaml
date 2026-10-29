@@ -27,7 +27,7 @@ applicationSet:
 controller:
   resources:
     requests: { cpu: 100m, memory: 256Mi }
-    limits: { memory: 768Mi }      # §9: keep a big sync from starving the apps
+    limits: { memory: 1536Mi }     # §9: keep a big sync from starving the apps; 768Mi OOM-looped syncing ~27 apps at once (2026-10-29)
 repoServer:
   resources:
     requests: { cpu: 50m, memory: 128Mi }
