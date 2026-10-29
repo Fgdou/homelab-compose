@@ -282,8 +282,10 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: jellyseerr
-          image: fallenbagel/jellyseerr:v3.5.1   # TODO digest (Node 22.23.4, CVE-2026-111497)
-          imagePullPolicy: IfNotPresent   # cached after first pull: no registry/DNS needed at boot
+          # Jellyseerr was renamed Seerr: v3+ only exists as ghcr.io/seerr-team/seerr (Node 22.23.4, CVE-2026-111497).
+          # Runs as node (uid 1000): /films/jellyseerr must be owned by 1000:1000.
+          image: ghcr.io/seerr-team/seerr:v3.5.1@sha256:d8fab675b55ad293ded98fd71efcfd46054cbad9746534ae1cc4794a88c0b3be
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: LOG_LEVEL, value: info }
             - { name: TZ, value: Europe/Paris }
