@@ -85,6 +85,7 @@ spec:
             timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 128Mi }
+            limits: { memory: 512Mi }   # ~160Mi anon; the rest is page cache (logs.db), reclaimed under the limit
           volumeMounts:
             - { name: config, mountPath: /config }
             - { name: films, mountPath: /tv, subPath: series }
