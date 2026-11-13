@@ -1,4 +1,4 @@
-# Chart openbao/openbao 0.30.4 (OpenBao 2.7.1). Single node, integrated (raft) storage on /data/openbao.
+# Chart openbao/openbao 0.30.7 (OpenBao 2.7.2). Single node, integrated (raft) storage on /data/openbao.
 injector:
   enabled: false
 server:

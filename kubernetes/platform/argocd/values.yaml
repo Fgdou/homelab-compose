@@ -1,4 +1,4 @@
-# Chart argo/argo-cd 10.10.5 (Argo CD v3.5.5)
+# Chart argo/argo-cd 10.18.0 (Argo CD v3.6.1)
 configs:
   params:
     server.insecure: true          # TLS is terminated by Traefik

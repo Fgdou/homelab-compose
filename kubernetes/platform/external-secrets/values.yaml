@@ -1,4 +1,4 @@
-# Chart external-secrets/external-secrets 2.13.0
+# Chart external-secrets/external-secrets 2.15.0
 installCRDs: true
 resources:
   requests: { cpu: 10m, memory: 64Mi }
