@@ -3,7 +3,7 @@
 Kubernetes manifests for the NAS (k3s, single node `nas`), replacing the Docker compose files in the repository root.
 The plan and every decision behind it are in [MIGRATION.md](MIGRATION.md). Secrets: [OPENBAO-KEYS.md](OPENBAO-KEYS.md).
 
-Status: **Phase 4 done** (2026-10-21) — k3s `v1.36.5+k3s1` runs every stack (Traefik on 80/443/22, mail, bind9, games); Docker stays enabled but empty, as the fallback. Argo CD follows the `main` branch over HTTPS (`kube` merged 2026-10-21); OpenBao, External Secrets, cert-manager, Image Updater. Phase 5 step 1 (readiness probes) done 2026-10-21; step 2 (Jellyfin VAAPI) optional (MIGRATION.md §11). UIs (LAN only, authentik OIDC): `https://bao.fgdou.ovh`, `https://argocd.fgdou.ovh`.
+Status: **Phase 4 done** (2026-10-21) — k3s `v1.37.2+k3s1` (upgraded 2026-11-13) runs every stack (Traefik on 80/443/22, mail, bind9, games); Docker stays enabled but empty, as the fallback. Argo CD follows the `main` branch over HTTPS (`kube` merged 2026-10-21); OpenBao, External Secrets, cert-manager, Image Updater. Phase 5 step 1 (readiness probes) done 2026-10-21; step 2 (Jellyfin VAAPI) optional (MIGRATION.md §11). UIs (LAN only, authentik OIDC): `https://bao.fgdou.ovh`, `https://argocd.fgdou.ovh`.
 
 ## Layout
 
@@ -57,7 +57,7 @@ Last run (2026-10-20): 22 Kustomize folders and 8 charts render; 470 resources v
 Order matters: OpenBao and External Secrets must not depend on secrets served by OpenBao.
 
 0. Host tuning (done 2026-10-20, found during Phase 3): `sudo cp bootstrap/sysctl-90-inotify.conf /etc/sysctl.d/90-inotify.conf && sudo /usr/sbin/sysctl -p /etc/sysctl.d/90-inotify.conf` — k3s + Docker exhausted root's 128 inotify instances (lubelogger crashed, Docker's containerd logged `inotify fd: too many open files`).
-1. Install k3s `v1.36.5+k3s1` (done 2026-10-20):
+1. Install k3s `v1.36.5+k3s1` (done 2026-10-20; upgraded to `v1.37.2+k3s1` on 2026-11-13, see "Upgrade k3s" below):
    ```sh
    sudo mkdir -p /etc/rancher/k3s /var/lib/rancher/k3s/server/manifests /data/openbao /data/k8s /films/k8s
    sudo install -m 0644 bootstrap/k3s-config.yaml /etc/rancher/k3s/config.yaml
@@ -68,6 +68,14 @@ Order matters: OpenBao and External Secrets must not depend on secrets served by
    export KUBECONFIG=~/.kube/config   # k3s' kubectl otherwise reads the root-only /etc/rancher/k3s/k3s.yaml
    ```
    k3s re-applies `/var/lib/rancher/k3s/server/manifests/traefik-config.yaml` on every start: keep it identical to `cluster/base/traefik-config.yaml` (Phase 4 port change included).
+   **Upgrade k3s** (one minor version at a time; same installer, it keeps `/etc/rancher/k3s/config.yaml` and the `k3s.service.d/10-mounts.conf` drop-in; workloads keep running while k3s restarts):
+   ```sh
+   curl -s https://update.k3s.io/v1-release/channels | jq -r '.data[] | select(.id=="stable") | .latest'   # target version
+   kubectl get --raw /metrics | grep apiserver_requested_deprecated_apis   # check removed_release before a minor bump
+   sudo k3s etcd-snapshot save --name pre-<version>                          # in /var/lib/rancher/k3s/server/db/snapshots
+   curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION=<version> sh -
+   kubectl get nodes; kubectl -n kube-system get jobs   # helm-install-traefik* re-run when the bundled chart changes
+   ```
 2. `kubectl apply --server-side -k cluster/base` and `kubectl apply --server-side -k platform/local-path` (done 2026-10-20). Server-side apply leaves the k3s-managed Traefik `HelmChartConfig` untouched when it is identical.
 3. Install the platform charts with Helm, same versions and values as `argocd/available/platform-*.yaml` (OpenBao, External Secrets, cert-manager), plus `kubectl apply -k platform/openbao` for its PV.
 4. OpenBao (done 2026-10-20 for OpenBao itself; ESO and cert-manager charts are steps 4–5). Helm v4.3.1 is installed in `/usr/local/bin`.

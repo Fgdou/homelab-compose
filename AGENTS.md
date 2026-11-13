@@ -6,7 +6,7 @@ secret paths in [kubernetes/OPENBAO-KEYS.md](kubernetes/OPENBAO-KEYS.md), status
 
 ## What runs where
 
-- One host, `nas` (Debian 12, 10.0.0.2), single-node **k3s** `v1.36.5+k3s1` with embedded etcd. Every service runs on k3s
+- One host, `nas` (Debian 12, 10.0.0.2), single-node **k3s** `v1.37.2+k3s1` with embedded etcd. Every service runs on k3s
   (migration done 2026-10-21); Traefik (k3s) owns 22/80/443, plus LoadBalancers (klipper) for mail, bind9 (53), minecraft, slskd.
 - `docker-old/` = the former compose files, kept for reference/rollback only. Docker is installed but currently
   **disabled and stopped** (seen 2026-10-21). Don't start, stop, enable or disable it without asking the user.
