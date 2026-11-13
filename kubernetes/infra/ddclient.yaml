@@ -15,7 +15,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: ddclient
-          image: lscr.io/linuxserver/ddclient:3.11.2@sha256:56c4f0cef0a05fa784204a9f862220228874f2063e4d99b2b4d71b5468923064  # v3.11.2-ls184
+          image: lscr.io/linuxserver/ddclient:v4.0.0-ls238@sha256:8daff71cbdc8ef9b9e2db35617dcff250f3f219fe3f8110940107ceed0f9eb7b
           env:
             - { name: PUID, value: "1000" }
             - { name: PGID, value: "1000" }
