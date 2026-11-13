@@ -16,7 +16,7 @@ spec:
       securityContext: { runAsUser: 0, runAsGroup: 100 }   # was user: root:users
       containers:
         - name: vaultwarden
-          image: vaultwarden/server:1.37.1@sha256:ebdfe70701c60ac0c28c697e787cea767d7972940b786037b29fe0d507f821e8
+          image: vaultwarden/server:1.37.5@sha256:4fe17f415f90087377d37c755e0ea3cf189dcc6794e49cdd2a9adbb4937d9e1f
           env:
             - { name: DOMAIN, value: https://vaultwarden.fgdou.ovh }
             - { name: SIGNUPS_ALLOWED, value: "false" }

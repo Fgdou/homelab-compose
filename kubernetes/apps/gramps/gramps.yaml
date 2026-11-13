@@ -16,7 +16,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: grampsweb
-          image: ghcr.io/gramps-project/grampsweb:26.10.1@sha256:4348222c2ab2f5c53f15e7e170bd8b17db1c1691326e0e72b0d0d6df87724b94
+          image: ghcr.io/gramps-project/grampsweb:26.11.2@sha256:80a1d75ca0f67f9203aecca60f7639312a2769fe0af45b34608b0add64f7c07f
           env:
             - { name: GRAMPSWEB_TREE, value: Fabien GOARDOU }
             - { name: GRAMPSWEB_CELERY_CONFIG__broker_url, value: "redis://redis.databases:6379/0" }
@@ -106,7 +106,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: celery
-          image: ghcr.io/gramps-project/grampsweb:26.10.1@sha256:4348222c2ab2f5c53f15e7e170bd8b17db1c1691326e0e72b0d0d6df87724b94
+          image: ghcr.io/gramps-project/grampsweb:26.11.2@sha256:80a1d75ca0f67f9203aecca60f7639312a2769fe0af45b34608b0add64f7c07f
           command: [celery, -A, gramps_webapi.celery, worker, --loglevel=INFO, --concurrency=2]   # default = CPU count
           env:
             - { name: GRAMPSWEB_TREE, value: Fabien GOARDOU }

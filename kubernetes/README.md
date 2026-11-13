@@ -42,7 +42,7 @@ Status: **Phase 4 done** (2026-10-21) — k3s `v1.36.5+k3s1` runs every stack (T
 for d in cluster/* platform/* databases databases/redis authentik monitoring media home immich dawarich gitea mail nextcloud apps/* projects games infra ciq; do
   [ -f $d/kustomization.yaml ] && kustomize build $d > /tmp/render-$(echo $d | tr / -).yaml
 done
-helm template authentik authentik/authentik --version 2026.8.4 -n authentik -f authentik/values.yaml > /tmp/render-chart-authentik.yaml
+helm template authentik authentik/authentik --version 2026.8.5 -n authentik -f authentik/values.yaml > /tmp/render-chart-authentik.yaml
 helm template immich immich/immich --version 0.12.0 -n immich -f immich/values.yaml > /tmp/render-chart-immich.yaml
 kubeconform -strict -summary -skip CustomResourceDefinition,ImageUpdater \
   -schema-location default \

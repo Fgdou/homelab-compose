@@ -15,7 +15,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: warracker
-          image: ghcr.io/sassanix/warracker/main:1.0.2@sha256:9a0aa0e57a4635e0955cea4d13abe89fd65d10625ee95836ec14ae0789884f22
+          image: ghcr.io/sassanix/warracker/main:1.0.6@sha256:8a59ead00c8c4c6df28c1ad3abd5d6de72cb2bab57f294413e1492f57672170c
           env:
             - { name: DB_HOST, value: postgres.databases }
             - { name: DB_NAME, value: warracker }

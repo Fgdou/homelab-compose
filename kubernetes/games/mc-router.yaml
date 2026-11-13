@@ -44,7 +44,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: mc-router
-          image: itzg/mc-router:1.49.0@sha256:76697861c41e7d64880accf0d25e953a3c2d871e6f5f0922d7c830ffcb2b75ab
+          image: itzg/mc-router:1.56.1@sha256:f176b4295163e99e129c00987877e07a58bf23635688c601388200f82f621123
           imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           args:
             - -in-kube-cluster

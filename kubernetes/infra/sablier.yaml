@@ -46,7 +46,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: sablier
-          image: sablierapp/sablier:1.18.0@sha256:c00c8a01c8c809dd258a8b362ad8ba9a9227753fc9857ae7506fd427175e038c
+          image: sablierapp/sablier:1.21.0@sha256:10736085e548adbed386c47c7a39f6f904715166a3bba5368f03f2eb8c432f7a
           imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           args:
             - start
