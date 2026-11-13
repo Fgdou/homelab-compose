@@ -51,6 +51,8 @@ spec:
           args:
             - start
             - --provider.name=kubernetes
+            # default `replicas` released requests ~1 s after scale-up on 1.21 (guacamole 502s): wait for ready endpoints
+            - --provider.kubernetes.readiness=endpoints
             - --sessions.default-duration=30m
             - --sessions.expiration-interval=1m
             - --strategy.dynamic.default-theme=ghost

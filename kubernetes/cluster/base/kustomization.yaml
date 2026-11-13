@@ -6,6 +6,7 @@ resources:
   - traefik-config.yaml
   - traefik-metrics.yaml
   - lan-only.yaml
+  - sablier-readiness.yaml
 # Sablier Traefik plugin v1.3.1 (github.com/sablierapp/sablier-traefik-plugin), vendored so Traefik never downloads it
 # (no DNS at boot). Fixed name: referenced from traefik-config.yaml. After changing the files, restart Traefik.
 configMapGenerator:
