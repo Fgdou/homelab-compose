@@ -15,7 +15,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: app
-          image: freikin/dawarich:1.16.0@sha256:b533e6eac4464d55479d030229cf9487f338972cdb88924e8060ca759d0e28b8
+          image: freikin/dawarich:1.22.0@sha256:b8ee8d9fdff92a9d6ca570f98e0e875624f4bfb24b61363f8246bba124d5849d
           command: [web-entrypoint.sh]
           args: [bin/rails, server, -p, "3000", -b, "::"]
           stdin: true
@@ -82,7 +82,7 @@ spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       containers:
         - name: sidekiq
-          image: freikin/dawarich:1.16.0@sha256:b533e6eac4464d55479d030229cf9487f338972cdb88924e8060ca759d0e28b8
+          image: freikin/dawarich:1.22.0@sha256:b8ee8d9fdff92a9d6ca570f98e0e875624f4bfb24b61363f8246bba124d5849d
           command: [sidekiq-entrypoint.sh]
           args: [sidekiq]
           stdin: true
