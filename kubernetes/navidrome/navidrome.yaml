@@ -16,7 +16,7 @@ spec:
       securityContext: { runAsUser: 1000, runAsGroup: 1000 }
       containers:
         - name: navidrome
-          image: deluan/navidrome:0.58.5@sha256:648ebd45c50c58edc7ad9f0cc3b4411a1bece16c81f0b3630a0ab0a739c6d7ec
+          image: deluan/navidrome:0.64.2@sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52
           env:
             - { name: ND_REVERSEPROXYWHITELIST, value: 0.0.0.0/0 }
             - { name: ND_REVERSEPROXYUSERHEADER, value: X-authentik-username }
