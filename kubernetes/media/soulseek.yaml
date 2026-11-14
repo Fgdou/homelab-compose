@@ -37,6 +37,7 @@ spec:
             timeoutSeconds: 5
           resources:
             requests: { cpu: 20m, memory: 192Mi }
+            limits: { cpu: 500m }   # a search pegs 1-1.5 cores for ~30 s; capped, searches just take longer
           volumeMounts:
             - { name: app, mountPath: /app }
             - { name: music, mountPath: /music, readOnly: true }
@@ -103,7 +104,7 @@ spec:
           imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: TZ, value: Europe/Paris }
-            - { name: SCRIPT_INTERVAL, value: "36000" }
+            - { name: SCRIPT_INTERVAL, value: "3600" }   # seconds between runs (1 h)
           resources:
             requests: { cpu: 10m, memory: 64Mi }
           volumeMounts:
