@@ -23,7 +23,7 @@ spec:
             - { name: SLSKD_NO_AUTH, value: "true" }
             - { name: SLSKD_SLSK_USERNAME, value: fgdou }
             - { name: SLSKD_SHARED_DIR, value: /music }
-            - { name: SLSKD_UPLOAD_SPEED_LIMIT, value: "10000" }   # KiB/s (~10 MB/s); sharing more improves our queue priority with peers
+            - { name: SLSKD_UPLOAD_SPEED_LIMIT, value: "1000" }   # KiB/s (~1 MB/s); sharing more improves our queue priority with peers
             - { name: SLSKD_UPLOAD_SLOTS, value: "3" }
             - { name: SLSKD_DOWNLOAD_SPEED_LIMIT, value: "10000" }
           envFrom:
