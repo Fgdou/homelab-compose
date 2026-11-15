@@ -104,7 +104,7 @@ spec:
           imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
           env:
             - { name: TZ, value: Europe/Paris }
-            - { name: SCRIPT_INTERVAL, value: "3600" }   # seconds between runs (1 h)
+            - { name: SCRIPT_INTERVAL, value: "43200" }   # seconds between runs (12 h): each run floods the ISP router NAT table (~55k conntrack), services unreachable ~5 min
           resources:
             requests: { cpu: 10m, memory: 64Mi }
           volumeMounts:
