@@ -1,5 +1,5 @@
 # Prometheus metrics for radarr/sonarr/lidarr (onedr0p/exportarr): one binary, one process per app → 3 containers in one pod.
-# API key + port are read from each app's config.xml (read-only subPath mount of its config PVC, same node): no secret to sync.
+# API key + port are read from each app's config.xml (its config PVC mounted read-only, same node): no secret to sync.
 # config.xml is read at start: restart this pod after rotating an API key.
 apiVersion: apps/v1
 kind: Deployment
@@ -16,7 +16,8 @@ spec:
     spec:
       enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
       securityContext:
-        runAsNonRoot: true   # config.xml files are 0644/0664: readable by any uid
+        runAsNonRoot: true
+        runAsUser: 65532    # image user "nonroot" is not numeric; config.xml files are 0644/0664: readable by any uid
       containers:
         - name: radarr
           image: ghcr.io/onedr0p/exportarr:v2.3.0@sha256:af535d94061cf97a52e1661945ffba78c03f9443eae7c0da1a80a5a4be56b520
@@ -34,7 +35,7 @@ spec:
           resources:
             requests: { cpu: 5m, memory: 16Mi }
           volumeMounts:
-            - { name: radarr, mountPath: /arr/config.xml, subPath: config.xml, readOnly: true }
+            - { name: radarr, mountPath: /arr, readOnly: true }
         - name: sonarr
           image: ghcr.io/onedr0p/exportarr:v2.3.0@sha256:af535d94061cf97a52e1661945ffba78c03f9443eae7c0da1a80a5a4be56b520
           imagePullPolicy: IfNotPresent
@@ -51,7 +52,7 @@ spec:
           resources:
             requests: { cpu: 5m, memory: 16Mi }
           volumeMounts:
-            - { name: sonarr, mountPath: /arr/config.xml, subPath: config.xml, readOnly: true }
+            - { name: sonarr, mountPath: /arr, readOnly: true }
         - name: lidarr
           image: ghcr.io/onedr0p/exportarr:v2.3.0@sha256:af535d94061cf97a52e1661945ffba78c03f9443eae7c0da1a80a5a4be56b520
           imagePullPolicy: IfNotPresent
@@ -68,7 +69,7 @@ spec:
           resources:
             requests: { cpu: 5m, memory: 16Mi }
           volumeMounts:
-            - { name: lidarr, mountPath: /arr/config.xml, subPath: config.xml, readOnly: true }
+            - { name: lidarr, mountPath: /arr, readOnly: true }
       volumes:
         - name: radarr
           persistentVolumeClaim: { claimName: radarr, readOnly: true }
