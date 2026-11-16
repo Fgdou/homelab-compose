@@ -60,7 +60,7 @@ spec:
           env:
             - { name: PORT, value: "9709" }
             - { name: URL, value: http://lidarr:8686 }
-            - { name: CONFIG, value: /arr/config.xml }
+            - { name: CONFIG, value: /arr/config/config.xml }   # lidarr's PVC holds config/ and data/
           ports: [{ name: lidarr, containerPort: 9709 }]
           readinessProbe:
             httpGet: { path: /healthz, port: 9709 }
