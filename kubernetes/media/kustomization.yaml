@@ -6,3 +6,4 @@ resources:
   - secrets.yaml
   - arr.yaml
   - soulseek.yaml
+  - exportarr.yaml

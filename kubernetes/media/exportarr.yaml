@@ -1,0 +1,90 @@
+# Prometheus metrics for radarr/sonarr/lidarr (onedr0p/exportarr): one binary, one process per app → 3 containers in one pod.
+# API key + port are read from each app's config.xml (read-only subPath mount of its config PVC, same node): no secret to sync.
+# config.xml is read at start: restart this pod after rotating an API key.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exportarr
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
+  selector:
+    matchLabels: { app.kubernetes.io/name: exportarr }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: exportarr }
+    spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
+      securityContext:
+        runAsNonRoot: true   # config.xml files are 0644/0664: readable by any uid
+      containers:
+        - name: radarr
+          image: ghcr.io/onedr0p/exportarr:v2.3.0@sha256:af535d94061cf97a52e1661945ffba78c03f9443eae7c0da1a80a5a4be56b520
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
+          args: [radarr]
+          env:
+            - { name: PORT, value: "9707" }
+            - { name: URL, value: http://radarr:7878 }
+            - { name: CONFIG, value: /arr/config.xml }
+          ports: [{ name: radarr, containerPort: 9707 }]
+          readinessProbe:
+            httpGet: { path: /healthz, port: 9707 }
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests: { cpu: 5m, memory: 16Mi }
+          volumeMounts:
+            - { name: radarr, mountPath: /arr/config.xml, subPath: config.xml, readOnly: true }
+        - name: sonarr
+          image: ghcr.io/onedr0p/exportarr:v2.3.0@sha256:af535d94061cf97a52e1661945ffba78c03f9443eae7c0da1a80a5a4be56b520
+          imagePullPolicy: IfNotPresent
+          args: [sonarr]
+          env:
+            - { name: PORT, value: "9708" }
+            - { name: URL, value: http://sonarr:8989 }
+            - { name: CONFIG, value: /arr/config.xml }
+          ports: [{ name: sonarr, containerPort: 9708 }]
+          readinessProbe:
+            httpGet: { path: /healthz, port: 9708 }
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests: { cpu: 5m, memory: 16Mi }
+          volumeMounts:
+            - { name: sonarr, mountPath: /arr/config.xml, subPath: config.xml, readOnly: true }
+        - name: lidarr
+          image: ghcr.io/onedr0p/exportarr:v2.3.0@sha256:af535d94061cf97a52e1661945ffba78c03f9443eae7c0da1a80a5a4be56b520
+          imagePullPolicy: IfNotPresent
+          args: [lidarr]
+          env:
+            - { name: PORT, value: "9709" }
+            - { name: URL, value: http://lidarr:8686 }
+            - { name: CONFIG, value: /arr/config.xml }
+          ports: [{ name: lidarr, containerPort: 9709 }]
+          readinessProbe:
+            httpGet: { path: /healthz, port: 9709 }
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests: { cpu: 5m, memory: 16Mi }
+          volumeMounts:
+            - { name: lidarr, mountPath: /arr/config.xml, subPath: config.xml, readOnly: true }
+      volumes:
+        - name: radarr
+          persistentVolumeClaim: { claimName: radarr, readOnly: true }
+        - name: sonarr
+          persistentVolumeClaim: { claimName: sonarr, readOnly: true }
+        - name: lidarr
+          persistentVolumeClaim: { claimName: lidarr, readOnly: true }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exportarr
+  namespace: media
+spec:
+  selector: { app.kubernetes.io/name: exportarr }
+  ports:
+    - { name: radarr, port: 9707, targetPort: 9707 }
+    - { name: sonarr, port: 9708, targetPort: 9708 }
+    - { name: lidarr, port: 9709, targetPort: 9709 }
