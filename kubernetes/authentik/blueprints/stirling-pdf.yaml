@@ -1,0 +1,25 @@
+# Stirling-PDF forward-auth (pdf.fgdou.ovh), open to every authentik user (no policy binding), implicit consent.
+# Applied by hand in ak shell: Importer.from_string(open(...).read()).apply()  (README: OpenBao blueprint note),
+# then added to the embedded outpost: Outpost.objects.get(managed="goauthentik.io/outposts/embedded").providers.add(provider)
+version: 1
+metadata:
+  name: Stirling-PDF forward auth
+entries:
+  - model: authentik_providers_proxy.proxyprovider
+    id: provider
+    identifiers:
+      name: Stirling-PDF
+    attrs:
+      mode: forward_single
+      external_host: https://pdf.fgdou.ovh
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+  - model: authentik_core.application
+    identifiers:
+      slug: stirling-pdf
+    attrs:
+      name: Stirling-PDF
+      provider: !KeyOf provider
+      meta_launch_url: https://pdf.fgdou.ovh/
+      open_in_new_tab: true
+      policy_engine_mode: any

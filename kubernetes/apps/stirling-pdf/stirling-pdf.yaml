@@ -1,0 +1,78 @@
+# Stirling-PDF (github.com/Stirling-Tools/Stirling-PDF), ultra-lite: core PDF tools, no OCR/Office conversion, no built-in login.
+# Stateless on purpose: /configs (settings.yml, rebuilt at every start) and temp files are emptyDirs; settings come from env only.
+# Access: authentik forward-auth (proxy provider "Stirling-PDF", authentik/blueprints/stirling-pdf.yaml), any authentik user.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stirling-pdf
+  labels: { sablier.enable: "true", sablier.group: stirling-pdf }   # Sablier scales 0 <-> 1, no replicas in git (SCALE-TO-ZERO-HTTP.md)
+spec:
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
+  selector:
+    matchLabels: { app.kubernetes.io/name: stirling-pdf }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: stirling-pdf }
+    spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
+      containers:
+        - name: stirling-pdf
+          image: docker.io/stirlingtools/stirling-pdf:3.4.0-ultra-lite@sha256:3b9cba6895694dad37d3140c7e06a4ff22b30bc79a12ff076c2fedcceeb076a1
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
+          env:
+            - { name: SECURITY_ENABLELOGIN, value: "false" }      # authentik in front; ultra-lite has no login anyway
+            - { name: SYSTEM_ENABLEANALYTICS, value: "false" }    # no PostHog/Scarf telemetry, no consent banner
+            - { name: SYSTEM_FRONTENDURL, value: https://pdf.fgdou.ovh }
+            - { name: SYSTEM_BACKENDURL, value: https://pdf.fgdou.ovh }
+          ports: [{ name: http, containerPort: 8080 }]
+          readinessProbe:
+            httpGet: { path: /api/v1/info/status, port: 8080 }   # unauthenticated health endpoint
+            periodSeconds: 5
+            timeoutSeconds: 5
+          resources:
+            requests: { cpu: 20m, memory: 512Mi }
+            limits: { memory: 2Gi }       # docs: ultra-lite 2 GB; Java heap = 70% of the limit
+          volumeMounts:
+            - { name: configs, mountPath: /configs }
+            - { name: logs, mountPath: /logs }
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: configs, emptyDir: {} }
+        - { name: logs, emptyDir: { sizeLimit: 100Mi } }
+        - { name: tmp, emptyDir: { sizeLimit: 5Gi } }   # uploads/intermediate files (java.io.tmpdir), cleaned by the app after 24 h
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stirling-pdf
+  namespace: apps
+spec:
+  selector: { app.kubernetes.io/name: stirling-pdf }
+  ports:
+    - { name: http, port: 8080, targetPort: 8080 }
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: stirling-pdf
+  namespace: apps
+spec:
+  entryPoints: [websecure]
+  routes:
+    - match: Host(`pdf.fgdou.ovh`)
+      kind: Rule
+      middlewares: [{ name: authentik, namespace: authentik }, { name: stirling-pdf-sablier }]   # auth first: no wake-up for anonymous hits
+      services: [{ name: stirling-pdf, port: 8080 }]
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: stirling-pdf-sablier
+  namespace: apps
+spec:
+  plugin:
+    sablier:
+      sablierUrl: http://sablier.infra.svc.cluster.local:10000
+      group: stirling-pdf
+      sessionDuration: 30m
+      dynamic: { displayName: Stirling-PDF, refreshFrequency: 5s }

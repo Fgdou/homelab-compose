@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps-stirling-pdf
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Fgdou/homelab-compose.git
+    targetRevision: main
+    path: kubernetes/apps/stirling-pdf
+  destination: { server: https://kubernetes.default.svc, namespace: apps }
+  ignoreDifferences:                              # Sablier scales 0 <-> 1 (SCALE-TO-ZERO-HTTP.md)
+    - { group: apps, kind: Deployment, name: stirling-pdf, namespace: apps, jsonPointers: [/spec/replicas] }
+  syncPolicy:
+    automated: { prune: false, selfHeal: true }   # since 2026-11-19
+    syncOptions: [RespectIgnoreDifferences=true]
