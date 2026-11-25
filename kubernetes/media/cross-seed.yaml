@@ -1,0 +1,94 @@
+# cross-seed: finds torrents already on disk on the private trackers (Prowlarr Torznab) and injects them into
+# qbittorrent, hardlinked under /data/Download/cross-seed: seeding with no download (ratio, e.g. C411).
+# API keys are read from each app's config.xml (config PVCs mounted read-only, as exportarr): no secret to sync.
+# config.js is read at start: restart after rotating an API key or changing the indexer list.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cross-seed
+data:
+  config.js: |
+    const fs = require("fs");
+    const apiKey = (f) => fs.readFileSync(f, "utf8").match(/<ApiKey>([^<]+)<\/ApiKey>/)[1];
+    const prowlarr = apiKey("/arr/prowlarr/config.xml");
+    // Prowlarr indexer ids (private / semi-private only: cross-seed is not meant for public trackers)
+    const indexers = { C411: 52, G3MINI: 53, YggReborn: 51, TR4KER: 54 };
+
+    module.exports = {
+      torznab: Object.values(indexers).map((id) => `http://prowlarr:9696/${id}/api?apikey=${prowlarr}`),
+      sonarr: [`http://sonarr:8989/?apikey=${apiKey("/arr/sonarr/config.xml")}`],
+      radarr: [`http://radarr:7878/?apikey=${apiKey("/arr/radarr/config.xml")}`],
+      // WebUI auth is bypassed for the cluster (qbittorrent AuthSubnetWhitelist): no credentials
+      torrentClients: ["qbittorrent:http://qbittorrent:8080"],
+      useClientTorrents: true,
+      dataDirs: [],
+      // same filesystem as qbittorrent's save path /data/Download (films PVC, same mount path in both pods)
+      linkDirs: ["/data/Download/cross-seed"],
+      linkType: "hardlink",
+      flatLinking: false,
+      matchMode: "flexible",
+      action: "inject",
+      skipRecheck: true,
+      includeSingleEpisodes: true,
+      includeNonVideos: false,
+      seasonFromEpisodes: 1,
+      duplicateCategories: false,
+      outputDir: null,
+      torrentDir: null,
+      host: "0.0.0.0",
+      port: 2468,
+      // pacing: defaults, polite to the trackers
+      delay: 30,
+      rssCadence: "30 minutes",
+      searchCadence: "1 day",
+      excludeOlder: "2 weeks",
+      excludeRecentSearch: "3 days",
+    };
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cross-seed
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: cross-seed }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: cross-seed }
+    spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
+      securityContext:
+        # qbittorrent's uid/gid: hardlinks need to own the source files (fs.protected_hardlinks=1)
+        runAsUser: 911
+        runAsGroup: 911
+      containers:
+        - name: cross-seed
+          image: ghcr.io/cross-seed/cross-seed:6.13.9@sha256:c310f84e040b82c140424f6377fa36487335261037175ef9cec3aefc92b93076
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
+          args: [daemon]
+          env:
+            - { name: TZ, value: Europe/Paris }
+          ports: [{ name: http, containerPort: 2468 }]
+          readinessProbe:
+            tcpSocket: { port: 2468 }
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests: { cpu: 10m, memory: 128Mi }
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: config-js, mountPath: /config/config.js, subPath: config.js }
+            - { name: films, mountPath: /data }   # same path as in qbittorrent
+            - { name: prowlarr, mountPath: /arr/prowlarr, readOnly: true }
+            - { name: sonarr, mountPath: /arr/sonarr, readOnly: true }
+            - { name: radarr, mountPath: /arr/radarr, readOnly: true }
+      volumes:
+        - { name: config, persistentVolumeClaim: { claimName: cross-seed } }
+        - { name: config-js, configMap: { name: cross-seed } }
+        - { name: films, persistentVolumeClaim: { claimName: films } }
+        - { name: prowlarr, persistentVolumeClaim: { claimName: prowlarr, readOnly: true } }
+        - { name: sonarr, persistentVolumeClaim: { claimName: sonarr, readOnly: true } }
+        - { name: radarr, persistentVolumeClaim: { claimName: radarr, readOnly: true } }

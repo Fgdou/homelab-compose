@@ -270,3 +270,30 @@ spec:
   volumeName: media-music
   accessModes: [ReadWriteOnce]
   resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-cross-seed
+spec:
+  storageClassName: films
+  capacity: { storage: 1Gi }
+  accessModes: [ReadWriteOnce]
+  persistentVolumeReclaimPolicy: Retain
+  local: { path: /films/cross-seed }   # owned 911:911 (qbittorrent's uid)
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - { key: kubernetes.io/hostname, operator: In, values: [nas] }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cross-seed
+  namespace: media
+spec:
+  storageClassName: films
+  volumeName: media-cross-seed
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }

@@ -7,3 +7,4 @@ resources:
   - arr.yaml
   - soulseek.yaml
   - exportarr.yaml
+  - cross-seed.yaml
