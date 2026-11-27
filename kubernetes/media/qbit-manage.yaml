@@ -1,5 +1,5 @@
 # qbit_manage: share limits by tracker. Every torrent is removed WITH its files once its limit is reached:
-# private torrents (qBittorrent "private" flag, + tracker tags) after 30 days of seeding, public ones after 1 day.
+# private trackers (the `tracker:` list below) after 30 days of seeding, all other torrents after 1 day.
 # Only /data/Download is touched: the arrs import by hardlink, so the library copy (films/, series/) stays.
 # A download not imported within that day (import blocked, manual import needed) is lost: accepted.
 # Deleted files go to /data/Download/.RecycleBin (emptied after 3 days, .torrent/.fastresume kept there too).
@@ -36,7 +36,7 @@ data:
       tracker_error_tag: issue
       nohardlinks_tag: noHL
       stalled_tag: stalledDL
-      private_tag: private          # every torrent with the private flag, whatever its tracker
+      private_tag: null             # the .torrent private flag is ignored (some public releases set it): trackers below only
       share_limits_tag: ~share_limit
       share_limits_min_seeding_time_tag: MinSeedTimeNotReached
       share_limits_min_num_seeds_tag: MinSeedsNotMet
@@ -60,7 +60,8 @@ data:
       Uncategorized: "/data/Download"
 
     tracker:
-      # private trackers (keyword = part of the announce URL); a new private tracker is still caught by `private`
+      # private trackers (keyword = part of the announce URL). A new private tracker MUST be added here,
+      # otherwise its torrents are `public` and deleted after 1 day.
       c411:
         tag: C411
       gemini-tracker:
@@ -76,14 +77,14 @@ data:
       # first matching group by priority (lowest number first)
       private:
         priority: 1
-        include_any_tags: [private, C411, G3MINI, TR4KER, YggReborn]
+        include_any_tags: [C411, G3MINI, TR4KER, YggReborn]
         max_seeding_time: 30d       # the former qBittorrent global limit
         cleanup: true               # then removed with its files, like public ones
         share_limit_action: Stop
       public:
         priority: 2
         include_any_tags: [public]  # opt-in: an untagged torrent (tagging failed) falls to `default`, never deleted
-        exclude_any_tags: [private, C411, G3MINI, TR4KER, YggReborn]
+        exclude_any_tags: [C411, G3MINI, TR4KER, YggReborn]
         max_seeding_time: 1d        # = the minimum too: never deleted before 1 day of seeding
         cleanup: true               # remove torrent + files (through the recycle bin)
         share_limit_action: Stop    # qbittorrent only stops it; qbm deletes on its next run
