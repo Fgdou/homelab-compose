@@ -1,5 +1,5 @@
-# qbit_manage: share limits by tracker. Private torrents (qBittorrent "private" flag, + tracker tags) keep the old
-# global rule (stop after 30 days, never deleted). Public torrents: removed WITH their files after 1 day of seeding.
+# qbit_manage: share limits by tracker. Every torrent is removed WITH its files once its limit is reached:
+# private torrents (qBittorrent "private" flag, + tracker tags) after 30 days of seeding, public ones after 1 day.
 # Only /data/Download is touched: the arrs import by hardlink, so the library copy (films/, series/) stays.
 # A download not imported within that day (import blocked, manual import needed) is lost: accepted.
 # Deleted files go to /data/Download/.RecycleBin (emptied after 3 days, .torrent/.fastresume kept there too).
@@ -78,7 +78,7 @@ data:
         priority: 1
         include_any_tags: [private, C411, G3MINI, TR4KER, YggReborn]
         max_seeding_time: 30d       # the former qBittorrent global limit
-        cleanup: false
+        cleanup: true               # then removed with its files, like public ones
         share_limit_action: Stop
       public:
         priority: 2
@@ -90,7 +90,7 @@ data:
       default:                      # untagged torrents: same as private
         priority: 999
         max_seeding_time: 30d
-        cleanup: false
+        cleanup: true
         share_limit_action: Stop
 
     recyclebin:
