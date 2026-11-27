@@ -1,5 +1,6 @@
 # cross-seed: finds torrents already on disk on the private trackers (Prowlarr Torznab) and injects them into
 # qbittorrent, hardlinked under /data/Download/cross-seed: seeding with no download (ratio, e.g. C411).
+# Sources: qbittorrent torrents + the library (dataDirs /data/films, /data/series).
 # API keys are read from each app's config.xml (config PVCs mounted read-only, as exportarr): no secret to sync.
 # config.js is read at start: restart after rotating an API key or changing the indexer list.
 apiVersion: v1
@@ -21,7 +22,10 @@ data:
       // WebUI auth is bypassed for the cluster (qbittorrent AuthSubnetWhitelist): no credentials
       torrentClients: ["qbittorrent:http://qbittorrent:8080"],
       useClientTorrents: true,
-      dataDirs: [],
+      // library (radarr/sonarr folders, same filesystem as linkDirs): data-based matches seed it on the trackers.
+      // depth 2 = films/<Movie>/<file> and series/<Show>/<Season N> (season packs only, no single episodes)
+      dataDirs: ["/data/films", "/data/series"],
+      maxDataDepth: 2,
       // same filesystem as qbittorrent's save path /data/Download (films PVC, same mount path in both pods)
       linkDirs: ["/data/Download/cross-seed"],
       linkType: "hardlink",
@@ -37,12 +41,14 @@ data:
       torrentDir: null,
       host: "0.0.0.0",
       port: 2468,
-      // pacing: defaults, polite to the trackers
+      // pacing, frugal (library ~2400 searchees, 4 indexers): 100 searches/day, 30 s apart (backlog ~1 month);
+      // each item searched at most ~3 times (every 2 weeks, for 5 weeks after its first search), then RSS only
       delay: 30,
       rssCadence: "30 minutes",
       searchCadence: "1 day",
-      excludeOlder: "2 weeks",
-      excludeRecentSearch: "3 days",
+      searchLimit: 100,
+      excludeOlder: "5 weeks",
+      excludeRecentSearch: "2 weeks",
     };
 ---
 apiVersion: apps/v1
