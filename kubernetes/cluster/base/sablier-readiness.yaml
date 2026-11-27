@@ -1,0 +1,23 @@
+# Sablier (infra) readiness=endpoints (1.21): Sablier holds the waiting page until the Services route to a ready pod.
+# Only in `apps` (every sablier.enable workload lives there): listing pods reads their env values.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: sablier-readiness
+  namespace: apps
+rules:
+  - apiGroups: [""]
+    resources: [services, pods]
+    verbs: [list]
+  - apiGroups: [discovery.k8s.io]
+    resources: [endpointslices]
+    verbs: [list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sablier-readiness
+  namespace: apps
+roleRef: { apiGroup: rbac.authorization.k8s.io, kind: Role, name: sablier-readiness }
+subjects:
+  - { kind: ServiceAccount, name: sablier, namespace: infra }
