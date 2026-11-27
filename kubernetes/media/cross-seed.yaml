@@ -13,7 +13,7 @@ data:
     const apiKey = (f) => fs.readFileSync(f, "utf8").match(/<ApiKey>([^<]+)<\/ApiKey>/)[1];
     const prowlarr = apiKey("/arr/prowlarr/config.xml");
     // Prowlarr indexer ids (private / semi-private only: cross-seed is not meant for public trackers)
-    const indexers = { C411: 52 };
+    const indexers = { C411: 52, G3MINI: 53, YggReborn: 51, TR4KER: 54 };
 
     module.exports = {
       torznab: Object.values(indexers).map((id) => `http://prowlarr:9696/${id}/api?apikey=${prowlarr}`),
