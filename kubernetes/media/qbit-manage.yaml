@@ -1,0 +1,157 @@
+# qbit_manage: share limits by tracker. Private torrents (qBittorrent "private" flag, + tracker tags) keep the old
+# global rule (stop after 30 days, never deleted). Public torrents: removed WITH their files after 1 day of seeding.
+# Only /data/Download is touched: the arrs import by hardlink, so the library copy (films/, series/) stays.
+# A download not imported within that day (import blocked, manual import needed) is lost: accepted.
+# Deleted files go to /data/Download/.RecycleBin (emptied after 3 days, .torrent/.fastresume kept there too).
+# Takes over qBittorrent's own global share limit (disable_qbt_default_share_limits): edit limits here, not in the WebUI.
+# No WebUI. Config is copied from the ConfigMap at start: a ConfigMap change needs a pod restart (the checksum
+# annotation is not automatic: `kubectl -n media rollout restart deploy/qbit-manage`).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qbit-manage
+data:
+  config.yml: |
+    commands:
+      dry_run: false
+      recheck: false
+      cat_update: false
+      tag_update: true
+      rem_unregistered: false
+      tag_tracker_error: false
+      rem_orphaned: false
+      tag_nohardlinks: false
+      share_limits: true
+      skip_qb_version_check: false
+      skip_cleanup: false
+
+    qbt:
+      # WebUI auth is bypassed for the cluster (qbittorrent AuthSubnetWhitelist): no credentials
+      host: "http://qbittorrent:8080"
+      user: ""
+      pass: ""
+
+    settings:
+      force_auto_tmm: false
+      tracker_error_tag: issue
+      nohardlinks_tag: noHL
+      stalled_tag: stalledDL
+      private_tag: private          # every torrent with the private flag, whatever its tracker
+      share_limits_tag: ~share_limit
+      share_limits_min_seeding_time_tag: MinSeedTimeNotReached
+      share_limits_min_num_seeds_tag: MinSeedsNotMet
+      share_limits_last_active_tag: LastActiveLimitNotReached
+      cat_filter_completed: true
+      share_limits_filter_completed: true
+      tag_nohardlinks_filter_completed: true
+      rem_unregistered_filter_completed: false
+      cat_update_all: true
+      disable_qbt_default_share_limits: true
+      tag_stalled_torrents: false
+
+    directory:
+      # same paths as qbittorrent (films PVC at /data): no remote_dir in a container
+      root_dir: "/data/Download"
+      recycle_bin: "/data/Download/.RecycleBin"   # same filesystem: a move, no copy
+      torrents_dir: "/qbittorrent/qBittorrent/BT_backup"
+
+    cat:
+      # all categories use the default save path /data/Download (cross-seed-link: /data/Download/cross-seed/...)
+      Uncategorized: "/data/Download"
+
+    tracker:
+      # private trackers (keyword = part of the announce URL); a new private tracker is still caught by `private`
+      c411:
+        tag: C411
+      gemini-tracker:
+        tag: G3MINI
+      tr4ker:
+        tag: TR4KER
+      yggreborn:
+        tag: YggReborn
+      other:
+        tag: public
+
+    share_limits:
+      # first matching group by priority (lowest number first)
+      private:
+        priority: 1
+        include_any_tags: [private, C411, G3MINI, TR4KER, YggReborn]
+        max_seeding_time: 30d       # the former qBittorrent global limit
+        cleanup: false
+        share_limit_action: Stop
+      public:
+        priority: 2
+        include_any_tags: [public]  # opt-in: an untagged torrent (tagging failed) falls to `default`, never deleted
+        exclude_any_tags: [private, C411, G3MINI, TR4KER, YggReborn]
+        max_seeding_time: 1d        # = the minimum too: never deleted before 1 day of seeding
+        cleanup: true               # remove torrent + files (through the recycle bin)
+        share_limit_action: Stop    # qbittorrent only stops it; qbm deletes on its next run
+      default:                      # untagged torrents: same as private
+        priority: 999
+        max_seeding_time: 30d
+        cleanup: false
+        share_limit_action: Stop
+
+    recyclebin:
+      enabled: true
+      empty_after_x_days: 3
+      save_torrents: true
+      split_by_category: false
+
+    orphaned:
+      empty_after_x_days: 60
+      min_file_age_minutes: 30
+      max_orphaned_files_to_delete: 50
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbit-manage
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2   # old ReplicaSets kept for rollout undo (rollback = git revert here)
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: qbit-manage }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: qbit-manage }
+    spec:
+      enableServiceLinks: false   # no <SERVICE>_PORT/_HOST env vars (README: service links trap)
+      initContainers:
+        # qbm may rewrite its config: give it a writable copy instead of the read-only ConfigMap
+        - name: config
+          image: ghcr.io/stuffanthings/qbit_manage:v4.15.0@sha256:f8db47d6533bac7c7f71d367545c5059d7228bcca188db1e059dbf4a693d8362
+          imagePullPolicy: IfNotPresent
+          command: [sh, -c, "cp /cm/config.yml /config/config.yml && chown -R 911:911 /config"]
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: config-yml, mountPath: /cm }
+      containers:
+        - name: qbit-manage
+          image: ghcr.io/stuffanthings/qbit_manage:v4.15.0@sha256:f8db47d6533bac7c7f71d367545c5059d7228bcca188db1e059dbf4a693d8362
+          imagePullPolicy: IfNotPresent   # digest-pinned: no registry/DNS needed at boot
+          env:
+            - { name: TZ, value: Europe/Paris }
+            - { name: PUID, value: "911" }   # qbittorrent's uid/gid: owns /data/Download
+            - { name: PGID, value: "911" }
+            - { name: QBT_CONFIG_DIR, value: /config }
+            - { name: QBT_SCHEDULE, value: "30" }        # minutes
+            - { name: QBT_STARTUP_DELAY, value: "120" }  # let qbittorrent come up after a reboot
+            - { name: QBT_WEB_SERVER, value: "false" }
+          # no serving port (WebUI off): process liveness only
+          readinessProbe:
+            exec: { command: [sh, -c, "pgrep -f qbit_manage.py >/dev/null"] }
+            periodSeconds: 60
+          resources:
+            requests: { cpu: 10m, memory: 96Mi }
+          volumeMounts:
+            - { name: config, mountPath: /config }
+            - { name: films, mountPath: /data }   # same path as in qbittorrent
+            - { name: qbittorrent, mountPath: /qbittorrent, readOnly: true }
+      volumes:
+        - { name: config, emptyDir: {} }   # logs only, rebuilt from the ConfigMap
+        - { name: config-yml, configMap: { name: qbit-manage } }
+        - { name: films, persistentVolumeClaim: { claimName: films } }
+        - { name: qbittorrent, persistentVolumeClaim: { claimName: qbittorrent, readOnly: true } }

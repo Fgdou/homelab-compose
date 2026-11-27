@@ -8,3 +8,4 @@ resources:
   - soulseek.yaml
   - exportarr.yaml
   - cross-seed.yaml
+  - qbit-manage.yaml
